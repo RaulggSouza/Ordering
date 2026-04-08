@@ -1,23 +1,29 @@
 # Ordering
-O agregado principal seria o próprio Order. Ele será composto por entidades como Customer e SKUs. Caso considere um agregado pequeno para o escopo do projeto, podemos considerar inserir outras entidades, como DistributionCenter, etc.
 
-Sobre Value objects, pensamos em utilizar:
-- Money: Para representar valores monetários com diferentes moedas e/ou regras.
-- Address: Para representar o endereço de entrega e também o endereço do Customer
-- Discount: Para representar os descontos associados ao pedido. Pode existir mais de um no pedido e são acumulativos.
+Projeto desenvolvido no contexto do Trabalho Prático da disciplina **Verificação, Validação e Teste de Software** (IFSP Câmpus São Carlos – Prof. Dr. Lucas Oliveira).
 
-Regras de negócio relevantes:
-- Um pedido não pode ser criado sem SKUs ou com quantidade 0
-- O valor total de descontos não pode ultrapassar o valor total dos itens do pedido
-- O mesmo tipo de desconto (Ex: promocional) não pode ser aplicado ao pedido. 
-- Descontos só podem ser aplicados caso atinjam um valor mínimo de pedido (faixas possíveis de uso)
- - Um pedido não pode ser alterado após ser faturado, finalizado, ou despachado.
--  Um pedido só pode ser cancelado antes de ter sido despachado.
+A especificação funcional do sistema (backlog) é mantida nas **Issues** do repositório, em especial:
+- `use-case`: objetivos de negócio do sistema;
+- `user-story`: regras e cenários (BDD) que detalham os casos de uso.
 
-Possíveis casos de uso:
+## Escopo do domínio
+
+O agregado principal é o **Order**. Ele será composto por entidades como **Customer** e **SKUs**. Caso o agregado fique pequeno para o escopo do projeto, podemos considerar inserir outras entidades, como **DistributionCenter**, etc.
+
+### Value Objects (ideias iniciais)
+- **Money**: representa valores monetários (moeda, arredondamento e regras associadas).
+- **Address**: representa o endereço de entrega e também o endereço do Customer.
+- **Discount**: representa descontos associados ao pedido; pode existir mais de um desconto no pedido e eles podem ser acumulativos (respeitando as regras do backlog).
+
+## Regras de negócio (alto nível)
 - Criar pedido
-- Alterar pedido (SKUs, quantidades, etc)
-- Atualizar status (ir para status seguinte, ex: processando -> faturado, faturado -> despachado, etc).
-- Calcular valores totais (líquido e bruto)
-- Consultar descontos válidos dado valor do pedido
-- Finalizar e/ou cancelar pedido.
+- Alterar pedido (SKUs/itens, quantidades, etc.)
+- Atualizar status (mover para o próximo status válido)
+- Calcular valores totais (bruto e líquido)
+- Consultar descontos elegíveis dado o estado/valor do pedido
+- Aplicar desconto(s) e finalizar/cancelar pedido
+
+## Requisitos técnicos
+
+- **JDK**: usar um JDK compatível com a versão configurada no `pom.xml` (atualmente `25`).
+- **Package base** (atual): `br.edu.ifsp.scl.ordering`
