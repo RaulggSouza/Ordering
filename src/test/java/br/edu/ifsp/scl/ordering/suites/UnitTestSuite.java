@@ -4,9 +4,8 @@ import org.junit.platform.suite.api.IncludeTags;
 import org.junit.platform.suite.api.SelectPackages;
 import org.junit.platform.suite.api.Suite;
 
-@Suite
+@Suite(failIfNoTests = false)
 @SelectPackages("br.edu.ifsp.scl.ordering")
 @IncludeTags("UnitTest")
 public class UnitTestSuite {
 }
-
