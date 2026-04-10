@@ -1,6 +1,7 @@
 package br.edu.ifsp.scl.ordering.domain.aggregate;
 
 import br.edu.ifsp.scl.ordering.domain.constant.OrderStatus;
+import br.edu.ifsp.scl.ordering.domain.entity.Discount;
 import br.edu.ifsp.scl.ordering.domain.entity.OrderItem;
 import br.edu.ifsp.scl.ordering.domain.valueobject.Address;
 import br.edu.ifsp.scl.ordering.domain.valueobject.CustomerId;
@@ -14,4 +15,8 @@ public class Order {
     private Address shippingAddress;
     private List<OrderItem> items;
     private OrderStatus status;
+
+    public List<Discount> getDiscounts() {
+        return List.of();
+    }
 }
