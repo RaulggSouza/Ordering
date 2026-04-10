@@ -8,6 +8,7 @@ import br.edu.ifsp.scl.ordering.domain.entity.OrderItem;
 import br.edu.ifsp.scl.ordering.domain.valueobject.DiscountId;
 import br.edu.ifsp.scl.ordering.domain.valueobject.OrderId;
 import br.edu.ifsp.scl.ordering.domain.valueobject.ProductId;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -30,18 +31,26 @@ public class ApplyDiscountServiceTest {
     @InjectMocks
     private ApplyDiscountService sut;
 
-    @Test
-    @DisplayName("Should add the selected discount to order discount list")
-    void shouldAddTheSelectedDiscountToOrderDiscountList() {
-        DiscountId discountId = new DiscountId("");
-        OrderId orderId = new OrderId("");
+    private OrderId orderId;
+    private DiscountId discountId;
+    private Order order;
+    private Discount discount;
 
-        Discount discount = createDiscountWithValue10();
-        Order order = createOrderWithTotalAs100();
+    @BeforeEach
+    void setup() {
+        orderId = new OrderId("order-1");
+        discountId = new DiscountId("discount-1");
+
+        order = createOrderWithTotalAs100(orderId);
+        discount = createDiscountWithValue10(discountId);
 
         when(orderRepository.findById(orderId)).thenReturn(Optional.of(order));
         when(discountRepository.findById(discountId)).thenReturn(Optional.of(discount));
+    }
 
+    @Test
+    @DisplayName("Should add the selected discount to order discount list")
+    void shouldAddTheSelectedDiscountToOrderDiscountList() {
         sut.apply(orderId, List.of(discountId));
         assertThat(order.getDiscounts().contains(discount)).isTrue();
     }
@@ -49,29 +58,20 @@ public class ApplyDiscountServiceTest {
     @Test
     @DisplayName("Should update order total to gross total minus selected discounts")
     void shouldUpdateOrderTotalToGrossTotalMinusSelectedDiscounts() {
-        DiscountId discountId = new DiscountId("");
-        OrderId orderId = new OrderId("");
-
-        Discount discount = createDiscountWithValue10();
-        Order order = createOrderWithTotalAs100();
-
-        when(orderRepository.findById(orderId)).thenReturn(Optional.of(order));
-        when(discountRepository.findById(discountId)).thenReturn(Optional.of(discount));
-
         sut.apply(orderId, List.of(discountId));
         assertThat(order.getDiscounts()).contains(discount);
         assertThat(order.getTotal()).isEqualTo(90.0);
     }
 
-    private Order createOrderWithTotalAs100() {
-        ProductId productId = new ProductId("Product100");
+    private Order createOrderWithTotalAs100(OrderId orderId) {
+        ProductId productId = new ProductId("product-value-100");
         OrderItem orderItem = new OrderItem(productId, 1, 100.0);
-        Order order = new Order();
+        Order order = new Order(orderId);
         order.addItem(orderItem);
         return order;
     }
 
-    private Discount createDiscountWithValue10() {
-        return new Discount(10.0);
+    private Discount createDiscountWithValue10(DiscountId discountId) {
+        return new Discount(discountId, 10.0);
     }
 }

@@ -11,12 +11,16 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Order {
-    private OrderId id;
+    private final OrderId id;
     private CustomerId customerId;
     private Address shippingAddress;
     private List<OrderItem> items;
     private OrderStatus status;
     private final List<Discount> discounts = new ArrayList<>();
+
+    public Order(OrderId id) {
+        this.id = id;
+    }
 
     public List<Discount> getDiscounts() {
         return List.copyOf(discounts);
