@@ -25,4 +25,16 @@ public class Order {
     public void addDiscount(Discount discount) {
         discounts.add(discount);
     }
+
+    public double getGrossTotal() {
+        return 0;
+    }
+
+    public double getTotal() {
+        return 0;
+    }
+
+    public void addItem(OrderItem orderItem) {
+
+    }
 }
