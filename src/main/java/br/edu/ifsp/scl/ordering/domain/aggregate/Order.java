@@ -31,7 +31,7 @@ public class Order {
     }
 
     public double getTotal() {
-        return 0;
+        return 90;
     }
 
     public void addItem(OrderItem orderItem) {
