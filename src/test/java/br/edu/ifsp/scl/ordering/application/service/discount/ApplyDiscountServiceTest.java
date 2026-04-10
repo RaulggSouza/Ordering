@@ -5,6 +5,7 @@ import br.edu.ifsp.scl.ordering.application.ports.outbound.persistence.order.IOr
 import br.edu.ifsp.scl.ordering.domain.aggregate.Order;
 import br.edu.ifsp.scl.ordering.domain.entity.Discount;
 import br.edu.ifsp.scl.ordering.domain.entity.OrderItem;
+import br.edu.ifsp.scl.ordering.domain.exception.IllegalOrderOperationException;
 import br.edu.ifsp.scl.ordering.domain.valueobject.DiscountId;
 import br.edu.ifsp.scl.ordering.domain.valueobject.OrderId;
 import br.edu.ifsp.scl.ordering.domain.valueobject.ProductId;
@@ -20,8 +21,8 @@ import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 public class ApplyDiscountServiceTest {
@@ -65,11 +66,29 @@ public class ApplyDiscountServiceTest {
         assertThat(order.getTotal()).isEqualTo(90.0);
     }
 
+    @Test
+    @DisplayName("Should throw IllegalOrderOperationException when apply discount for cancelled order")
+    void shouldThrowIllegalOrderOperationExceptionWhenApplyDiscountForCancelledOrder() {
+        order = createCancelledOrder(orderId);
+        when(orderRepository.findById(orderId)).thenReturn(Optional.of(order));
+
+        assertThatExceptionOfType(IllegalOrderOperationException.class)
+                .isThrownBy(() -> sut.apply(orderId, List.of(discountId)));
+
+        verify(discountRepository, never()).findById(discountId);
+    }
+
     private Order createOrderWithTotalAs100(OrderId orderId) {
         ProductId productId = new ProductId("product-value-100");
         OrderItem orderItem = new OrderItem(productId, 1, 100.0);
         Order order = new Order(orderId);
         order.addItem(orderItem);
+        return order;
+    }
+
+    private Order createCancelledOrder(OrderId orderId) {
+        Order order = new Order(orderId);
+        order.cancel();
         return order;
     }
 

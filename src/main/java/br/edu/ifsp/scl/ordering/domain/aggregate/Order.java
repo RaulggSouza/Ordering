@@ -41,4 +41,8 @@ public class Order {
     public void addItem(OrderItem orderItem) {
 
     }
+
+    public void cancel() {
+        this.status = OrderStatus.CANCELLED;
+    }
 }
