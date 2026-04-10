@@ -45,14 +45,14 @@ public class ApplyDiscountServiceTest {
 
         order = createOrderWithTotalAs100(orderId);
         discount = createDiscountWithValue10(discountId);
-
-        when(orderRepository.findById(orderId)).thenReturn(Optional.of(order));
-        when(discountRepository.findById(discountId)).thenReturn(Optional.of(discount));
     }
 
     @Test
     @DisplayName("Should add the selected discount to order discount list")
     void shouldAddTheSelectedDiscountToOrderDiscountList() {
+        when(orderRepository.findById(orderId)).thenReturn(Optional.of(order));
+        when(discountRepository.findById(discountId)).thenReturn(Optional.of(discount));
+
         sut.apply(orderId, List.of(discountId));
         assertThat(order.getDiscounts()).contains(discount);
         verify(orderRepository).findById(orderId);
@@ -62,6 +62,9 @@ public class ApplyDiscountServiceTest {
     @Test
     @DisplayName("Should update order total to gross total minus selected discounts")
     void shouldUpdateOrderTotalToGrossTotalMinusSelectedDiscounts() {
+        when(orderRepository.findById(orderId)).thenReturn(Optional.of(order));
+        when(discountRepository.findById(discountId)).thenReturn(Optional.of(discount));
+
         sut.apply(orderId, List.of(discountId));
         assertThat(order.getTotal()).isEqualTo(90.0);
     }
