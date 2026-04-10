@@ -7,6 +7,7 @@ import br.edu.ifsp.scl.ordering.domain.valueobject.Address;
 import br.edu.ifsp.scl.ordering.domain.valueobject.CustomerId;
 import br.edu.ifsp.scl.ordering.domain.valueobject.OrderId;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class Order {
@@ -15,8 +16,13 @@ public class Order {
     private Address shippingAddress;
     private List<OrderItem> items;
     private OrderStatus status;
+    private final List<Discount> discounts = new ArrayList<>();
 
     public List<Discount> getDiscounts() {
-        return List.of();
+        return List.copyOf(discounts);
+    }
+
+    public void addDiscount(Discount discount) {
+        discounts.add(discount);
     }
 }

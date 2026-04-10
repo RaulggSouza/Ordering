@@ -40,7 +40,7 @@ public class ApplyDiscountServiceTest {
         when(orderRepository.findById(orderId)).thenReturn(Optional.of(order));
         when(discountRepository.findById(discountId)).thenReturn(Optional.of(discount));
 
-        sut.apply(orderId.value(), List.of(discountId.value()));
+        sut.apply(orderId, List.of(discountId));
         assertThat(order.getDiscounts().contains(discount)).isTrue();
     }
 }
