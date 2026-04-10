@@ -20,6 +20,7 @@ import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -52,14 +53,15 @@ public class ApplyDiscountServiceTest {
     @DisplayName("Should add the selected discount to order discount list")
     void shouldAddTheSelectedDiscountToOrderDiscountList() {
         sut.apply(orderId, List.of(discountId));
-        assertThat(order.getDiscounts().contains(discount)).isTrue();
+        assertThat(order.getDiscounts()).contains(discount);
+        verify(orderRepository).findById(orderId);
+        verify(discountRepository).findById(discountId);
     }
 
     @Test
     @DisplayName("Should update order total to gross total minus selected discounts")
     void shouldUpdateOrderTotalToGrossTotalMinusSelectedDiscounts() {
         sut.apply(orderId, List.of(discountId));
-        assertThat(order.getDiscounts()).contains(discount);
         assertThat(order.getTotal()).isEqualTo(90.0);
     }
 
