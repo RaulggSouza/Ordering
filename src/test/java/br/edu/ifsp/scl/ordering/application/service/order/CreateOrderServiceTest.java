@@ -133,7 +133,7 @@ public class CreateOrderServiceTest {
                 )
         );
 
-        assertThatNullPointerException().isThrownBy(() -> sut.create(request));
+        assertThatNullPointerException().isThrownBy(() -> sut.create(request)).withMessage("Customer must not be null");
 
         verify(customerRepository, never()).findById(any(CustomerId.class));
         verify(productRepository, never()).allExistsByIds(anyList());
