@@ -270,5 +270,6 @@ public class CreateOrderServiceTest {
         verify(customerRepository, times(1)).findById(any(CustomerId.class));
         verify(productRepository, times(1)).allExistsByIds(anyList());
         verify(orderRepository, never()).save(any(Order.class));
+        verify(productInventoryRepository, times(1)).findOutOfStockItems(productIds);
     }
 }
