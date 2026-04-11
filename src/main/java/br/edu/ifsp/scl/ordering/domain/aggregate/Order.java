@@ -23,4 +23,8 @@ public class Order {
     public OrderId getOrderId() {
         return id;
     }
+
+    public double getTotal(){
+        return items.stream().mapToDouble(OrderItem::getTotal).sum();
+    }
 }

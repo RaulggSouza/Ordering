@@ -43,7 +43,7 @@ public class GetEligibleDiscountsServiceTest {
     @CsvSource(
             nullValues = "NULL",
             value = {
-                    "1:1,1"
+                    "1:1:10,1"
             }
     )
     void shouldReturnAllEligibleDiscounts(String orderProductsInput, String discountsIdsInput) {
@@ -68,7 +68,7 @@ public class GetEligibleDiscountsServiceTest {
 
     private static List<Discount> createDiscounts(){
         return List.of(
-                new Discount(new DiscountId("1"))
+                new Discount(new DiscountId("1"), 1)
         );
     }
 
@@ -78,7 +78,8 @@ public class GetEligibleDiscountsServiceTest {
                     String[] parts = productString.split(":");
                     String productId = parts[0];
                     int quantity = Integer.parseInt(parts[1]);
-                    return new OrderItem(new ProductId(productId), quantity);
+                    double price = Double.parseDouble(parts[2]);
+                    return new OrderItem(new ProductId(productId), quantity, price);
                 })
                 .toList();
 
