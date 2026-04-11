@@ -202,16 +202,30 @@ public class CreateOrderServiceTest {
 
     @UnitTest
     @Functional
-    @Test
+    @ParameterizedTest
+    @CsvSource({
+            "0",
+            "1",
+            "2"
+    })
     @DisplayName("Should throw NullPointerException when at least one element of OrderItems list is null")
-    void shouldThrowNullPointerExceptionWhenAtLeastOneElementOfOrderItemsListIsNull() {
-        List<CreateOrderItemRequest> items = new ArrayList<>();
-        items.add(new CreateOrderItemRequest(
-                new ProductId("12"),
-                3
+    void shouldThrowNullPointerExceptionWhenAtLeastOneElementOfOrderItemsListIsNull(int nullIndex) {
+        List<CreateOrderItemRequest> items = new ArrayList<>(List.of(
+                new CreateOrderItemRequest(
+                        new ProductId("12"),
+                        3
+                ),
+                new CreateOrderItemRequest(
+                        new ProductId("15"),
+                        4
+                ),
+                new CreateOrderItemRequest(
+                        new ProductId("13"),
+                        5
+                )
         ));
-        items.add(null);
 
+        items.set(nullIndex, null);
 
         CreateOrderRequest request = new CreateOrderRequest(
                 new CustomerId("123"),
