@@ -299,4 +299,48 @@ public class CreateOrderServiceTest {
         verify(orderRepository, never()).save(any(Order.class));
         verify(productInventoryRepository, never()).findOutOfStockItems(productIds);
     }
+    
+    @UnitTest
+    @Functional
+    @ParameterizedTest
+    @CsvSource({
+            "0",
+            "-1"
+    })
+    @DisplayName("Should throw IllegalArgumentException when OrderItem quantity is less than one")
+    void shouldThrowIllegalArgumentExceptionWhenOrderItemQuantityIsLessThanOne(int quantity) {
+        CreateOrderRequest request = new CreateOrderRequest(
+                new CustomerId("123"),
+                new Address(
+                        "Rua A",
+                        "123",
+                        "São Carlos",
+                        "São Paulo",
+                        "456"
+                ),
+                List.of(
+                        new CreateOrderItemRequest(
+                                new ProductId("12"),
+                                quantity
+                        ),
+                        new CreateOrderItemRequest(
+                                new ProductId("13"),
+                                4
+                        )
+                )
+        );
+        Customer customer = new Customer(request.customerId(), "Peri");
+        List<ProductId> productIds = request.items().stream()
+                .map(CreateOrderItemRequest::productId)
+                .toList();
+
+        when(customerRepository.findById(request.customerId())).thenReturn(Optional.of(customer));
+        when(productRepository.allExistsByIds(productIds)).thenReturn(true);
+
+        assertThatIllegalArgumentException().isThrownBy(() -> sut.create(request));
+
+        verify(customerRepository, times(1)).findById(any(CustomerId.class));
+        verify(productRepository, times(1)).allExistsByIds(anyList());
+        verify(orderRepository, never()).save(any(Order.class));
+    }
 }
