@@ -26,6 +26,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -204,6 +205,14 @@ public class CreateOrderServiceTest {
     @Test
     @DisplayName("Should throw NullPointerException when at least one element of OrderItems list is null")
     void shouldThrowNullPointerExceptionWhenAtLeastOneElementOfOrderItemsListIsNull() {
+        List<CreateOrderItemRequest> items = new ArrayList<>();
+        items.add(new CreateOrderItemRequest(
+                new ProductId("12"),
+                3
+        ));
+        items.add(null);
+
+
         CreateOrderRequest request = new CreateOrderRequest(
                 new CustomerId("123"),
                 new Address(
@@ -213,13 +222,7 @@ public class CreateOrderServiceTest {
                         "São Paulo",
                         "456"
                 ),
-                List.of(
-                        new CreateOrderItemRequest(
-                                new ProductId("12"),
-                                3
-                        ),
-                        null
-                )
+                items
         );
 
         assertThatNullPointerException().isThrownBy(() -> sut.create(request)).withMessage("OrderItems list must not be null");
