@@ -20,6 +20,8 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -188,6 +190,36 @@ public class CreateOrderServiceTest {
                         "456"
                 ),
                 null
+        );
+
+        assertThatNullPointerException().isThrownBy(() -> sut.create(request)).withMessage("OrderItems list must not be null");
+
+        verify(customerRepository, never()).findById(any(CustomerId.class));
+        verify(productRepository, never()).allExistsByIds(anyList());
+        verify(orderRepository, never()).save(any(Order.class));
+    }
+
+    @UnitTest
+    @Functional
+    @Test
+    @DisplayName("Should throw NullPointerException when at least one element of OrderItems list is null")
+    void shouldThrowNullPointerExceptionWhenAtLeastOneElementOfOrderItemsListIsNull() {
+        CreateOrderRequest request = new CreateOrderRequest(
+                new CustomerId("123"),
+                new Address(
+                        "Rua A",
+                        "123",
+                        "São Carlos",
+                        "São Paulo",
+                        "456"
+                ),
+                List.of(
+                        new CreateOrderItemRequest(
+                                new ProductId("12"),
+                                3
+                        ),
+                        null
+                )
         );
 
         assertThatNullPointerException().isThrownBy(() -> sut.create(request)).withMessage("OrderItems list must not be null");
