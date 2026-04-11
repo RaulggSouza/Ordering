@@ -73,7 +73,7 @@ public class ApplyDiscountServiceTest {
     }
 
     @ParameterizedTest(name = "Throwing for {0} order")
-    @EnumSource(value = OrderStatus.class, names = { "CREATED" }, mode = EnumSource.Mode.EXCLUDE)
+    @EnumSource(value = OrderStatus.class, names = {"CREATED"}, mode = EnumSource.Mode.EXCLUDE)
     @DisplayName("Should throw IllegalOrderOperationException for order with invalid status")
     void shouldThrowIllegalOrderOperationExceptionWhenApplyDiscountForCancelledOrder(OrderStatus status) {
         order = createOrderWithStatus(orderId, status);
@@ -89,6 +89,7 @@ public class ApplyDiscountServiceTest {
         ProductId productId = new ProductId("product-value-100");
         OrderItem orderItem = new OrderItem(productId, 1, 100.0);
         Order order = new Order(orderId);
+        order.changeStatus(OrderStatus.CREATED);
         order.addItem(orderItem);
         return order;
     }

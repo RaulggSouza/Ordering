@@ -23,7 +23,7 @@ public class ApplyDiscountService {
 
     public void apply(OrderId orderId, List<DiscountId> discountIds) {
         Order order = orderRepository.findById(orderId).orElseThrow();
-        if (order.getStatus() == OrderStatus.CANCELLED)
+        if (order.getStatus() != OrderStatus.CREATED)
             throw new IllegalOrderOperationException("Cannot apply discount for cancelled order \"%s\"!"
                     .formatted(orderId)
             );
