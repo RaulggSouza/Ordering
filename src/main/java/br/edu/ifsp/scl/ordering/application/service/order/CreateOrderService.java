@@ -10,6 +10,7 @@ import br.edu.ifsp.scl.ordering.domain.aggregate.Order;
 import br.edu.ifsp.scl.ordering.domain.entity.OrderItem;
 import br.edu.ifsp.scl.ordering.domain.exceptions.CustomerNotFoundException;
 import br.edu.ifsp.scl.ordering.domain.exceptions.EmptyOrderItemListException;
+import br.edu.ifsp.scl.ordering.domain.exceptions.ProductNotFoundException;
 import br.edu.ifsp.scl.ordering.domain.exceptions.ProductOutOfStockException;
 import br.edu.ifsp.scl.ordering.domain.valueobject.OrderId;
 import br.edu.ifsp.scl.ordering.domain.valueobject.ProductId;
@@ -40,13 +41,14 @@ public class CreateOrderService implements ICreateOrderService {
         List<OrderItem> items = getOrderItems(request);
         customerRepository.findById(request.customerId())
                 .orElseThrow(() -> new CustomerNotFoundException("Customer not found. Id: "+request.customerId()));
-        productRepository.allExistsByIds(items.stream()
+        boolean allExistsByIds = productRepository.allExistsByIds(items.stream()
                 .map(OrderItem::productId)
                 .toList());
+        if(!allExistsByIds) throw new ProductNotFoundException("Products does not exists");
+
         List<ProductId> outOfStockItems = productInventoryRepository.findOutOfStockItems(items.stream()
                 .map(OrderItem::productId)
                 .toList());
-
         if (!outOfStockItems.isEmpty()) throw new ProductOutOfStockException("Products out of stock. Products: "+outOfStockItems);
 
         Order order = Order.create(items, request.address(), request.customerId());
