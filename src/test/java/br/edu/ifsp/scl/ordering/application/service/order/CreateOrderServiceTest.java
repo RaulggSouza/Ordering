@@ -48,18 +48,18 @@ public class CreateOrderServiceTest {
     @Test
     @DisplayName("shouldCreateOrder")
     void shouldCreateOrder() {
-        CreateOrderRequest body = createOrderRequest();
-        List<ProductId> products = body.items().stream().map(CreateOrderItemRequest::productId).toList();
-        Customer customer = new Customer(body.customerId(), "Peri");
+        CreateOrderRequest request = createOrderRequest();
+        List<ProductId> products = request.items().stream().map(CreateOrderItemRequest::productId).toList();
+        Customer customer = new Customer(request.customerId(), "Peri");
         OrderId mockId = new OrderId("1");
 
-        when(customerRepository.findById(body.customerId())).thenReturn(Optional.of(customer));
+        when(customerRepository.findById(request.customerId())).thenReturn(Optional.of(customer));
         when(productRepository.allExistsByIds(products)).thenReturn(true);
         when(orderRepository.save(any(Order.class))).thenReturn(mockId);
-        OrderId result = sut.create(body);
+        OrderId result = sut.create(request);
 
         assertThat(result).isEqualTo(mockId);
-        verify(customerRepository, times(1)).findById(body.customerId());
+        verify(customerRepository, times(1)).findById(request.customerId());
         verify(productRepository, times(1)).allExistsByIds(products);
         verify(orderRepository, times(1)).save(any(Order.class));
     }
@@ -95,7 +95,6 @@ public class CreateOrderServiceTest {
     @DisplayName("Should throw CustomerNotFoundException when customer does not exist")
     void shouldThrowCustomerNotFoundExceptionWhenCustomerDoesNotExist() {
         CreateOrderRequest request = createOrderRequest();
-
         when(customerRepository.findById(request.customerId())).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> sut.create(request))
