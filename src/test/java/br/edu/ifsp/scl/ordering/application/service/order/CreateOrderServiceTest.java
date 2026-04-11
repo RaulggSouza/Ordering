@@ -225,7 +225,7 @@ public class CreateOrderServiceTest {
                 items
         );
 
-        assertThatNullPointerException().isThrownBy(() -> sut.create(request)).withMessage("OrderItems list must not be null");
+        assertThatNullPointerException().isThrownBy(() -> sut.create(request)).withMessage("OrderItems list item must not be null");
 
         verify(customerRepository, never()).findById(any(CustomerId.class));
         verify(productRepository, never()).allExistsByIds(anyList());
