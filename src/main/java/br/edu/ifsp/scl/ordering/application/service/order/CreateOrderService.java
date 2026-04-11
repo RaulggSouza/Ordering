@@ -1,7 +1,6 @@
 package br.edu.ifsp.scl.ordering.application.service.order;
 
 import br.edu.ifsp.scl.ordering.application.ports.inbound.service.order.create.ICreateOrderService;
-import br.edu.ifsp.scl.ordering.application.ports.inbound.service.order.create.dtos.CreateOrderItemRequest;
 import br.edu.ifsp.scl.ordering.application.ports.inbound.service.order.create.dtos.CreateOrderRequest;
 import br.edu.ifsp.scl.ordering.application.ports.outbound.persistence.customer.ICustomerRepository;
 import br.edu.ifsp.scl.ordering.application.ports.outbound.persistence.order.IOrderRepository;
@@ -33,8 +32,8 @@ public class CreateOrderService implements ICreateOrderService {
                 .toList();
 
         customerRepository.findById(request.customerId());
-        productRepository.allExistsByIds(request.items().stream()
-                .map(CreateOrderItemRequest::productId)
+        productRepository.allExistsByIds(items.stream()
+                .map(OrderItem::productId)
                 .toList());
 
         Order order = Order.create(items, request.address(), request.customerId());
