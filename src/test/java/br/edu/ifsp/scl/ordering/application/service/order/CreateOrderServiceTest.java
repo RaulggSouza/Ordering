@@ -3,8 +3,11 @@ package br.edu.ifsp.scl.ordering.application.service.order;
 import br.edu.ifsp.scl.ordering.application.ports.inbound.service.order.create.ICreateOrderService;
 import br.edu.ifsp.scl.ordering.application.ports.inbound.service.order.create.dtos.CreateOrderItemRequest;
 import br.edu.ifsp.scl.ordering.application.ports.inbound.service.order.create.dtos.CreateOrderRequest;
+import br.edu.ifsp.scl.ordering.application.ports.outbound.persistence.customer.ICustomerRepository;
+import br.edu.ifsp.scl.ordering.domain.aggregate.Customer;
 import br.edu.ifsp.scl.ordering.domain.entity.OrderItem;
 import br.edu.ifsp.scl.ordering.domain.valueobject.Address;
+import br.edu.ifsp.scl.ordering.domain.valueobject.CustomerId;
 import br.edu.ifsp.scl.ordering.domain.valueobject.ProductId;
 import br.edu.ifsp.scl.ordering.testing.tags.TDD;
 import br.edu.ifsp.scl.ordering.testing.tags.UnitTest;
@@ -59,13 +62,13 @@ public class CreateOrderServiceTest {
                 address,
                 orderItems
         );
-        Customer customer = new Customer("123", "Peri");
+        Customer customer = new Customer(new CustomerId(body.customerId()), "Peri");
 
-        when(customerRepository.findById(body.customerId())).thenReturn(Optional.of(customer));
+        when(customerRepository.findById(new CustomerId(body.customerId()))).thenReturn(Optional.of(customer));
 
         UUID result = sut.create(body);
 
         assertThat(result).isNotNull();
-        verify(customerRepository, times(1)).findById(body.customerId());
+        verify(customerRepository, times(1)).findById(new CustomerId(body.customerId()));
     }
 }
