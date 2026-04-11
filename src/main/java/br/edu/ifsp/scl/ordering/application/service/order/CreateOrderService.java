@@ -26,6 +26,7 @@ public class CreateOrderService implements ICreateOrderService {
 
     @Override
     public OrderId create(CreateOrderRequest request) {
+        Objects.requireNonNull(request, "Null request");
         Objects.requireNonNull(request.customerId(), "Customer must not be null");
 
         List<OrderItem> items = request.items().stream()
