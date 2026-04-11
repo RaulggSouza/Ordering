@@ -257,7 +257,7 @@ public class CreateOrderServiceTest {
     @UnitTest
     @TDD
     @Test
-    @DisplayName("Should throw ProductOutOfStockException if at least one OrderItem is out of stock")
+    @DisplayName("Should throw ProductOutOfStockException if any OrderItem is has no stock or insufficient stock")
     void shouldThrowProductOutOfStockExceptionIfAtLeastOneOrderItemIsOutOfStock() {
         CreateOrderRequest request = createOrderRequest();
         Customer customer = new Customer(request.customerId(), "Peri");
@@ -329,7 +329,6 @@ public class CreateOrderServiceTest {
                         )
                 )
         );
-        Customer customer = new Customer(request.customerId(), "Peri");
 
         assertThatIllegalArgumentException().isThrownBy(() -> sut.create(request));
 
