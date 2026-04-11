@@ -261,9 +261,9 @@ public class CreateOrderServiceTest {
                 .map(CreateOrderItemRequest::productId)
                 .toList();
 
-        when(customerRepository.findById(any(CustomerId.class))).thenReturn(Optional.of(customer));
+        when(customerRepository.findById(request.customerId())).thenReturn(Optional.of(customer));
         when(productRepository.allExistsByIds(productIds)).thenReturn(true);
-        when(productInventoryRepository.allItemsInStock(productIds)).thenReturn(false);
+        when(productInventoryRepository.findOutOfStockItems(productIds)).thenReturn(List.of(new ProductId("12")));
 
         assertThatThrownBy(() -> sut.create(request)).isInstanceOf(ProductOutOfStockException.class);
 
