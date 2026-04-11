@@ -107,6 +107,14 @@ public class CreateOrderServiceTest {
     }
 
     @UnitTest
+    @TDD
+    @Test
+    @DisplayName("Should throw NullPointerException when request is null")
+    void shouldThrowNullPointerExceptionWhenRequestIsNull() {
+        assertThatNullPointerException().isThrownBy(() -> sut.create(null)).withMessage("Null request");
+    }
+
+    @UnitTest
     @Functional
     @Test
     @DisplayName("Should throw NullPointerException when customer is null")
