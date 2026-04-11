@@ -36,6 +36,7 @@ public class CreateOrderService implements ICreateOrderService {
         Objects.requireNonNull(request, "Null request");
         Objects.requireNonNull(request.customerId(), "Customer must not be null");
         Objects.requireNonNull(request.items(), "OrderItems list must not be null");
+        Objects.requireNonNull(request.address());
         if (request.items().isEmpty()) throw new EmptyOrderItemListException("Order items list must not be empty");
         List<OrderItem> items = getOrderItems(request);
 
