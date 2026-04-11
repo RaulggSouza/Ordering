@@ -147,4 +147,26 @@ public class CreateOrderServiceTest {
         verify(productRepository, never()).allExistsByIds(anyList());
         verify(orderRepository, never()).save(any(Order.class));
     }
+
+    @Test
+    @DisplayName("Should throw EmptyOrderItemListException when items list is empty")
+    void shouldThrowEmptyOrderItemListExceptionWhenItemsListIsEmpty() {
+        CreateOrderRequest request = new CreateOrderRequest(
+                new CustomerId("123"),
+                new Address(
+                        "Rua A",
+                        "123",
+                        "São Carlos",
+                        "São Paulo",
+                        "456"
+                ),
+                List.of()
+        );
+
+        assertThatThrownBy(() -> sut.create(request)).isInstanceOf(EmptyOrderItemListException.class);
+
+        verify(customerRepository, never()).findById(any(CustomerId.class));
+        verify(productRepository, never()).allExistsByIds(anyList());
+        verify(orderRepository, never()).save(any(Order.class));
+    }
 }
