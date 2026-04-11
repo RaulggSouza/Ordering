@@ -149,6 +149,8 @@ public class CreateOrderServiceTest {
         verify(orderRepository, never()).save(any(Order.class));
     }
 
+    @UnitTest
+    @Functional
     @Test
     @DisplayName("Should throw EmptyOrderItemListException when items list is empty")
     void shouldThrowEmptyOrderItemListExceptionWhenItemsListIsEmpty() {
