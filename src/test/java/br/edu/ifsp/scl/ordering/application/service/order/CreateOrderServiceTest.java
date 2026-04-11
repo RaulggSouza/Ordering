@@ -173,6 +173,8 @@ public class CreateOrderServiceTest {
         verify(orderRepository, never()).save(any(Order.class));
     }
 
+    @UnitTest
+    @Functional
     @Test
     @DisplayName("Should throw NullPointerException when OrderItems list is null")
     void shouldThrowNullPointerExceptionWhenOrderItemsListIsNull() {
