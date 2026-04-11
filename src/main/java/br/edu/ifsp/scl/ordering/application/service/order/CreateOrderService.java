@@ -41,14 +41,15 @@ public class CreateOrderService implements ICreateOrderService {
 
         customerRepository.findById(request.customerId())
                 .orElseThrow(() -> new CustomerNotFoundException("Customer not found. Id: "+request.customerId()));
-        boolean allExistsByIds = productRepository.allExistsByIds(items.stream()
+
+        List<ProductId> productIds = items.stream()
                 .map(OrderItem::productId)
-                .toList());
+                .toList();
+
+        boolean allExistsByIds = productRepository.allExistsByIds(productIds);
         if(!allExistsByIds) throw new ProductNotFoundException("Products does not exists");
 
-        List<ProductId> outOfStockItems = productInventoryRepository.findOutOfStockItems(items.stream()
-                .map(OrderItem::productId)
-                .toList());
+        List<ProductId> outOfStockItems = productInventoryRepository.findOutOfStockItems(productIds);
         if (!outOfStockItems.isEmpty()) throw new ProductOutOfStockException("Products out of stock. Products: "+outOfStockItems);
 
         Order order = Order.create(items, request.address(), request.customerId());
