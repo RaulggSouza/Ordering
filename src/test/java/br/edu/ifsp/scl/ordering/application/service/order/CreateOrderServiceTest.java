@@ -65,12 +65,15 @@ public class CreateOrderServiceTest {
         when(customerRepository.findById(request.customerId())).thenReturn(Optional.of(customer));
         when(productRepository.allExistsByIds(products)).thenReturn(true);
         when(orderRepository.save(any(Order.class))).thenReturn(mockId);
+        when(productInventoryRepository.findOutOfStockItems(products)).thenReturn(List.of());
+
         OrderId result = sut.create(request);
 
         assertThat(result).isEqualTo(mockId);
         verify(customerRepository, times(1)).findById(request.customerId());
         verify(productRepository, times(1)).allExistsByIds(products);
         verify(orderRepository, times(1)).save(any(Order.class));
+        verify(productInventoryRepository, times(1)).findOutOfStockItems(products);
     }
 
     private static CreateOrderRequest createOrderRequest() {
