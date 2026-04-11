@@ -174,7 +174,7 @@ public class CreateOrderServiceTest {
     }
 
     @Test
-    @DisplayName("should throw NullPointerException when OrderItems list is null")
+    @DisplayName("Should throw NullPointerException when OrderItems list is null")
     void shouldThrowNullPointerExceptionWhenOrderItemsListIsNull() {
         CreateOrderRequest request = new CreateOrderRequest(
                 new CustomerId("123"),
