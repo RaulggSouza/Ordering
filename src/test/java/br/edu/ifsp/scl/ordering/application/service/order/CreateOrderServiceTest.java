@@ -351,4 +351,25 @@ public class CreateOrderServiceTest {
     void shouldThrowIllegalArgumentExceptionWhenCreatedAddressIsInvalid(String street, String number, String city, String state, String postalCode) {
         assertThatIllegalArgumentException().isThrownBy(() -> new Address(street, number, city, state, postalCode));
     }
+
+    @Test
+    @DisplayName("Should throw NullPointerException when Address is null")
+    void shouldThrowNullPointerExceptionWhenAddressIsNull() {
+        CreateOrderRequest request = new CreateOrderRequest(
+                new CustomerId("123"),
+                null,
+                List.of(
+                        new CreateOrderItemRequest(
+                                new ProductId("12"),
+                                3
+                        ),
+                        new CreateOrderItemRequest(
+                                new ProductId("13"),
+                                4
+                        )
+                )
+        );
+
+        assertThatNullPointerException().isThrownBy(() -> sut.create(request));
+    }
 }
