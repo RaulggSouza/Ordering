@@ -9,9 +9,18 @@ import br.edu.ifsp.scl.ordering.domain.valueobject.OrderId;
 import java.util.List;
 
 public class Order {
-    private OrderId id;
+    private final OrderId id;
     private CustomerId customerId;
     private Address shippingAddress;
     private List<OrderItem> items;
     private OrderStatus status;
+
+    public Order(OrderId id, List<OrderItem> items) {
+        this.id = id;
+        this.items = items;
+    }
+
+    public OrderId getOrderId() {
+        return id;
+    }
 }
