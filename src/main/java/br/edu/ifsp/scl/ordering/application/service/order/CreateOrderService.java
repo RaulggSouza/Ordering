@@ -31,12 +31,7 @@ public class CreateOrderService implements ICreateOrderService {
         Objects.requireNonNull(request.customerId(), "Customer must not be null");
         if (request.items().isEmpty()) throw new EmptyOrderItemListException("Order items list must not bem empty");
 
-        List<OrderItem> items = request.items().stream()
-                .map(item -> new OrderItem(
-                        item.productId(),
-                        item.quantity()
-                ))
-                .toList();
+        List<OrderItem> items = getOrderItems(request);
         customerRepository.findById(request.customerId())
                 .orElseThrow(() -> new CustomerNotFoundException("Customer not found. Id: "+request.customerId()));
         productRepository.allExistsByIds(items.stream()
@@ -46,5 +41,14 @@ public class CreateOrderService implements ICreateOrderService {
         Order order = Order.create(items, request.address(), request.customerId());
 
         return orderRepository.save(order);
+    }
+
+    private static List<OrderItem> getOrderItems(CreateOrderRequest request) {
+        return request.items().stream()
+                .map(item -> new OrderItem(
+                        item.productId(),
+                        item.quantity()
+                ))
+                .toList();
     }
 }
