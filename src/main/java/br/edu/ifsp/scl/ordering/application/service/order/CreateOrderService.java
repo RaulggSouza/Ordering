@@ -7,6 +7,7 @@ import br.edu.ifsp.scl.ordering.application.ports.outbound.persistence.order.IOr
 import br.edu.ifsp.scl.ordering.application.ports.outbound.persistence.product.IProductRepository;
 import br.edu.ifsp.scl.ordering.domain.aggregate.Order;
 import br.edu.ifsp.scl.ordering.domain.entity.OrderItem;
+import br.edu.ifsp.scl.ordering.domain.exceptions.CustomerNotFoundException;
 import br.edu.ifsp.scl.ordering.domain.valueobject.OrderId;
 
 import java.util.List;
@@ -30,8 +31,8 @@ public class CreateOrderService implements ICreateOrderService {
                         item.quantity()
                 ))
                 .toList();
-
-        customerRepository.findById(request.customerId());
+        customerRepository.findById(request.customerId())
+                .orElseThrow(() -> new CustomerNotFoundException("Customer not found. Id: "+request.customerId()));
         productRepository.allExistsByIds(items.stream()
                 .map(OrderItem::productId)
                 .toList());

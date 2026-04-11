@@ -7,6 +7,7 @@ import br.edu.ifsp.scl.ordering.application.ports.outbound.persistence.order.IOr
 import br.edu.ifsp.scl.ordering.application.ports.outbound.persistence.product.IProductRepository;
 import br.edu.ifsp.scl.ordering.domain.aggregate.Customer;
 import br.edu.ifsp.scl.ordering.domain.aggregate.Order;
+import br.edu.ifsp.scl.ordering.domain.exceptions.CustomerNotFoundException;
 import br.edu.ifsp.scl.ordering.domain.valueobject.Address;
 import br.edu.ifsp.scl.ordering.domain.valueobject.CustomerId;
 import br.edu.ifsp.scl.ordering.domain.valueobject.OrderId;
