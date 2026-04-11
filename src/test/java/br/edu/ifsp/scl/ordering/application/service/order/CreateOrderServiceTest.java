@@ -58,17 +58,17 @@ public class CreateOrderServiceTest {
                 "456"
         );
         CreateOrderRequest body = new CreateOrderRequest(
-                "123",
+                new CustomerId("123"),
                 address,
                 orderItems
         );
-        Customer customer = new Customer(new CustomerId(body.customerId()), "Peri");
+        Customer customer = new Customer(body.customerId(), "Peri");
 
-        when(customerRepository.findById(new CustomerId(body.customerId()))).thenReturn(Optional.of(customer));
+        when(customerRepository.findById(body.customerId())).thenReturn(Optional.of(customer));
 
         UUID result = sut.create(body);
 
         assertThat(result).isNotNull();
-        verify(customerRepository, times(1)).findById(new CustomerId(body.customerId()));
+        verify(customerRepository, times(1)).findById(body.customerId());
     }
 }

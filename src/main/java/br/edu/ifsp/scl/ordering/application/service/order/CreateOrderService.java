@@ -27,7 +27,7 @@ public class CreateOrderService implements ICreateOrderService {
                 .toList();
 
 
-        customerRepository.findById(new CustomerId(request.customerId()));
+        customerRepository.findById(request.customerId());
         return UUID.randomUUID();
     }
 }
