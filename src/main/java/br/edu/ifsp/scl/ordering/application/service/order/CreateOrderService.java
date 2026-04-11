@@ -11,6 +11,7 @@ import br.edu.ifsp.scl.ordering.domain.exceptions.CustomerNotFoundException;
 import br.edu.ifsp.scl.ordering.domain.valueobject.OrderId;
 
 import java.util.List;
+import java.util.Objects;
 
 public class CreateOrderService implements ICreateOrderService {
     ICustomerRepository customerRepository;
@@ -25,6 +26,8 @@ public class CreateOrderService implements ICreateOrderService {
 
     @Override
     public OrderId create(CreateOrderRequest request) {
+        Objects.requireNonNull(request.customerId(), "Customer must not be null");
+
         List<OrderItem> items = request.items().stream()
                 .map(item -> new OrderItem(
                         item.productId(),
