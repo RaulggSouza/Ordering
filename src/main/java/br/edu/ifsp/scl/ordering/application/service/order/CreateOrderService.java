@@ -8,6 +8,7 @@ import br.edu.ifsp.scl.ordering.application.ports.outbound.persistence.product.I
 import br.edu.ifsp.scl.ordering.domain.aggregate.Order;
 import br.edu.ifsp.scl.ordering.domain.entity.OrderItem;
 import br.edu.ifsp.scl.ordering.domain.exceptions.CustomerNotFoundException;
+import br.edu.ifsp.scl.ordering.domain.exceptions.EmptyOrderItemListException;
 import br.edu.ifsp.scl.ordering.domain.valueobject.OrderId;
 
 import java.util.List;
@@ -28,6 +29,7 @@ public class CreateOrderService implements ICreateOrderService {
     public OrderId create(CreateOrderRequest request) {
         Objects.requireNonNull(request, "Null request");
         Objects.requireNonNull(request.customerId(), "Customer must not be null");
+        if (request.items().isEmpty()) throw new EmptyOrderItemListException("Order items list must not bem empty");
 
         List<OrderItem> items = request.items().stream()
                 .map(item -> new OrderItem(
