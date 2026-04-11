@@ -48,8 +48,8 @@ public class CreateOrderServiceTest {
     @TDD
     @UnitTest
     @Test
-    @DisplayName("shouldCreateOrder")
-    void shouldCreateOrder() {
+    @DisplayName("Should create Order when all parameters are valid")
+    void shouldCreateOrderWhenAllParametersAreValid() {
         CreateOrderRequest request = createOrderRequest();
         List<ProductId> products = request.items().stream().map(CreateOrderItemRequest::productId).toList();
         Customer customer = new Customer(request.customerId(), "Peri");
