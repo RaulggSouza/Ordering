@@ -11,6 +11,7 @@ import br.edu.ifsp.scl.ordering.domain.valueobject.Address;
 import br.edu.ifsp.scl.ordering.domain.valueobject.CustomerId;
 import br.edu.ifsp.scl.ordering.domain.valueobject.OrderId;
 import br.edu.ifsp.scl.ordering.domain.valueobject.ProductId;
+import br.edu.ifsp.scl.ordering.testing.tags.Functional;
 import br.edu.ifsp.scl.ordering.testing.tags.TDD;
 import br.edu.ifsp.scl.ordering.testing.tags.UnitTest;
 import org.junit.jupiter.api.DisplayName;
@@ -85,5 +86,22 @@ public class CreateOrderServiceTest {
                 address,
                 orderItems
         );
+    }
+
+    @UnitTest
+    @Functional
+    @Test
+    @DisplayName("Should throw CustomerNotFoundException when customer does not exist")
+    void shouldThrowCustomerNotFoundExceptionWhenCustomerDoesNotExist() {
+        CreateOrderRequest request = createOrderRequest();
+
+        when(customerRepository.findById(request.customerId())).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> sut.create(request))
+                .isInstanceOf(CustomerNotFoundException.class);
+
+        verify(customerRepository, times(1)).findById(request.customerId());
+        verify(productRepository, never()).allExistsByIds(anyList());
+        verify(orderRepository, never()).save(any(Order.class));
     }
 }
