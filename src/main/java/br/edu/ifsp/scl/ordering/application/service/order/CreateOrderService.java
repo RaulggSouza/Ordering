@@ -11,6 +11,7 @@ import br.edu.ifsp.scl.ordering.domain.exceptions.CustomerNotFoundException;
 import br.edu.ifsp.scl.ordering.domain.exceptions.EmptyOrderItemListException;
 import br.edu.ifsp.scl.ordering.domain.valueobject.OrderId;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
@@ -45,6 +46,10 @@ public class CreateOrderService implements ICreateOrderService {
     }
 
     private static List<OrderItem> getOrderItems(CreateOrderRequest request) {
+        request.items().forEach(item -> {
+            Objects.requireNonNull(item, "OrderItems list item must not be null");
+        });
+
         return request.items().stream()
                 .map(item -> new OrderItem(
                         item.productId(),
