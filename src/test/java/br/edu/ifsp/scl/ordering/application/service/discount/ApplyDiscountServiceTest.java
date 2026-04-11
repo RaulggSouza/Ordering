@@ -3,6 +3,7 @@ package br.edu.ifsp.scl.ordering.application.service.discount;
 import br.edu.ifsp.scl.ordering.application.ports.outbound.persistence.discount.IDiscountRepository;
 import br.edu.ifsp.scl.ordering.application.ports.outbound.persistence.order.IOrderRepository;
 import br.edu.ifsp.scl.ordering.domain.aggregate.Order;
+import br.edu.ifsp.scl.ordering.domain.constant.OrderStatus;
 import br.edu.ifsp.scl.ordering.domain.entity.Discount;
 import br.edu.ifsp.scl.ordering.domain.entity.OrderItem;
 import br.edu.ifsp.scl.ordering.domain.exception.IllegalOrderOperationException;
@@ -13,6 +14,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EnumSource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -69,10 +72,11 @@ public class ApplyDiscountServiceTest {
         assertThat(order.getTotal()).isEqualTo(90.0);
     }
 
-    @Test
-    @DisplayName("Should throw IllegalOrderOperationException when apply discount for cancelled order")
-    void shouldThrowIllegalOrderOperationExceptionWhenApplyDiscountForCancelledOrder() {
-        order = createCancelledOrder(orderId);
+    @ParameterizedTest(name = "Throwing for {0} order")
+    @EnumSource(value = OrderStatus.class, names = { "CREATED" }, mode = EnumSource.Mode.EXCLUDE)
+    @DisplayName("Should throw IllegalOrderOperationException for order with invalid status")
+    void shouldThrowIllegalOrderOperationExceptionWhenApplyDiscountForCancelledOrder(OrderStatus status) {
+        order = createOrderWithStatus(orderId, status);
         when(orderRepository.findById(orderId)).thenReturn(Optional.of(order));
 
         assertThatExceptionOfType(IllegalOrderOperationException.class)
@@ -89,9 +93,9 @@ public class ApplyDiscountServiceTest {
         return order;
     }
 
-    private Order createCancelledOrder(OrderId orderId) {
+    private Order createOrderWithStatus(OrderId orderId, OrderStatus status) {
         Order order = new Order(orderId);
-        order.cancel();
+        order.changeStatus(status);
         return order;
     }
 

@@ -42,8 +42,8 @@ public class Order {
 
     }
 
-    public void cancel() {
-        this.status = OrderStatus.CANCELLED;
+    public void changeStatus(OrderStatus status) {
+        this.status = status;
     }
 
     public OrderStatus getStatus() {
