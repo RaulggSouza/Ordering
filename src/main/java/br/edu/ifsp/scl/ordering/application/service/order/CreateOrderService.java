@@ -14,15 +14,17 @@ import br.edu.ifsp.scl.ordering.domain.exceptions.ProductNotFoundException;
 import br.edu.ifsp.scl.ordering.domain.exceptions.ProductOutOfStockException;
 import br.edu.ifsp.scl.ordering.domain.valueobject.OrderId;
 import br.edu.ifsp.scl.ordering.domain.valueobject.ProductId;
+import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Objects;
 
+@Service
 public class CreateOrderService implements ICreateOrderService {
-    ICustomerRepository customerRepository;
-    IProductRepository productRepository;
-    IOrderRepository orderRepository;
-    IProductInventoryRepository productInventoryRepository;
+    private final ICustomerRepository customerRepository;
+    private final IProductRepository productRepository;
+    private final IOrderRepository orderRepository;
+    private final IProductInventoryRepository productInventoryRepository;
 
     public CreateOrderService(ICustomerRepository customerRepository, IProductRepository productRepository, IOrderRepository orderRepository, IProductInventoryRepository productInventoryRepository) {
         this.customerRepository = customerRepository;
