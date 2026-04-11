@@ -5,6 +5,7 @@ import br.edu.ifsp.scl.ordering.application.ports.inbound.service.order.create.d
 import br.edu.ifsp.scl.ordering.application.ports.outbound.persistence.customer.ICustomerRepository;
 import br.edu.ifsp.scl.ordering.application.ports.outbound.persistence.product.IProductRepository;
 import br.edu.ifsp.scl.ordering.domain.aggregate.Customer;
+import br.edu.ifsp.scl.ordering.domain.aggregate.Order;
 import br.edu.ifsp.scl.ordering.domain.valueobject.Address;
 import br.edu.ifsp.scl.ordering.domain.valueobject.CustomerId;
 import br.edu.ifsp.scl.ordering.domain.valueobject.ProductId;
@@ -33,6 +34,9 @@ public class CreateOrderServiceTest {
     @Mock
     IProductRepository productRepository;
 
+    @Mock
+    IOrderRepository orderRepository;
+
     @InjectMocks
     CreateOrderService sut;
 
@@ -44,14 +48,17 @@ public class CreateOrderServiceTest {
         CreateOrderRequest body = createOrderRequest();
         List<ProductId> products = body.items().stream().map(CreateOrderItemRequest::productId).toList();
         Customer customer = new Customer(body.customerId(), "Peri");
+        UUID uuid = UUID.randomUUID();
 
         when(customerRepository.findById(body.customerId())).thenReturn(Optional.of(customer));
         when(productRepository.allExistsByIds(products)).thenReturn(true);
+        when(orderRepository.save(any(Order.class))).thenReturn(uuid);
         UUID result = sut.create(body);
 
-        assertThat(result).isNotNull();
+        assertThat(result).isEqualTo(uuid);
         verify(customerRepository, times(1)).findById(body.customerId());
         verify(productRepository, times(1)).allExistsByIds(products);
+        verify(orderRepository, times(1)).save(any(Order.class));
     }
 
     private static CreateOrderRequest createOrderRequest() {
