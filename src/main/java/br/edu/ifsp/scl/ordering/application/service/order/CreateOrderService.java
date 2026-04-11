@@ -4,25 +4,27 @@ import br.edu.ifsp.scl.ordering.application.ports.inbound.service.order.create.I
 import br.edu.ifsp.scl.ordering.application.ports.inbound.service.order.create.dtos.CreateOrderItemRequest;
 import br.edu.ifsp.scl.ordering.application.ports.inbound.service.order.create.dtos.CreateOrderRequest;
 import br.edu.ifsp.scl.ordering.application.ports.outbound.persistence.customer.ICustomerRepository;
+import br.edu.ifsp.scl.ordering.application.ports.outbound.persistence.order.IOrderRepository;
 import br.edu.ifsp.scl.ordering.application.ports.outbound.persistence.product.IProductRepository;
+import br.edu.ifsp.scl.ordering.domain.aggregate.Order;
 import br.edu.ifsp.scl.ordering.domain.entity.OrderItem;
-import br.edu.ifsp.scl.ordering.domain.valueobject.CustomerId;
-import br.edu.ifsp.scl.ordering.domain.valueobject.ProductId;
+import br.edu.ifsp.scl.ordering.domain.valueobject.OrderId;
 
 import java.util.List;
-import java.util.UUID;
 
 public class CreateOrderService implements ICreateOrderService {
     ICustomerRepository customerRepository;
     IProductRepository productRepository;
+    IOrderRepository orderRepository;
 
-    public CreateOrderService(ICustomerRepository customerRepository, IProductRepository productRepository) {
+    public CreateOrderService(ICustomerRepository customerRepository, IProductRepository productRepository, IOrderRepository orderRepository) {
         this.customerRepository = customerRepository;
         this.productRepository = productRepository;
+        this.orderRepository = orderRepository;
     }
 
     @Override
-    public UUID create(CreateOrderRequest request) {
+    public OrderId create(CreateOrderRequest request) {
         List<OrderItem> items = request.items().stream()
                 .map(item -> new OrderItem(
                         item.productId(),
@@ -30,11 +32,13 @@ public class CreateOrderService implements ICreateOrderService {
                 ))
                 .toList();
 
-
         customerRepository.findById(request.customerId());
         productRepository.allExistsByIds(request.items().stream()
                 .map(CreateOrderItemRequest::productId)
                 .toList());
-        return UUID.randomUUID();
+
+        Order order = Order.create(items, request.address(), request.customerId());
+
+        return orderRepository.save(order);
     }
 }

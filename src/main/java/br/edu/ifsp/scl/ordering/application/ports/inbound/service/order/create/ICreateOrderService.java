@@ -1,9 +1,8 @@
 package br.edu.ifsp.scl.ordering.application.ports.inbound.service.order.create;
 
 import br.edu.ifsp.scl.ordering.application.ports.inbound.service.order.create.dtos.CreateOrderRequest;
-
-import java.util.UUID;
+import br.edu.ifsp.scl.ordering.domain.valueobject.OrderId;
 
 public interface ICreateOrderService {
-    UUID create(CreateOrderRequest request);
+    OrderId create(CreateOrderRequest request);
 }
