@@ -26,17 +26,20 @@ import java.util.UUID;
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
-@UnitTest
-@TDD
 @ExtendWith(MockitoExtension.class)
 public class CreateOrderServiceTest {
 
     @Mock
     ICustomerRepository customerRepository;
 
+    @Mock
+    IProductRepository productRepository;
+
     @InjectMocks
     CreateOrderService sut;
 
+    @TDD
+    @UnitTest
     @Test
     @DisplayName("shouldCreateOrder")
     void shouldCreateOrder() {
@@ -62,13 +65,15 @@ public class CreateOrderServiceTest {
                 address,
                 orderItems
         );
+        List<ProductId> products = body.items().stream().map(CreateOrderItemRequest::productId).toList();
         Customer customer = new Customer(body.customerId(), "Peri");
 
         when(customerRepository.findById(body.customerId())).thenReturn(Optional.of(customer));
-
+        when(productRepository.allExistsByIds(products)).thenReturn(true);
         UUID result = sut.create(body);
 
         assertThat(result).isNotNull();
         verify(customerRepository, times(1)).findById(body.customerId());
+        verify(productRepository, times(1)).allExistsById(products);
     }
 }
