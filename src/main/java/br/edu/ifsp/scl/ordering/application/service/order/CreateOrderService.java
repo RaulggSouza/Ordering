@@ -3,15 +3,16 @@ package br.edu.ifsp.scl.ordering.application.service.order;
 import br.edu.ifsp.scl.ordering.application.ports.inbound.service.order.create.ICreateOrderService;
 import br.edu.ifsp.scl.ordering.application.ports.inbound.service.order.create.dtos.CreateOrderRequest;
 import br.edu.ifsp.scl.ordering.application.ports.outbound.persistence.customer.ICustomerRepository;
+import br.edu.ifsp.scl.ordering.application.ports.outbound.persistence.inventory.IProductInventoryRepository;
 import br.edu.ifsp.scl.ordering.application.ports.outbound.persistence.order.IOrderRepository;
 import br.edu.ifsp.scl.ordering.application.ports.outbound.persistence.product.IProductRepository;
 import br.edu.ifsp.scl.ordering.domain.aggregate.Order;
 import br.edu.ifsp.scl.ordering.domain.entity.OrderItem;
 import br.edu.ifsp.scl.ordering.domain.exceptions.CustomerNotFoundException;
 import br.edu.ifsp.scl.ordering.domain.exceptions.EmptyOrderItemListException;
+import br.edu.ifsp.scl.ordering.domain.exceptions.ProductOutOfStockException;
 import br.edu.ifsp.scl.ordering.domain.valueobject.OrderId;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
@@ -19,11 +20,13 @@ public class CreateOrderService implements ICreateOrderService {
     ICustomerRepository customerRepository;
     IProductRepository productRepository;
     IOrderRepository orderRepository;
+    IProductInventoryRepository productInventoryRepository;
 
-    public CreateOrderService(ICustomerRepository customerRepository, IProductRepository productRepository, IOrderRepository orderRepository) {
+    public CreateOrderService(ICustomerRepository customerRepository, IProductRepository productRepository, IOrderRepository orderRepository, IProductInventoryRepository productInventoryRepository) {
         this.customerRepository = customerRepository;
         this.productRepository = productRepository;
         this.orderRepository = orderRepository;
+        this.productInventoryRepository = productInventoryRepository;
     }
 
     @Override
@@ -31,7 +34,7 @@ public class CreateOrderService implements ICreateOrderService {
         Objects.requireNonNull(request, "Null request");
         Objects.requireNonNull(request.customerId(), "Customer must not be null");
         Objects.requireNonNull(request.items(), "OrderItems list must not be null");
-        if (request.items().isEmpty()) throw new EmptyOrderItemListException("Order items list must not bem empty");
+        if (request.items().isEmpty()) throw new EmptyOrderItemListException("Order items list must not be empty");
 
         List<OrderItem> items = getOrderItems(request);
         customerRepository.findById(request.customerId())
@@ -39,6 +42,11 @@ public class CreateOrderService implements ICreateOrderService {
         productRepository.allExistsByIds(items.stream()
                 .map(OrderItem::productId)
                 .toList());
+        boolean allItemsInStock = productInventoryRepository.allItemsInStock(items.stream()
+                .map(OrderItem::productId)
+                .toList());
+
+        if (!allItemsInStock) throw new ProductOutOfStockException("Products out of stock");
 
         Order order = Order.create(items, request.address(), request.customerId());
 
