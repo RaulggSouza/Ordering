@@ -16,7 +16,6 @@ import br.edu.ifsp.scl.ordering.domain.valueobject.ProductId;
 import br.edu.ifsp.scl.ordering.testing.tags.Functional;
 import br.edu.ifsp.scl.ordering.testing.tags.TDD;
 import br.edu.ifsp.scl.ordering.testing.tags.UnitTest;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -44,6 +43,9 @@ public class CreateOrderServiceTest {
 
     @Mock
     IOrderRepository orderRepository;
+
+    @Mock
+    IProductInventoryRepository productInventoryRepository;
 
     @InjectMocks
     CreateOrderService sut;
@@ -243,6 +245,28 @@ public class CreateOrderServiceTest {
 
         verify(customerRepository, never()).findById(any(CustomerId.class));
         verify(productRepository, never()).allExistsByIds(anyList());
+        verify(orderRepository, never()).save(any(Order.class));
+    }
+
+    @UnitTest
+    @TDD
+    @Test
+    @DisplayName("Should throw ProductOutOfStockException if at least one OrderItem is out of stock")
+    void shouldThrowProductOutOfStockExceptionIfAtLeastOneOrderItemIsOutOfStock() {
+        CreateOrderRequest request = createOrderRequest();
+        Customer customer = new Customer(request.customerId(), "Peri");
+        List<ProductId> productIds = request.items().stream()
+                .map(CreateOrderItemRequest::productId)
+                .toList();
+
+        when(customerRepository.findById(any(CustomerId.class))).thenReturn(Optional.of(customer));
+        when(productRepository.allExistsByIds(productIds)).thenReturn(true);
+        when(productInventoryRepository.allItemsInStock(productIds)).thenReturn(false);
+
+        assertThatThrownBy(() -> sut.create(request)).isInstanceOf(ProductOutOfStockException.class);
+
+        verify(customerRepository, times(1)).findById(any(CustomerId.class));
+        verify(productRepository, times(1)).allExistsByIds(anyList());
         verify(orderRepository, never()).save(any(Order.class));
     }
 }
