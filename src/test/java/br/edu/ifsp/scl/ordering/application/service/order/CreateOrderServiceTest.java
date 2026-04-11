@@ -15,6 +15,7 @@ import br.edu.ifsp.scl.ordering.domain.valueobject.ProductId;
 import br.edu.ifsp.scl.ordering.testing.tags.Functional;
 import br.edu.ifsp.scl.ordering.testing.tags.TDD;
 import br.edu.ifsp.scl.ordering.testing.tags.UnitTest;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -101,6 +102,40 @@ public class CreateOrderServiceTest {
                 .isInstanceOf(CustomerNotFoundException.class);
 
         verify(customerRepository, times(1)).findById(request.customerId());
+        verify(productRepository, never()).allExistsByIds(anyList());
+        verify(orderRepository, never()).save(any(Order.class));
+    }
+
+    @UnitTest
+    @Functional
+    @Test
+    @DisplayName("Should throw NullPointerException when customer is null")
+    void shouldThrowNullPointerExceptionWhenCustomerIsNull() {
+        Address address = new Address(
+                "Rua A",
+                "123",
+                "São Carlos",
+                "São Paulo",
+                "456"
+        );
+        CreateOrderRequest request = new CreateOrderRequest(
+                null,
+                address,
+                List.of(
+                        new CreateOrderItemRequest(
+                                new ProductId("12"),
+                        3
+                        ),
+                        new CreateOrderItemRequest(
+                                new ProductId("13"),
+                        4
+                        )
+                )
+        );
+
+        assertThatNullPointerException().isThrownBy(() -> sut.create(request));
+
+        verify(customerRepository, never()).findById(any(CustomerId.class));
         verify(productRepository, never()).allExistsByIds(anyList());
         verify(orderRepository, never()).save(any(Order.class));
     }
