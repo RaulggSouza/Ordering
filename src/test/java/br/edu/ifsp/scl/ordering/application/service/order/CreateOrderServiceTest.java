@@ -18,6 +18,7 @@ import br.edu.ifsp.scl.ordering.domain.valueobject.ProductId;
 import br.edu.ifsp.scl.ordering.testing.tags.Functional;
 import br.edu.ifsp.scl.ordering.testing.tags.TDD;
 import br.edu.ifsp.scl.ordering.testing.tags.UnitTest;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -274,5 +275,27 @@ public class CreateOrderServiceTest {
         verify(productRepository, times(1)).allExistsByIds(anyList());
         verify(orderRepository, never()).save(any(Order.class));
         verify(productInventoryRepository, times(1)).findOutOfStockItems(productIds);
+    }
+    
+    @UnitTest
+    @TDD
+    @Test
+    @DisplayName("Should throw ProductNotFoundException if at least one OrderItem does not exists")
+    void shouldThrowProductNotFoundExceptionIfAtLeastOneOrderItemDoesNotExists() {
+        CreateOrderRequest request = createOrderRequest();
+        Customer customer = new Customer(request.customerId(), "Peri");
+        List<ProductId> productIds = request.items().stream()
+                .map(CreateOrderItemRequest::productId)
+                .toList();
+
+
+        when(customerRepository.findById(request.customerId())).thenReturn(Optional.of(customer));
+        when(productRepository.allExistsByIds(productIds)).thenReturn(false);
+
+        assertThatExceptionOfType(ProductNotFoundException.class).isThrownBy(() -> sut.create(request));
+
+        verify(customerRepository, times(1)).findById(any(CustomerId.class));
+        verify(productRepository, times(1)).allExistsByIds(anyList());
+        verify(orderRepository, never()).save(any(Order.class));
     }
 }
