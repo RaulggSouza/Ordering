@@ -330,17 +330,11 @@ public class CreateOrderServiceTest {
                 )
         );
         Customer customer = new Customer(request.customerId(), "Peri");
-        List<ProductId> productIds = request.items().stream()
-                .map(CreateOrderItemRequest::productId)
-                .toList();
-
-        when(customerRepository.findById(request.customerId())).thenReturn(Optional.of(customer));
-        when(productRepository.allExistsByIds(productIds)).thenReturn(true);
 
         assertThatIllegalArgumentException().isThrownBy(() -> sut.create(request));
 
-        verify(customerRepository, times(1)).findById(any(CustomerId.class));
-        verify(productRepository, times(1)).allExistsByIds(anyList());
+        verify(customerRepository, never()).findById(request.customerId());
+        verify(productRepository, never()).allExistsByIds(anyList());
         verify(orderRepository, never()).save(any(Order.class));
     }
 }
