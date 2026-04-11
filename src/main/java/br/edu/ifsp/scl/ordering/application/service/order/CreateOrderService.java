@@ -12,6 +12,7 @@ import br.edu.ifsp.scl.ordering.domain.exceptions.CustomerNotFoundException;
 import br.edu.ifsp.scl.ordering.domain.exceptions.EmptyOrderItemListException;
 import br.edu.ifsp.scl.ordering.domain.exceptions.ProductOutOfStockException;
 import br.edu.ifsp.scl.ordering.domain.valueobject.OrderId;
+import br.edu.ifsp.scl.ordering.domain.valueobject.ProductId;
 
 import java.util.List;
 import java.util.Objects;
@@ -42,11 +43,11 @@ public class CreateOrderService implements ICreateOrderService {
         productRepository.allExistsByIds(items.stream()
                 .map(OrderItem::productId)
                 .toList());
-        boolean allItemsInStock = productInventoryRepository.allItemsInStock(items.stream()
+        List<ProductId> outOfStockItems = productInventoryRepository.findOutOfStockItems(items.stream()
                 .map(OrderItem::productId)
                 .toList());
 
-        if (!allItemsInStock) throw new ProductOutOfStockException("Products out of stock");
+        if (!outOfStockItems.isEmpty()) throw new ProductOutOfStockException("Products out of stock. Products: "+outOfStockItems);
 
         Order order = Order.create(items, request.address(), request.customerId());
 
