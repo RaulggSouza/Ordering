@@ -172,4 +172,26 @@ public class CreateOrderServiceTest {
         verify(productRepository, never()).allExistsByIds(anyList());
         verify(orderRepository, never()).save(any(Order.class));
     }
+
+    @Test
+    @DisplayName("should throw NullPointerException when OrderItems list is null")
+    void shouldThrowNullPointerExceptionWhenOrderItemsListIsNull() {
+        CreateOrderRequest request = new CreateOrderRequest(
+                new CustomerId("123"),
+                new Address(
+                        "Rua A",
+                        "123",
+                        "São Carlos",
+                        "São Paulo",
+                        "456"
+                ),
+                null
+        );
+
+        assertThatNullPointerException().isThrownBy(() -> sut.create(request)).withMessage("OrderItems list must not be null");
+
+        verify(customerRepository, never()).findById(any(CustomerId.class));
+        verify(productRepository, never()).allExistsByIds(anyList());
+        verify(orderRepository, never()).save(any(Order.class));
+    }
 }
