@@ -10,6 +10,7 @@ import br.edu.ifsp.scl.ordering.domain.aggregate.Customer;
 import br.edu.ifsp.scl.ordering.domain.aggregate.Order;
 import br.edu.ifsp.scl.ordering.domain.exceptions.CustomerNotFoundException;
 import br.edu.ifsp.scl.ordering.domain.exceptions.EmptyOrderItemListException;
+import br.edu.ifsp.scl.ordering.domain.exceptions.ProductNotFoundException;
 import br.edu.ifsp.scl.ordering.domain.exceptions.ProductOutOfStockException;
 import br.edu.ifsp.scl.ordering.domain.valueobject.Address;
 import br.edu.ifsp.scl.ordering.domain.valueobject.CustomerId;
@@ -295,7 +296,8 @@ public class CreateOrderServiceTest {
         assertThatExceptionOfType(ProductNotFoundException.class).isThrownBy(() -> sut.create(request));
 
         verify(customerRepository, times(1)).findById(any(CustomerId.class));
-        verify(productRepository, times(1)).allExistsByIds(anyList());
+        verify(productRepository, times(1)).allExistsByIds(productIds);
         verify(orderRepository, never()).save(any(Order.class));
+        verify(productInventoryRepository, never()).findOutOfStockItems(productIds);
     }
 }
