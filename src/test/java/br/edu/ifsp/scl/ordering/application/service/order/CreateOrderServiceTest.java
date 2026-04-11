@@ -4,6 +4,7 @@ import br.edu.ifsp.scl.ordering.application.ports.inbound.service.order.create.I
 import br.edu.ifsp.scl.ordering.application.ports.inbound.service.order.create.dtos.CreateOrderItemRequest;
 import br.edu.ifsp.scl.ordering.application.ports.inbound.service.order.create.dtos.CreateOrderRequest;
 import br.edu.ifsp.scl.ordering.application.ports.outbound.persistence.customer.ICustomerRepository;
+import br.edu.ifsp.scl.ordering.application.ports.outbound.persistence.product.IProductRepository;
 import br.edu.ifsp.scl.ordering.domain.aggregate.Customer;
 import br.edu.ifsp.scl.ordering.domain.entity.OrderItem;
 import br.edu.ifsp.scl.ordering.domain.valueobject.Address;
@@ -45,11 +46,11 @@ public class CreateOrderServiceTest {
     void shouldCreateOrder() {
         List<CreateOrderItemRequest> orderItems = List.of(
                 new CreateOrderItemRequest(
-                        "12",
+                        new ProductId("12"),
                         3
                 ),
                 new CreateOrderItemRequest(
-                        "13",
+                        new ProductId("13"),
                         4
                 )
         );
@@ -74,6 +75,6 @@ public class CreateOrderServiceTest {
 
         assertThat(result).isNotNull();
         verify(customerRepository, times(1)).findById(body.customerId());
-        verify(productRepository, times(1)).allExistsById(products);
+        verify(productRepository, times(1)).allExistsByIds(products);
     }
 }
