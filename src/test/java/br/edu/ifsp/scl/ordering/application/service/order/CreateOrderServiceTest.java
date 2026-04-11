@@ -336,4 +336,19 @@ public class CreateOrderServiceTest {
         verify(productRepository, never()).allExistsByIds(anyList());
         verify(orderRepository, never()).save(any(Order.class));
     }
+
+    @UnitTest
+    @Functional
+    @ParameterizedTest
+    @CsvSource(value = {
+            " ,123,São Carlos,São Paulo,456",
+            "Rua A,,São Carlos,São Paulo,456",
+            "Rua A,123,NULL,São Paulo,456",
+            "Rua A,123,São Carlos,,456",
+            "Rua A,123,São Carlos,São Paulo, "
+    }, nullValues = "NULL")
+    @DisplayName("Should throw IllegalArgumentException when created Address is invalid")
+    void shouldThrowIllegalArgumentExceptionWhenCreatedAddressIsInvalid(String street, String number, String city, String state, String postalCode) {
+        assertThatIllegalArgumentException().isThrownBy(() -> new Address(street, number, city, state, postalCode));
+    }
 }
