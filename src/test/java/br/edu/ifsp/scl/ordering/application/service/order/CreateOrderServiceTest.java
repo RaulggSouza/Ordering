@@ -111,8 +111,7 @@ public class CreateOrderServiceTest {
         CreateOrderRequest request = createOrderRequest();
         when(customerRepository.findById(request.customerId())).thenReturn(Optional.empty());
 
-        assertThatThrownBy(() -> sut.create(request))
-                .isInstanceOf(CustomerNotFoundException.class);
+        assertThatExceptionOfType(CustomerNotFoundException.class).isThrownBy(() -> sut.create(request));
 
         verify(customerRepository, times(1)).findById(request.customerId());
         verify(productRepository, never()).allExistsByIds(anyList());
@@ -178,7 +177,7 @@ public class CreateOrderServiceTest {
                 List.of()
         );
 
-        assertThatThrownBy(() -> sut.create(request)).isInstanceOf(EmptyOrderItemListException.class);
+        assertThatExceptionOfType(EmptyOrderItemListException.class).isThrownBy(() -> sut.create(request));
 
         verify(customerRepository, never()).findById(any(CustomerId.class));
         verify(productRepository, never()).allExistsByIds(anyList());
@@ -270,7 +269,7 @@ public class CreateOrderServiceTest {
         when(productRepository.allExistsByIds(productIds)).thenReturn(true);
         when(productInventoryRepository.findOutOfStockItems(productIds)).thenReturn(List.of(new ProductId("12")));
 
-        assertThatThrownBy(() -> sut.create(request)).isInstanceOf(ProductOutOfStockException.class);
+        assertThatExceptionOfType(ProductOutOfStockException.class).isThrownBy(() -> sut.create(request));
 
         verify(customerRepository, times(1)).findById(any(CustomerId.class));
         verify(productRepository, times(1)).allExistsByIds(anyList());
