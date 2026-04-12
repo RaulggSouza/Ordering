@@ -37,26 +37,39 @@ public class CancelOrderServiceTest {
     void shouldCancelAnOrderIfItsStatusIsCreated() {
         OrderId orderId = new OrderId("123");
         CancelOrderRequest request = new CancelOrderRequest(orderId);
-        Order order = new Order(
-                orderId,
-                new CustomerId("4"),
-                new Address("Rua A", "456", "São Carlos", "São Paulo", "789"),
-                List.of(
-                        new OrderItem(
-                                new ProductId("12"),
-                                3
-                        ),
-                        new OrderItem(
-                                new ProductId("13"),
-                                4
-                        )
-                ),
-                OrderStatus.CREATED
-        );
+        Order order = createOrderWithStatus(OrderStatus.CREATED);
 
         when(orderRepository.findById(orderId)).thenReturn(Optional.of(order));
 
         assertThat(sut.cancel(request)).isEqualTo(true);
         verify(orderRepository, times(1)).findById(orderId);
+    }
+
+    private Order createOrderWithStatus(OrderStatus status){
+        Address address = new Address(
+                "Rua A",
+                "456",
+                "São Carlos",
+                "São Paulo",
+                "789");
+
+        List<OrderItem> items = List.of(
+                new OrderItem(
+                        new ProductId("12"),
+                        3
+                ),
+                new OrderItem(
+                        new ProductId("13"),
+                        4
+                )
+        );
+
+        return new Order(
+                new OrderId("123"),
+                new CustomerId("4"),
+                address,
+                items,
+                status
+        );
     }
 }
