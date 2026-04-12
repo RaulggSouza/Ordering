@@ -46,7 +46,12 @@ public class AddItemsToOrderServiceTest {
     @CsvSource(
         nullValues = "NULL",
         value = {
-            "NULL,1:1:100,1:1:100"
+            "NULL,1:1:100,1:1:100",
+            "NULL,1:1:100-2:2:50,1:1:100-2:2:50",
+            "1:1:100,2:1:200,1:1:100-2:1:200",
+            "1:1:100-2:2:50,3:1:30,1:1:100-2:2:50-3:1:30",
+            "NULL,1:2:10-2:3:20-3:1:30,1:2:10-2:3:20-3:1:30",
+            "1:1:100,2:2:50-3:1:40,1:1:100-2:2:50-3:1:40"
         }
     )
     void shouldAddItemsToOrderWhenAllParametersAreValid(String itemsThatAlreadyExistsInOrderInput, String itemsToAddIntoOrderInput, String expectedOrderItemsInput){
