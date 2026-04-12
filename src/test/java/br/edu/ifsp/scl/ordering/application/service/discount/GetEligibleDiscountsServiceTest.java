@@ -12,6 +12,7 @@ import br.edu.ifsp.scl.ordering.domain.exceptions.OrderStatusNotAllowedException
 import br.edu.ifsp.scl.ordering.domain.valueobject.*;
 import br.edu.ifsp.scl.ordering.testing.tags.TDD;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
@@ -142,7 +143,7 @@ public class GetEligibleDiscountsServiceTest {
     }
 
     @TDD
-    @DisplayName("#62 - should throw an error and not load discounts when order status is invalid")
+    @DisplayName("#63 - should throw an error and not load discounts when order status is invalid")
     @ParameterizedTest
     @CsvSource(
             nullValues = "NULL",
@@ -165,6 +166,25 @@ public class GetEligibleDiscountsServiceTest {
 
         verify(orderRepository).findById(order.getOrderId());
         verify(discountRepository, never()).getAll();
+    }
+
+    @TDD
+    @DisplayName("#64 - should return an empty array if no discounts registered")
+    @Test
+    void shouldReturnEmptyArrayIfNoDiscountsRegistered() {
+        Order order = createOrder("1", "");
+        GetEligibleDiscountsRequest request = new GetEligibleDiscountsRequest(order.getOrderId());
+
+        when(orderRepository.findById(order.getOrderId())).thenReturn(Optional.of(order));
+        when(discountRepository.getAll()).thenReturn(new ArrayList<>());
+
+        List<Discount> eligibleDiscounts = sut.getEligibleDiscounts(request).discounts();
+
+        verify(orderRepository).findById(order.getOrderId());
+        verify(discountRepository, times(1)).getAll();
+
+        assertThat(eligibleDiscounts).isEmpty();
+
     }
 
 
@@ -209,6 +229,10 @@ public class GetEligibleDiscountsServiceTest {
     }
 
     private static List<OrderItem> createOrderItems(String orderProductsInput) {
+        if (orderProductsInput == null || orderProductsInput.isBlank()) {
+            return List.of();
+        }
+
         return Arrays.stream(orderProductsInput.split("-"))
                 .map(productString -> {
                     String[] parts = productString.split(":");
