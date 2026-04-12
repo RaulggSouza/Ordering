@@ -61,6 +61,9 @@ public class GetEligibleDiscountsServiceTest {
 
         List<Discount> eligibleDiscounts = sut.getEligibleDiscounts(request).discounts();
 
+        verify(orderRepository, times(1)).findById(order.getOrderId());
+        verify(discountRepository, times(1)).getAll();
+
         assertThat(eligibleDiscounts)
                 .extracting(Discount::getDiscountId)
                 .containsExactlyInAnyOrderElementsOf(discountIds);
