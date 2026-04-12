@@ -5,12 +5,19 @@ import br.edu.ifsp.scl.ordering.domain.aggregate.Order;
 import br.edu.ifsp.scl.ordering.domain.valueobject.OrderId;
 import org.springframework.stereotype.Repository;
 
+import java.util.Optional;
+
 @Repository
 public class OrderPostgresqlRepository implements IOrderRepository {
     private final SpringDataOrderRepository repository;
 
     public OrderPostgresqlRepository(SpringDataOrderRepository repository) {
         this.repository = repository;
+    }
+
+    @Override
+    public Optional<Order> findById(OrderId orderId) {
+        return Optional.empty();
     }
 
     @Override
