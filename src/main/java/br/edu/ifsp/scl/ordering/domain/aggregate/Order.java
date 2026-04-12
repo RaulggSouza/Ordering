@@ -14,4 +14,12 @@ public class Order {
     private Address shippingAddress;
     private List<OrderItem> items;
     private OrderStatus status;
+
+    public Order(OrderId id, CustomerId customerId, Address shippingAddress, List<OrderItem> items, OrderStatus status) {
+        this.id = id;
+        this.customerId = customerId;
+        this.shippingAddress = shippingAddress;
+        this.items = items;
+        this.status = status;
+    }
 }
