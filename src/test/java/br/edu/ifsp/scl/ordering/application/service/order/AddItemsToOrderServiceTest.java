@@ -9,11 +9,14 @@ import br.edu.ifsp.scl.ordering.application.ports.outbound.persistence.product.I
 import br.edu.ifsp.scl.ordering.domain.aggregate.Order;
 import br.edu.ifsp.scl.ordering.domain.constant.OrderStatus;
 import br.edu.ifsp.scl.ordering.domain.entity.OrderItem;
+import br.edu.ifsp.scl.ordering.domain.exceptions.ProductNotFoundException;
 import br.edu.ifsp.scl.ordering.domain.valueobject.OrderId;
 import br.edu.ifsp.scl.ordering.domain.valueobject.ProductId;
+import br.edu.ifsp.scl.ordering.testing.tags.Functional;
 import br.edu.ifsp.scl.ordering.testing.tags.TDD;
 import br.edu.ifsp.scl.ordering.testing.tags.UnitTest;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
@@ -80,6 +83,40 @@ public class AddItemsToOrderServiceTest {
 
         assertThat(response.orderId()).isEqualTo(order.getOrderId());
         assertThat(response.items()).isEqualTo(expectedOrderItems);
+    }
+
+    @Functional
+    @UnitTest
+    @Test
+    @DisplayName("#37 - Should throw an error when product does not exist")
+    void shouldThrowAnErrorWhenProductDoesNotExist() {
+        Order order = createOrder("1", "");
+
+        List<AddItemsToOrderItemRequest> orderItemsToAdd = createOrderItemsToAdd("");
+
+        AddItemsToOrderRequest request = new AddItemsToOrderRequest(
+                order.getOrderId(),
+                orderItemsToAdd
+        );
+
+        when(orderRepository.findById(order.getOrderId())).thenReturn(Optional.of(order));
+        when(productRepository.allExistsByIds(
+                orderItemsToAdd.stream()
+                        .map(AddItemsToOrderItemRequest::productId)
+                        .toList()
+        )).thenReturn(false);
+
+        assertThatThrownBy(() -> sut.addItemsToOrder(request))
+                .isInstanceOf(ProductNotFoundException.class)
+                .hasMessage("Product not found");
+
+        verify(orderRepository, times(1)).findById(order.getOrderId());
+        verify(productRepository, times(1)).allExistsByIds(
+                orderItemsToAdd.stream()
+                        .map(AddItemsToOrderItemRequest::productId)
+                        .toList()
+        );
+        verify(orderRepository, never()).save(any());
     }
 
 
