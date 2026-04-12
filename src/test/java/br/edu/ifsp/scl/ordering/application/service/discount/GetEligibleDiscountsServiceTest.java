@@ -38,10 +38,10 @@ public class GetEligibleDiscountsServiceTest {
     @ParameterizedTest
     @CsvSource(
             value = {
-                "1,1:1:100,1", // total do pedido: 100
-                "1,1:10:100-2:10:100,1:2", // total do pedido: 2000
-                "1,1:100:100,1:2:3", // total do pedido: 10000
-                "1,1:100:120,1:2" // total do pedido: 12000
+                "1,1:1:100,1",
+                "1,1:10:100-2:10:100,1:2",
+                "1,1:100:100,1:2:3",
+                "1,1:100:120,1:2"
             }
     )
     void shouldReturnAllEligibleDiscounts(String orderId, String orderProductsInput, String discountsIdsInput) {
@@ -71,8 +71,8 @@ public class GetEligibleDiscountsServiceTest {
     @ParameterizedTest
     @CsvSource(
         value = {
-            "1,1:1:1", // total do pedido: 1
-            "1,1:1:35", // total do pedido: 35
+            "1,1:1:1",
+            "1,1:1:35",
         }
     )
     void shouldReturnEmptyArrayIfNotEligible(String orderId, String orderProductsInput) {
@@ -96,11 +96,11 @@ public class GetEligibleDiscountsServiceTest {
     @CsvSource(
             nullValues = "NULL",
             value = {
-                    "1,1:1:100,1,NULL", // total do pedido: 100
-                    "1,1:1:100,4,1", // total do pedido: 100
-                    "4,1:1:9500,3,1:2", // total do pedido: 9500
-                    "5,1:1:45,4,NULL", // total do pedido 45
-                    "10,1:1:10,1,NULL" // total do pedido: 10
+                    "1,1:1:100,1,NULL",
+                    "1,1:1:100,4,1",
+                    "4,1:1:9500,3,1:2",
+                    "5,1:1:45,4,NULL",
+                    "10,1:1:10,1,NULL"
             }
     )
     void shouldNotReturnDiscountThatHasTheSameTypeAsTheDiscountsAppliedOnTheOrder(String orderId, String orderProductsInput, String orderDiscountsInput, String expectedDiscountsInput) {
