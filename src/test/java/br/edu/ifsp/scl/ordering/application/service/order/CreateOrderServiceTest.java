@@ -117,6 +117,7 @@ public class CreateOrderServiceTest {
         verify(customerRepository, times(1)).findById(request.customerId());
         verify(productRepository, never()).allExistsByIds(anyList());
         verify(orderRepository, never()).save(any(Order.class));
+        verify(productInventoryRepository, never()).findOutOfStockItems(anyList());
     }
 
     @UnitTest
@@ -159,6 +160,7 @@ public class CreateOrderServiceTest {
         verify(customerRepository, never()).findById(any(CustomerId.class));
         verify(productRepository, never()).allExistsByIds(anyList());
         verify(orderRepository, never()).save(any(Order.class));
+        verify(productInventoryRepository, never()).findOutOfStockItems(anyList());
     }
 
     @UnitTest
@@ -183,6 +185,7 @@ public class CreateOrderServiceTest {
         verify(customerRepository, never()).findById(any(CustomerId.class));
         verify(productRepository, never()).allExistsByIds(anyList());
         verify(orderRepository, never()).save(any(Order.class));
+        verify(productInventoryRepository, never()).findOutOfStockItems(anyList());
     }
 
     @UnitTest
@@ -207,6 +210,7 @@ public class CreateOrderServiceTest {
         verify(customerRepository, never()).findById(any(CustomerId.class));
         verify(productRepository, never()).allExistsByIds(anyList());
         verify(orderRepository, never()).save(any(Order.class));
+        verify(productInventoryRepository, never()).findOutOfStockItems(anyList());
     }
 
     @UnitTest
@@ -253,6 +257,7 @@ public class CreateOrderServiceTest {
         verify(customerRepository, never()).findById(any(CustomerId.class));
         verify(productRepository, never()).allExistsByIds(anyList());
         verify(orderRepository, never()).save(any(Order.class));
+        verify(productInventoryRepository, never()).findOutOfStockItems(anyList());
     }
 
     @UnitTest
@@ -338,6 +343,7 @@ public class CreateOrderServiceTest {
         verify(customerRepository, never()).findById(request.customerId());
         verify(productRepository, never()).allExistsByIds(anyList());
         verify(orderRepository, never()).save(any(Order.class));
+        verify(productInventoryRepository, never()).findOutOfStockItems(anyList());
     }
 
     @UnitTest
