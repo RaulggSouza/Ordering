@@ -7,6 +7,7 @@ import br.edu.ifsp.scl.ordering.domain.aggregate.Order;
 import br.edu.ifsp.scl.ordering.domain.entity.Discount;
 import br.edu.ifsp.scl.ordering.domain.entity.OrderItem;
 import br.edu.ifsp.scl.ordering.domain.valueobject.DiscountId;
+import br.edu.ifsp.scl.ordering.domain.valueobject.MinimumValueDiscountRule;
 import br.edu.ifsp.scl.ordering.domain.valueobject.OrderId;
 import br.edu.ifsp.scl.ordering.domain.valueobject.ProductId;
 import br.edu.ifsp.scl.ordering.testing.tags.TDD;
@@ -68,7 +69,7 @@ public class GetEligibleDiscountsServiceTest {
 
     private static List<Discount> createDiscounts(){
         return List.of(
-                new Discount(new DiscountId("1"), 1)
+                new Discount(new DiscountId("1"), new MinimumValueDiscountRule(1, 1))
         );
     }
 

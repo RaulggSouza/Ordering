@@ -23,9 +23,7 @@ public class GetEligibleDiscountsService implements IGetEligibleDiscountsService
 
         List<Discount> discounts  = discountRepository.getAll();
 
-        double orderTotal = order.get().getTotal();
-
-        List<Discount> evaluatedDiscounts = discounts.stream().filter((discount) -> orderTotal >= discount.getMinOrderValue()).toList();
+        List<Discount> evaluatedDiscounts = discounts.stream().filter((discount) -> discount.isEligible(order.get())).toList();
 
         return new GetEligibleDiscountsResponse(evaluatedDiscounts);
     }

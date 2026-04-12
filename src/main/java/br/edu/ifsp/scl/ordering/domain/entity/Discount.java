@@ -1,21 +1,23 @@
 package br.edu.ifsp.scl.ordering.domain.entity;
 
+import br.edu.ifsp.scl.ordering.domain.aggregate.Order;
+import br.edu.ifsp.scl.ordering.domain.interfaces.DiscountRule;
 import br.edu.ifsp.scl.ordering.domain.valueobject.DiscountId;
 
 public class Discount {
     private final DiscountId discountId;
-    private final double minOrderValue;
+    private final DiscountRule rule;
 
-    public Discount(DiscountId discountId, double minOrderValue) {
+    public Discount(DiscountId discountId, DiscountRule rule) {
         this.discountId = discountId;
-        this.minOrderValue = minOrderValue;
+        this.rule = rule;
     }
 
     public DiscountId getDiscountId() {
         return discountId;
     }
 
-    public double getMinOrderValue() {
-        return minOrderValue;
+    public boolean isEligible(Order order) {
+        return rule.isEligible(order);
     }
 }
