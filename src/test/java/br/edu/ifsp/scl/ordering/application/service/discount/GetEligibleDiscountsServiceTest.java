@@ -97,6 +97,10 @@ public class GetEligibleDiscountsServiceTest {
             nullValues = "NULL",
             value = {
                     "1,1:1:100,1,NULL", // total do pedido: 100
+                    "1,1:1:100,4,1", // total do pedido: 100
+                    "4,1:1:9500,3,1:2", // total do pedido: 9500
+                    "5,1:1:45,4,NULL", // total do pedido 45
+                    "10,1:1:10,1,NULL" // total do pedido: 10
             }
     )
     void shouldNotReturnDiscountThatHasTheSameTypeAsTheDiscountsAppliedOnTheOrder(String orderId, String orderProductsInput, String orderDiscountsInput, String expectedDiscountsInput) {
@@ -141,7 +145,7 @@ public class GetEligibleDiscountsServiceTest {
                 new Discount(new DiscountId("1"), new MinimumValueDiscountRule(100, 1), DiscountType.CATEGORY),
                 new Discount(new DiscountId("2"), new MinimumValueDiscountRule(2000, 1), DiscountType.COUPON),
                 new Discount(new DiscountId("3"), new TierDiscountRule(List.of(new DiscountTier(9000, 11000))), DiscountType.FIRST_PURCHASE),
-                new Discount(new DiscountId("3"), new TierDiscountRule(List.of(new DiscountTier(20, 30), new DiscountTier(40, 50))), DiscountType.SEASONAL)
+                new Discount(new DiscountId("4"), new TierDiscountRule(List.of(new DiscountTier(20, 30), new DiscountTier(40, 50))), DiscountType.SEASONAL)
         );
     }
 
