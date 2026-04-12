@@ -4,8 +4,6 @@ import br.edu.ifsp.scl.ordering.application.ports.inbound.service.order.cancel.d
 import br.edu.ifsp.scl.ordering.application.ports.outbound.persistence.order.IOrderRepository;
 import br.edu.ifsp.scl.ordering.domain.aggregate.Order;
 
-import java.util.Optional;
-
 public class CancelOrderService {
     private final IOrderRepository orderRepository;
 
@@ -18,6 +16,8 @@ public class CancelOrderService {
 
         if(order.ableToCancel()) order.cancelOrder();
 
-        return order.ableToCancel();
+        orderRepository.save(order);
+
+        return true;
     }
 }

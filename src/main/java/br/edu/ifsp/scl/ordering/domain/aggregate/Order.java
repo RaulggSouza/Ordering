@@ -30,4 +30,8 @@ public class Order {
     public void cancelOrder() {
         this.status = OrderStatus.CANCELLED;
     }
+
+    public OrderStatus getStatus() {
+        return status;
+    }
 }

@@ -41,15 +41,15 @@ public class CancelOrderServiceTest {
     void shouldCancelAnOrderIfItsStatusIsCreated() {
         OrderId orderId = new OrderId("123");
         CancelOrderRequest request = new CancelOrderRequest(orderId);
-        Order createdOrder = createOrderWithStatus(OrderStatus.CREATED);
-        Order canceledOrder = createOrderWithStatus(OrderStatus.CANCELLED);
+        Order order = createOrderWithStatus(OrderStatus.CREATED);
 
-        when(orderRepository.findById(orderId)).thenReturn(Optional.of(createdOrder));
-        when(orderRepository.save(canceledOrder)).thenReturn(orderId);
+        when(orderRepository.findById(orderId)).thenReturn(Optional.of(order));
 
         assertThat(sut.cancel(request)).isEqualTo(true);
+        assertThat(order.getStatus()).isEqualTo(OrderStatus.CANCELLED);
+
         verify(orderRepository, times(1)).findById(orderId);
-        verify(orderRepository, times(1)).save(canceledOrder);
+        verify(orderRepository, times(1)).save(order);
     }
 
     private Order createOrderWithStatus(OrderStatus status){
