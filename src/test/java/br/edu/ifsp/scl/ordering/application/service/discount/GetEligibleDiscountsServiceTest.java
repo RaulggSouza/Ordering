@@ -43,7 +43,8 @@ public class GetEligibleDiscountsServiceTest {
             value = {
                     "1:1:10,1", // total do pedido: 10
                     "1:10:100-2:10:100,1:2", // total do pedido: 2000
-                    "1:100:100,1:2:3" // total do pedido: 10000
+                    "1:100:100,1:2:3", // total do pedido: 10000
+                    "1:100:120,1:2" // total do pedido: 12000
             }
     )
     void shouldReturnAllEligibleDiscounts(String orderProductsInput, String discountsIdsInput) {
