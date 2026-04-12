@@ -155,7 +155,7 @@ public class GetEligibleDiscountsServiceTest {
     )
     void shouldThrowAnErrorAndNotLoadDiscountsWhenOrderStatusIsInvalid(String orderStatusInput) {
         OrderStatus orderStatus = OrderStatus.valueOf(orderStatusInput);
-        Order order = new Order(new OrderId("1"), new ArrayList<>(), orderStatus);
+        Order order = Order.createWithStatus(new OrderId("1"), List.of(),  orderStatus);
         GetEligibleDiscountsRequest request = new GetEligibleDiscountsRequest(order.getOrderId());
 
         when(orderRepository.findById(order.getOrderId())).thenReturn(Optional.of(order));
@@ -178,30 +178,46 @@ public class GetEligibleDiscountsServiceTest {
     }
 
     private static Order createOrder(String orderId, String orderProductsInput) {
-        List<OrderItem> orderItems = Arrays.stream(orderProductsInput.split("-"))
-                .map(productString -> {
-                    String[] parts = productString.split(":");
-                    String productId = parts[0];
-                    int quantity = Integer.parseInt(parts[1]);
-                    double price = Double.parseDouble(parts[2]);
-                    return new OrderItem(new ProductId(productId), quantity, price);
-                })
-                .toList();
-
-        return new Order(new OrderId(orderId), orderItems, OrderStatus.CREATED);
+        return Order.create(
+                new OrderId(orderId),
+                createOrderItems(orderProductsInput)
+        );
     }
 
-    private static Order createOrderWithDiscounts(String orderId, String orderProductsInput, List<Discount> discounts) {
-        List<OrderItem> orderItems = Arrays.stream(orderProductsInput.split("-"))
+    private static Order createOrderWithDiscounts(
+            String orderId,
+            String orderProductsInput,
+            List<Discount> discounts
+    ) {
+        return Order.createWithDiscounts(
+                new OrderId(orderId),
+                createOrderItems(orderProductsInput),
+                discounts
+        );
+    }
+
+    private static Order createOrderWithStatus(
+            String orderId,
+            String orderProductsInput,
+            OrderStatus status
+    ) {
+        return Order.createWithStatus(
+                new OrderId(orderId),
+                createOrderItems(orderProductsInput),
+                status
+        );
+    }
+
+    private static List<OrderItem> createOrderItems(String orderProductsInput) {
+        return Arrays.stream(orderProductsInput.split("-"))
                 .map(productString -> {
                     String[] parts = productString.split(":");
                     String productId = parts[0];
                     int quantity = Integer.parseInt(parts[1]);
                     double price = Double.parseDouble(parts[2]);
+
                     return new OrderItem(new ProductId(productId), quantity, price);
                 })
                 .toList();
-
-        return new Order(new OrderId(orderId), orderItems, discounts);
     }
 }
