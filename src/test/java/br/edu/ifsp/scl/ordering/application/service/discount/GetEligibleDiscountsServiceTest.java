@@ -4,6 +4,7 @@ import br.edu.ifsp.scl.ordering.application.ports.inbound.service.discount.get_e
 import br.edu.ifsp.scl.ordering.application.ports.outbound.persistence.discount.IDiscountRepository;
 import br.edu.ifsp.scl.ordering.application.ports.outbound.persistence.order.IOrderRepository;
 import br.edu.ifsp.scl.ordering.domain.aggregate.Order;
+import br.edu.ifsp.scl.ordering.domain.constant.DiscountType;
 import br.edu.ifsp.scl.ordering.domain.entity.Discount;
 import br.edu.ifsp.scl.ordering.domain.entity.OrderItem;
 import br.edu.ifsp.scl.ordering.domain.valueobject.*;
@@ -16,10 +17,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -96,8 +94,9 @@ public class GetEligibleDiscountsServiceTest {
     @DisplayName("#61 - Should not return any discount that has the same type as the discounts that are already applied on the order")
     @ParameterizedTest
     @CsvSource(
+            nullValues = "NULL",
             value = {
-                    "1,1:1:1", // total do pedido: 10
+                    "1,1:1:100,1,NULL", // total do pedido: 100
             }
     )
     void shouldNotReturnDiscountThatHasTheSameTypeAsTheDiscountsAppliedOnTheOrder(String orderId, String orderProductsInput, String orderDiscountsInput, String expectedDiscountsInput) {
@@ -112,7 +111,7 @@ public class GetEligibleDiscountsServiceTest {
         Order order = createOrderWithDiscounts(orderId, orderProductsInput, orderDiscounts);
         GetEligibleDiscountsRequest request = new GetEligibleDiscountsRequest(order.getOrderId());
 
-        List<DiscountId> expectedDiscountIds = Arrays.stream(expectedDiscountsInput.split(":"))
+        List<DiscountId> expectedDiscountIds = Objects.isNull(expectedDiscountsInput) ? List.of() : Arrays.stream(expectedDiscountsInput.split(":"))
                 .map(DiscountId::new)
                 .toList();
 
@@ -128,10 +127,10 @@ public class GetEligibleDiscountsServiceTest {
             .containsExactlyInAnyOrderElementsOf(expectedDiscountIds);
 
         assertThat(eligibleDiscounts)
-                .extracting(Discount::getType)
+                .extracting(Discount::getDiscountType)
                 .doesNotContainAnyElementsOf(
                         orderDiscounts.stream()
-                                .map(Discount::getType)
+                                .map(Discount::getDiscountType)
                                 .toList()
                 );
     }
@@ -139,10 +138,10 @@ public class GetEligibleDiscountsServiceTest {
 
     private static List<Discount> createDiscounts(){
         return List.of(
-                new Discount(new DiscountId("1"), new MinimumValueDiscountRule(100, 1)),
-                new Discount(new DiscountId("2"), new MinimumValueDiscountRule(2000, 1)),
-                new Discount(new DiscountId("3"), new TierDiscountRule(List.of(new DiscountTier(9000, 11000)))),
-        new Discount(new DiscountId("3"), new TierDiscountRule(List.of(new DiscountTier(20, 30), new DiscountTier(40, 50))))
+                new Discount(new DiscountId("1"), new MinimumValueDiscountRule(100, 1), DiscountType.CATEGORY),
+                new Discount(new DiscountId("2"), new MinimumValueDiscountRule(2000, 1), DiscountType.COUPON),
+                new Discount(new DiscountId("3"), new TierDiscountRule(List.of(new DiscountTier(9000, 11000))), DiscountType.FIRST_PURCHASE),
+                new Discount(new DiscountId("3"), new TierDiscountRule(List.of(new DiscountTier(20, 30), new DiscountTier(40, 50))), DiscountType.SEASONAL)
         );
     }
 
@@ -158,5 +157,19 @@ public class GetEligibleDiscountsServiceTest {
                 .toList();
 
         return new Order(new OrderId(orderId), orderItems);
+    }
+
+    private static Order createOrderWithDiscounts(String orderId, String orderProductsInput, List<Discount> discounts) {
+        List<OrderItem> orderItems = Arrays.stream(orderProductsInput.split("-"))
+                .map(productString -> {
+                    String[] parts = productString.split(":");
+                    String productId = parts[0];
+                    int quantity = Integer.parseInt(parts[1]);
+                    double price = Double.parseDouble(parts[2]);
+                    return new OrderItem(new ProductId(productId), quantity, price);
+                })
+                .toList();
+
+        return new Order(new OrderId(orderId), orderItems, discounts);
     }
 }
