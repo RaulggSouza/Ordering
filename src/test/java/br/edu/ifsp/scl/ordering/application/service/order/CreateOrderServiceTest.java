@@ -83,11 +83,13 @@ public class CreateOrderServiceTest {
         List<CreateOrderItemRequest> orderItems = List.of(
                 new CreateOrderItemRequest(
                         new ProductId("12"),
-                        3
+                        3,
+                        0
                 ),
                 new CreateOrderItemRequest(
                         new ProductId("13"),
-                        4
+                        4,
+                        0
                 )
         );
         Address address = new Address(
@@ -146,11 +148,13 @@ public class CreateOrderServiceTest {
                 List.of(
                         new CreateOrderItemRequest(
                                 new ProductId("12"),
-                        3
+                        3,
+                        0
                         ),
                         new CreateOrderItemRequest(
                                 new ProductId("13"),
-                        4
+                        4,
+                        0
                         )
                 )
         );
@@ -226,15 +230,18 @@ public class CreateOrderServiceTest {
         List<CreateOrderItemRequest> items = new ArrayList<>(List.of(
                 new CreateOrderItemRequest(
                         new ProductId("12"),
-                        3
+                        3,
+                        0
                 ),
                 new CreateOrderItemRequest(
                         new ProductId("15"),
-                        4
+                        4,
+                        0
                 ),
                 new CreateOrderItemRequest(
                         new ProductId("13"),
-                        5
+                        5,
+                        0
                 )
         ));
 
@@ -329,11 +336,13 @@ public class CreateOrderServiceTest {
                 List.of(
                         new CreateOrderItemRequest(
                                 new ProductId("12"),
-                                quantity
+                                quantity,
+                                0
                         ),
                         new CreateOrderItemRequest(
                                 new ProductId("13"),
-                                4
+                                4,
+                                0
                         )
                 )
         );
@@ -372,11 +381,13 @@ public class CreateOrderServiceTest {
                 List.of(
                         new CreateOrderItemRequest(
                                 new ProductId("12"),
-                                3
+                                3,
+                                0
                         ),
                         new CreateOrderItemRequest(
                                 new ProductId("13"),
-                                4
+                                4,
+                                0
                         )
                 )
         );
