@@ -18,7 +18,7 @@ public class CancelOrderService implements ICancelOrderService {
     }
 
     @Override
-    public boolean cancel(CancelOrderRequest request){
+    public void cancel(CancelOrderRequest request){
         Objects.requireNonNull(request);
         Objects.requireNonNull(request.orderId());
         Order order = orderRepository.findById(request.orderId())
@@ -27,7 +27,5 @@ public class CancelOrderService implements ICancelOrderService {
         order.cancelOrder();
 
         orderRepository.save(order);
-
-        return true;
     }
 }

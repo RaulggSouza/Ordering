@@ -37,14 +37,14 @@ public class CancelOrderServiceTest {
     @ParameterizedTest(name = "[{index}]: Should cancel if order status is {0}")
     @EnumSource(value = OrderStatus.class, names = {"CREATED", "INVOICED"})
     @DisplayName("Should cancel an order if its status is valid")
-    void shouldCancelAnOrderIfItsStatusIsCreated(OrderStatus status) {
+    void shouldCancelAnOrderIfItsStatusIsValid(OrderStatus status) {
         OrderId orderId = new OrderId("123");
         CancelOrderRequest request = new CancelOrderRequest(orderId);
         Order order = createOrderWithStatus(status);
 
         when(orderRepository.findById(orderId)).thenReturn(Optional.of(order));
 
-        assertThat(sut.cancel(request)).isEqualTo(true);
+        sut.cancel(request);
         assertThat(order.getStatus()).isEqualTo(OrderStatus.CANCELLED);
 
         verify(orderRepository, times(1)).findById(orderId);
