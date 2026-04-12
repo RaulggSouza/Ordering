@@ -5,6 +5,8 @@ import br.edu.ifsp.scl.ordering.application.ports.outbound.persistence.order.IOr
 import br.edu.ifsp.scl.ordering.domain.aggregate.Order;
 import br.edu.ifsp.scl.ordering.domain.constant.OrderStatus;
 import br.edu.ifsp.scl.ordering.domain.exceptions.OrderNotFoundException;
+import br.edu.ifsp.scl.ordering.domain.valueobject.Address;
+import br.edu.ifsp.scl.ordering.domain.valueobject.CustomerId;
 import br.edu.ifsp.scl.ordering.domain.valueobject.OrderId;
 import br.edu.ifsp.scl.ordering.testing.tags.Functional;
 import br.edu.ifsp.scl.ordering.testing.tags.TDD;
@@ -45,7 +47,7 @@ public class CancelOrderServiceTest {
         when(orderRepository.findById(orderId)).thenReturn(Optional.of(order));
 
         sut.cancel(request);
-        assertThat(order.getStatus()).isEqualTo(OrderStatus.CANCELLED);
+        assertThat(order.getOrderStatus()).isEqualTo(OrderStatus.CANCELLED);
 
         verify(orderRepository, times(1)).findById(orderId);
         verify(orderRepository, times(1)).save(order);
@@ -144,9 +146,12 @@ public class CancelOrderServiceTest {
     }
     
     private Order createOrderWithStatus(OrderStatus status){
+
         return Order.createWithStatus(
                 new OrderId("123"),
-                status
+                status,
+                new CustomerId("456"),
+                new Address("Rua A", "123", "São Carlos", "São Paulo", "456")
         );
     }
 }

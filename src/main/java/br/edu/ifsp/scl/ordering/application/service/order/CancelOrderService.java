@@ -22,7 +22,7 @@ public class CancelOrderService implements ICancelOrderService {
         Objects.requireNonNull(request);
         Objects.requireNonNull(request.orderId());
         Order order = orderRepository.findById(request.orderId())
-                .orElseThrow(() -> new OrderNotFoundException("Order with this id not found. Id: "+request.orderId()));
+                .orElseThrow(() -> new OrderNotFoundException(request.orderId()));
 
         order.cancelOrder();
 

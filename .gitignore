@@ -24,7 +24,6 @@ dependency-reduced-pom.xml
 buildNumber.properties
 .mvn/timing.properties
 .mvn/wrapper/maven-wrapper.jar
-src/main/resources/application.properties
 
 ##############################
 ## Gradle
@@ -89,3 +88,7 @@ nb-configuration.xml
 ## Miscellaneous
 ##############################
 *.log
+
+
+
+src/main/resources/application.properties
