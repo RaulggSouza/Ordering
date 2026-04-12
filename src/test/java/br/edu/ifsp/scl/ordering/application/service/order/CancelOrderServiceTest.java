@@ -1,6 +1,7 @@
 package br.edu.ifsp.scl.ordering.application.service.order;
 
 import br.edu.ifsp.scl.ordering.application.ports.inbound.service.order.cancel.CancelOrderService;
+import br.edu.ifsp.scl.ordering.application.ports.inbound.service.order.cancel.dtos.CancelOrderRequest;
 import br.edu.ifsp.scl.ordering.domain.valueobject.OrderId;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
