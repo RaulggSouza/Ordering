@@ -44,7 +44,8 @@ public class GetEligibleDiscountsServiceTest {
     @CsvSource(
             nullValues = "NULL",
             value = {
-                    "1:1:10,1"
+                    "1:1:10,1", // total do pedido: 10
+                    "1:10:100-2:10:100,1:2" // total do pedido: 2000
             }
     )
     void shouldReturnAllEligibleDiscounts(String orderProductsInput, String discountsIdsInput) {
@@ -69,7 +70,8 @@ public class GetEligibleDiscountsServiceTest {
 
     private static List<Discount> createDiscounts(){
         return List.of(
-                new Discount(new DiscountId("1"), new MinimumValueDiscountRule(1, 1))
+                new Discount(new DiscountId("1"), new MinimumValueDiscountRule(1, 1)),
+                new Discount(new DiscountId("2"), new MinimumValueDiscountRule(2000, 1))
         );
     }
 
