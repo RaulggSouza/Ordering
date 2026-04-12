@@ -10,6 +10,7 @@ import br.edu.ifsp.scl.ordering.application.ports.outbound.persistence.product.I
 import br.edu.ifsp.scl.ordering.domain.aggregate.Order;
 import br.edu.ifsp.scl.ordering.domain.exceptions.EmptyOrderItemListException;
 import br.edu.ifsp.scl.ordering.domain.exceptions.OrderNotFoundException;
+import br.edu.ifsp.scl.ordering.domain.exceptions.ProductNotFoundException;
 import br.edu.ifsp.scl.ordering.domain.valueobject.OrderId;
 import br.edu.ifsp.scl.ordering.domain.valueobject.ProductId;
 
@@ -31,7 +32,7 @@ public class AddItemsToOrderService implements IAddItemsToOrderService {
                 .orElseThrow(() -> new OrderNotFoundException(request.orderId()));
 
         if(!productRepository.allExistsByIds(request.addItemsToOrderItemRequest().stream().map((AddItemsToOrderItemRequest::productId)).toList())){
-            throw new EmptyOrderItemListException("Product not found");
+            throw new ProductNotFoundException("Product not found");
         }
 
         order.addItems(request.addItemsToOrderItemRequest().stream().map(AddItemsToOrderItemRequest::toOrderItem).toList());
