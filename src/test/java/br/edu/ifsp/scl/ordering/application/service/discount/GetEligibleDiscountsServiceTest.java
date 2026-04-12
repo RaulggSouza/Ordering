@@ -74,6 +74,7 @@ public class GetEligibleDiscountsServiceTest {
     @CsvSource(
         value = {
             "1,1:1:1", // total do pedido: 10
+            "1,1:1:35", // total do pedido: 35
         }
     )
     void shouldReturnEmptyArrayIfNotEligible(String orderId, String orderProductsInput) {
@@ -96,7 +97,8 @@ public class GetEligibleDiscountsServiceTest {
         return List.of(
                 new Discount(new DiscountId("1"), new MinimumValueDiscountRule(100, 1)),
                 new Discount(new DiscountId("2"), new MinimumValueDiscountRule(2000, 1)),
-                new Discount(new DiscountId("3"), new TierDiscountRule(List.of(new DiscountTier(9000, 11000))))
+                new Discount(new DiscountId("3"), new TierDiscountRule(List.of(new DiscountTier(9000, 11000)))),
+        new Discount(new DiscountId("3"), new TierDiscountRule(List.of(new DiscountTier(20, 30), new DiscountTier(40, 50))))
         );
     }
 
