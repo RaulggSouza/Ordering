@@ -39,7 +39,7 @@ public class Discount {
     }
 
     public boolean isEligible(Order order) {
-        return active
+        return isActive()
                 && !isExpired()
                 && rule.isEligible(order)
                 && doesNotHaveSameTypeApplied(order);

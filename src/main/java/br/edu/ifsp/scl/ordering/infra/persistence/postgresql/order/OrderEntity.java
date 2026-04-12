@@ -1,6 +1,8 @@
 package br.edu.ifsp.scl.ordering.infra.persistence.postgresql.order;
 
+import br.edu.ifsp.scl.ordering.domain.aggregate.Order;
 import br.edu.ifsp.scl.ordering.domain.constant.OrderStatus;
+import br.edu.ifsp.scl.ordering.domain.valueobject.OrderId;
 import jakarta.persistence.*;
 
 import java.util.ArrayList;
@@ -59,6 +61,7 @@ public class OrderEntity {
         this.postalCode = postalCode;
         this.status = status;
     }
+
 
     public void addItem(OrderItemEntity item) {
         item.setOrder(this);
