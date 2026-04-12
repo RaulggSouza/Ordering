@@ -106,6 +106,24 @@ public class CancelOrderServiceTest {
         verify(orderRepository, times(1)).findById(orderId);
         verify(orderRepository, never()).save(order);
     }
+
+    @UnitTest
+    @Functional
+    @Test
+    @DisplayName("Should throw OrderNotFoundException when order does not exist")
+    void shouldThrowOrderNotFoundExceptionWhenOrderDoesNotExist() {
+        OrderId orderId = new OrderId("123");
+        CancelOrderRequest request = new CancelOrderRequest(orderId);
+        Order order = createOrderWithStatus(OrderStatus.CREATED);
+
+        when(orderRepository.findById(orderId)).thenReturn(Optional.empty());
+
+        assertThatExceptionOfType(OrderNotFoundException.class).isThrownBy(() -> sut.cancel(request));
+
+        verify(orderRepository, times(1)).findById(orderId);
+        verify(orderRepository, never()).save(order);
+    }
+    
     private Order createOrderWithStatus(OrderStatus status){
         return Order.createWithStatus(
                 new OrderId("123"),
