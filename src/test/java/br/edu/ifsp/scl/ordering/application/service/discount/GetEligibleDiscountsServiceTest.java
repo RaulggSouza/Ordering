@@ -41,14 +41,14 @@ public class GetEligibleDiscountsServiceTest {
     @CsvSource(
             nullValues = "NULL",
             value = {
-                    "1:1:10,1", // total do pedido: 10
-                    "1:10:100-2:10:100,1:2", // total do pedido: 2000
-                    "1:100:100,1:2:3", // total do pedido: 10000
-                    "1:100:120,1:2" // total do pedido: 12000
+                    "1,1:1:10,1", // total do pedido: 10
+                    "1,1:10:100-2:10:100,1:2", // total do pedido: 2000
+                    "1,1:100:100,1:2:3", // total do pedido: 10000
+                    "1,1:100:120,1:2" // total do pedido: 12000
             }
     )
-    void shouldReturnAllEligibleDiscounts(String orderProductsInput, String discountsIdsInput) {
-        Order order = createOrder(orderProductsInput);
+    void shouldReturnAllEligibleDiscounts(String orderId, String orderProductsInput, String discountsIdsInput) {
+        Order order = createOrder(orderId, orderProductsInput);
         GetEligibleDiscountsRequest request = new GetEligibleDiscountsRequest(order.getOrderId());
         List<Discount> discounts = createDiscounts();
 
@@ -75,7 +75,7 @@ public class GetEligibleDiscountsServiceTest {
         );
     }
 
-    private static Order createOrder(String orderProductsInput) {
+    private static Order createOrder(String orderId, String orderProductsInput) {
         List<OrderItem> orderItems = Arrays.stream(orderProductsInput.split("-"))
                 .map(productString -> {
                     String[] parts = productString.split(":");
@@ -86,6 +86,6 @@ public class GetEligibleDiscountsServiceTest {
                 })
                 .toList();
 
-        return new Order(new OrderId(UUID.randomUUID().toString()), orderItems);
+        return new Order(new OrderId(orderId), orderItems);
     }
 }
