@@ -309,6 +309,27 @@ public class GetEligibleDiscountsServiceTest {
                 .containsExactlyInAnyOrderElementsOf(expectedDiscountIds);
     }
 
+    @TDD
+    @DisplayName("#100 - Should throw an error when order does not exist")
+    @ParameterizedTest
+    @CsvSource({
+            "1",
+            "999",
+            "abc"
+    })
+    void shouldThrowAnErrorWhenOrderDoesNotExist(String orderIdInput) {
+        OrderId orderId = new OrderId(orderIdInput);
+        GetEligibleDiscountsRequest request = new GetEligibleDiscountsRequest(orderId);
+
+        when(orderRepository.findById(orderId)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> sut.getEligibleDiscounts(request))
+                .isInstanceOf(OrderNotFoundException.class);
+
+        verify(orderRepository, times(1)).findById(orderId);
+        verify(discountRepository, never()).getAll();
+    }
+
 
 
     private static List<Discount> createDiscounts(){
