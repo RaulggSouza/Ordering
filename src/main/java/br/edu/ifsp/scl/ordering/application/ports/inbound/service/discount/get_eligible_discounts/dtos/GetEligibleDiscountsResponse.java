@@ -11,10 +11,7 @@ public record GetEligibleDiscountsResponse(List<GetEligibleDiscountsItemResponse
     public static GetEligibleDiscountsResponse createFromDiscounts(List<Discount> discounts, Order order) {
         return new GetEligibleDiscountsResponse(
                 discounts.stream()
-                        .map(discount -> new GetEligibleDiscountsItemResponse(
-                                discount.getDiscountId(),
-                                discount.getPercentage(order)
-                        ))
+                        .map(discount -> GetEligibleDiscountsItemResponse.createFromDiscount(discount, order))
                         .toList()
         );
     }
