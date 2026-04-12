@@ -6,10 +6,7 @@ import br.edu.ifsp.scl.ordering.application.ports.outbound.persistence.order.IOr
 import br.edu.ifsp.scl.ordering.domain.aggregate.Order;
 import br.edu.ifsp.scl.ordering.domain.entity.Discount;
 import br.edu.ifsp.scl.ordering.domain.entity.OrderItem;
-import br.edu.ifsp.scl.ordering.domain.valueobject.DiscountId;
-import br.edu.ifsp.scl.ordering.domain.valueobject.MinimumValueDiscountRule;
-import br.edu.ifsp.scl.ordering.domain.valueobject.OrderId;
-import br.edu.ifsp.scl.ordering.domain.valueobject.ProductId;
+import br.edu.ifsp.scl.ordering.domain.valueobject.*;
 import br.edu.ifsp.scl.ordering.testing.tags.TDD;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -45,7 +42,8 @@ public class GetEligibleDiscountsServiceTest {
             nullValues = "NULL",
             value = {
                     "1:1:10,1", // total do pedido: 10
-                    "1:10:100-2:10:100,1:2" // total do pedido: 2000
+                    "1:10:100-2:10:100,1:2", // total do pedido: 2000
+                    "1:100:100,1:2:3" // total do pedido: 10000
             }
     )
     void shouldReturnAllEligibleDiscounts(String orderProductsInput, String discountsIdsInput) {
@@ -71,7 +69,8 @@ public class GetEligibleDiscountsServiceTest {
     private static List<Discount> createDiscounts(){
         return List.of(
                 new Discount(new DiscountId("1"), new MinimumValueDiscountRule(1, 1)),
-                new Discount(new DiscountId("2"), new MinimumValueDiscountRule(2000, 1))
+                new Discount(new DiscountId("2"), new MinimumValueDiscountRule(2000, 1)),
+                new Discount(new DiscountId("3"), new TierDiscountRule(List.of(new DiscountTier(9000, 11000))))
         );
     }
 
