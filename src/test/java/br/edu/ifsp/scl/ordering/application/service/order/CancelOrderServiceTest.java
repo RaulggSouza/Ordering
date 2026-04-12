@@ -89,8 +89,23 @@ public class CancelOrderServiceTest {
         verify(orderRepository, times(1)).findById(orderId);
         verify(orderRepository, never()).save(order);
     }
-    
-    
+
+    @UnitTest
+    @Functional
+    @Test
+    @DisplayName("Should throw IllegalStateException if order status is CANCELLED")
+    void shouldThrowIllegalStateExceptionIfOrderStatusIsCancelled() {
+        OrderId orderId = new OrderId("123");
+        CancelOrderRequest request = new CancelOrderRequest(orderId);
+        Order order = createOrderWithStatus(OrderStatus.CANCELLED);
+
+        when(orderRepository.findById(orderId)).thenReturn(Optional.of(order));
+
+        assertThatIllegalStateException().isThrownBy(() -> sut.cancel(request));
+
+        verify(orderRepository, times(1)).findById(orderId);
+        verify(orderRepository, never()).save(order);
+    }
     private Order createOrderWithStatus(OrderStatus status){
         return Order.createWithStatus(
                 new OrderId("123"),
