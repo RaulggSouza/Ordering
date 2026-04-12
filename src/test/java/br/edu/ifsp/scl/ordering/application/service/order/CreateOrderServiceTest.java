@@ -8,6 +8,7 @@ import br.edu.ifsp.scl.ordering.application.ports.outbound.persistence.order.IOr
 import br.edu.ifsp.scl.ordering.application.ports.outbound.persistence.product.IProductRepository;
 import br.edu.ifsp.scl.ordering.domain.aggregate.Customer;
 import br.edu.ifsp.scl.ordering.domain.aggregate.Order;
+import br.edu.ifsp.scl.ordering.domain.entity.OrderItem;
 import br.edu.ifsp.scl.ordering.domain.exceptions.CustomerNotFoundException;
 import br.edu.ifsp.scl.ordering.domain.exceptions.EmptyOrderItemListException;
 import br.edu.ifsp.scl.ordering.domain.exceptions.ProductNotFoundException;
@@ -60,13 +61,14 @@ public class CreateOrderServiceTest {
     void shouldCreateOrderWhenAllParametersAreValid() {
         CreateOrderRequest request = createOrderRequest();
         List<ProductId> products = request.items().stream().map(CreateOrderItemRequest::productId).toList();
+        List<OrderItem> orderItems = request.items().stream().map(CreateOrderItemRequest::toDomain).toList();
         Customer customer = new Customer(request.customerId(), "Peri");
         OrderId mockId = new OrderId("1");
 
         when(customerRepository.findById(request.customerId())).thenReturn(Optional.of(customer));
         when(productRepository.allExistsByIds(products)).thenReturn(true);
         when(orderRepository.save(any(Order.class))).thenReturn(mockId);
-        when(productInventoryRepository.findOutOfStockItems(products)).thenReturn(List.of());
+        when(productInventoryRepository.findOutOfStockItems(orderItems)).thenReturn(List.of());
 
         OrderId result = sut.create(request);
 
@@ -74,7 +76,7 @@ public class CreateOrderServiceTest {
         verify(customerRepository, times(1)).findById(request.customerId());
         verify(productRepository, times(1)).allExistsByIds(products);
         verify(orderRepository, times(1)).save(any(Order.class));
-        verify(productInventoryRepository, times(1)).findOutOfStockItems(products);
+        verify(productInventoryRepository, times(1)).findOutOfStockItems(orderItems);
     }
 
     private static CreateOrderRequest createOrderRequest() {
@@ -263,17 +265,19 @@ public class CreateOrderServiceTest {
         List<ProductId> productIds = request.items().stream()
                 .map(CreateOrderItemRequest::productId)
                 .toList();
+        List<OrderItem> orderItems = request.items().stream().map(CreateOrderItemRequest::toDomain).toList();
+
 
         when(customerRepository.findById(request.customerId())).thenReturn(Optional.of(customer));
         when(productRepository.allExistsByIds(productIds)).thenReturn(true);
-        when(productInventoryRepository.findOutOfStockItems(productIds)).thenReturn(List.of(new ProductId("12")));
+        when(productInventoryRepository.findOutOfStockItems(orderItems)).thenReturn(List.of(new ProductId("12")));
 
         assertThatExceptionOfType(ProductOutOfStockException.class).isThrownBy(() -> sut.create(request));
 
         verify(customerRepository, times(1)).findById(any(CustomerId.class));
         verify(productRepository, times(1)).allExistsByIds(anyList());
         verify(orderRepository, never()).save(any(Order.class));
-        verify(productInventoryRepository, times(1)).findOutOfStockItems(productIds);
+        verify(productInventoryRepository, times(1)).findOutOfStockItems(orderItems);
     }
     
     @UnitTest
@@ -296,7 +300,7 @@ public class CreateOrderServiceTest {
         verify(customerRepository, times(1)).findById(any(CustomerId.class));
         verify(productRepository, times(1)).allExistsByIds(productIds);
         verify(orderRepository, never()).save(any(Order.class));
-        verify(productInventoryRepository, never()).findOutOfStockItems(productIds);
+        verify(productInventoryRepository, never()).findOutOfStockItems(anyList());
     }
     
     @UnitTest
