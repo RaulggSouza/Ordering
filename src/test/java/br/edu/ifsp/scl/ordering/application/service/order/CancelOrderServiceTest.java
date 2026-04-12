@@ -54,6 +54,21 @@ public class CancelOrderServiceTest {
         verify(orderRepository, times(1)).findById(orderId);
         verify(orderRepository, times(1)).save(order);
     }
+
+    @Test
+    @DisplayName("Should throw IllegalStateException if order status is SHIPPED")
+    void shouldThrowIllegalStateExceptionIfOrderStatusIsShipped() {
+        OrderId orderId = new OrderId("123");
+        CancelOrderRequest request = new CancelOrderRequest(orderId);
+        Order order = createOrderWithStatus(OrderStatus.SHIPPED);
+
+        when(orderRepository.findById(orderId)).thenReturn(Optional.of(order));
+
+        assertThatIllegalStateException().isThrownBy(() -> sut.cancel(request));
+
+        verify(orderRepository, times(1)).findById(orderId);
+        verify(orderRepository, never()git).save(order);
+    }
     
     private Order createOrderWithStatus(OrderStatus status){
         Address address = new Address(
