@@ -233,13 +233,82 @@ public class GetEligibleDiscountsServiceTest {
                 .containsExactlyInAnyOrderElementsOf(secondExpectedDiscountIds);
     }
 
+    @TDD
+    @DisplayName("#66 - Should return only active discounts")
+    @ParameterizedTest
+    @CsvSource(
+            nullValues = "NULL",
+            value = {
+                    "1,1:1:100,1",
+                    "1,1:10:100,1",
+                    "1,1:100:100,1:3",
+                    "1,1:1:45,NULL"
+            }
+    )
+    void shouldReturnOnlyActiveDiscounts(
+            String orderId,
+            String orderProductsInput,
+            String discountsIdsInput
+    ) {
+        Order order = createOrder(orderId, orderProductsInput);
+        GetEligibleDiscountsRequest request = new GetEligibleDiscountsRequest(order.getOrderId());
+        List<Discount> discounts = createDiscountsWithActiveAndInactive();
+
+        when(orderRepository.findById(order.getOrderId())).thenReturn(Optional.of(order));
+        when(discountRepository.getAll()).thenReturn(discounts);
+
+        List<DiscountId> expectedDiscountIds = parseDiscountIds(discountsIdsInput);
+
+        List<Discount> eligibleDiscounts = sut.getEligibleDiscounts(request).discounts();
+
+        verify(orderRepository, times(1)).findById(order.getOrderId());
+        verify(discountRepository, times(1)).getAll();
+
+        assertThat(eligibleDiscounts)
+                .extracting(Discount::getDiscountId)
+                .containsExactlyInAnyOrderElementsOf(expectedDiscountIds);
+
+        assertThat(eligibleDiscounts)
+                .allMatch(Discount::isActive);
+    }
+
+
 
     private static List<Discount> createDiscounts(){
         return List.of(
-                new Discount(new DiscountId("1"), new MinimumValueDiscountRule(100, 1), DiscountType.CATEGORY),
-                new Discount(new DiscountId("2"), new MinimumValueDiscountRule(2000, 1), DiscountType.COUPON),
-                new Discount(new DiscountId("3"), new TierDiscountRule(List.of(new DiscountTier(9000, 11000))), DiscountType.FIRST_PURCHASE),
-                new Discount(new DiscountId("4"), new TierDiscountRule(List.of(new DiscountTier(20, 30), new DiscountTier(40, 50))), DiscountType.SEASONAL)
+                new Discount(new DiscountId("1"), new MinimumValueDiscountRule(100, 1), DiscountType.CATEGORY, true),
+                new Discount(new DiscountId("2"), new MinimumValueDiscountRule(2000, 1), DiscountType.COUPON, true),
+                new Discount(new DiscountId("3"), new TierDiscountRule(List.of(new DiscountTier(9000, 11000))), DiscountType.FIRST_PURCHASE, true),
+                new Discount(new DiscountId("4"), new TierDiscountRule(List.of(new DiscountTier(20, 30), new DiscountTier(40, 50))), DiscountType.SEASONAL, true)
+        );
+    }
+
+    private static List<Discount> createDiscountsWithActiveAndInactive() {
+        return List.of(
+                new Discount(
+                        new DiscountId("1"),
+                        new MinimumValueDiscountRule(100, 1),
+                        DiscountType.CATEGORY,
+                        true
+                ),
+                new Discount(
+                        new DiscountId("2"),
+                        new MinimumValueDiscountRule(2000, 1),
+                        DiscountType.COUPON,
+                        false
+                ),
+                new Discount(
+                        new DiscountId("3"),
+                        new TierDiscountRule(List.of(new DiscountTier(9000, 11000))),
+                        DiscountType.FIRST_PURCHASE,
+                        true
+                ),
+                new Discount(
+                        new DiscountId("4"),
+                        new TierDiscountRule(List.of(new DiscountTier(20, 30), new DiscountTier(40, 50))),
+                        DiscountType.SEASONAL,
+                        false
+                )
         );
     }
 
