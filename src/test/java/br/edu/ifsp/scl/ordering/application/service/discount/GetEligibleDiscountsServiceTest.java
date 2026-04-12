@@ -73,7 +73,7 @@ public class GetEligibleDiscountsServiceTest {
     @ParameterizedTest
     @CsvSource(
         value = {
-            "1,1:1:1", // total do pedido: 10
+            "1,1:1:1", // total do pedido: 1
             "1,1:1:35", // total do pedido: 35
         }
     )
@@ -90,6 +90,50 @@ public class GetEligibleDiscountsServiceTest {
         verify(discountRepository, times(1)).getAll();
 
         assertThat(eligibleDiscounts).isEmpty();
+    }
+
+    @TDD
+    @DisplayName("#61 - Should not return any discount that has the same type as the discounts that are already applied on the order")
+    @ParameterizedTest
+    @CsvSource(
+            value = {
+                    "1,1:1:1", // total do pedido: 10
+            }
+    )
+    void shouldNotReturnDiscountThatHasTheSameTypeAsTheDiscountsAppliedOnTheOrder(String orderId, String orderProductsInput, String orderDiscountsInput, String expectedDiscountsInput) {
+        List<Discount> discounts = createDiscounts();
+
+        List<DiscountId> orderDiscountIds = Arrays.stream(orderDiscountsInput.split(":"))
+                .map(DiscountId::new)
+                .toList();
+
+        List<Discount> orderDiscounts = discounts.stream().filter((discount) -> orderDiscountIds.contains(discount.getDiscountId())).toList();
+
+        Order order = createOrderWithDiscounts(orderId, orderProductsInput, orderDiscounts);
+        GetEligibleDiscountsRequest request = new GetEligibleDiscountsRequest(order.getOrderId());
+
+        List<DiscountId> expectedDiscountIds = Arrays.stream(expectedDiscountsInput.split(":"))
+                .map(DiscountId::new)
+                .toList();
+
+        when(orderRepository.findById(order.getOrderId())).thenReturn(Optional.of(order));
+        when(discountRepository.getAll()).thenReturn(discounts);
+
+        List<Discount> eligibleDiscounts = sut.getEligibleDiscounts(request).discounts();
+        verify(orderRepository, times(1)).findById(order.getOrderId());
+        verify(discountRepository, times(1)).getAll();
+
+        assertThat(eligibleDiscounts)
+            .extracting(Discount::getDiscountId)
+            .containsExactlyInAnyOrderElementsOf(expectedDiscountIds);
+
+        assertThat(eligibleDiscounts)
+                .extracting(Discount::getType)
+                .doesNotContainAnyElementsOf(
+                        orderDiscounts.stream()
+                                .map(Discount::getType)
+                                .toList()
+                );
     }
 
 
