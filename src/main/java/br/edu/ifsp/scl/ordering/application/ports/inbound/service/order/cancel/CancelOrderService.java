@@ -3,6 +3,7 @@ package br.edu.ifsp.scl.ordering.application.ports.inbound.service.order.cancel;
 import br.edu.ifsp.scl.ordering.application.ports.inbound.service.order.cancel.dtos.CancelOrderRequest;
 import br.edu.ifsp.scl.ordering.application.ports.outbound.persistence.order.IOrderRepository;
 import br.edu.ifsp.scl.ordering.domain.aggregate.Order;
+import br.edu.ifsp.scl.ordering.domain.exceptions.OrderNotFoundException;
 
 public class CancelOrderService {
     private final IOrderRepository orderRepository;
@@ -12,7 +13,8 @@ public class CancelOrderService {
     }
 
     public boolean cancel(CancelOrderRequest request){
-        Order order = orderRepository.findById(request.orderId()).get();
+        Order order = orderRepository.findById(request.orderId())
+                .orElseThrow(() -> new OrderNotFoundException("Order with this id not found. Id: "+request.orderId()));
 
         order.cancelOrder();
 
