@@ -1,0 +1,31 @@
+package br.edu.ifsp.scl.ordering.application.service.order;
+
+import br.edu.ifsp.scl.ordering.application.ports.inbound.service.order.cancel.ICancelOrderService;
+import br.edu.ifsp.scl.ordering.application.ports.inbound.service.order.cancel.dtos.CancelOrderRequest;
+import br.edu.ifsp.scl.ordering.application.ports.outbound.persistence.order.IOrderRepository;
+import br.edu.ifsp.scl.ordering.domain.aggregate.Order;
+import br.edu.ifsp.scl.ordering.domain.exceptions.OrderNotFoundException;
+import org.springframework.stereotype.Service;
+
+import java.util.Objects;
+
+@Service
+public class CancelOrderService implements ICancelOrderService {
+    private final IOrderRepository orderRepository;
+
+    public CancelOrderService(IOrderRepository orderRepository) {
+        this.orderRepository = orderRepository;
+    }
+
+    @Override
+    public void cancel(CancelOrderRequest request){
+        Objects.requireNonNull(request);
+        Objects.requireNonNull(request.orderId());
+        Order order = orderRepository.findById(request.orderId())
+                .orElseThrow(() -> new OrderNotFoundException(request.orderId()));
+
+        order.cancelOrder();
+
+        orderRepository.save(order);
+    }
+}

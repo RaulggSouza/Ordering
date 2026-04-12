@@ -47,6 +47,19 @@ public class Order {
         return new Order(items, shippingAddress, customerId);
     }
 
+    public static Order createWithStatus(OrderId id, OrderStatus status, CustomerId customerId, Address address){
+        return new Order(id, List.of(), List.of(), status, customerId, address);
+    }
+
+    public boolean canBeCancelled(){
+        return status == OrderStatus.CREATED || status == OrderStatus.INVOICED;
+    }
+
+    public void cancelOrder() {
+        if (!canBeCancelled()) throw new IllegalStateException("Illegal status for cancellation. Status: "+ this.status);
+        this.status = OrderStatus.CANCELLED;
+    }
+
     public OrderId getOrderId() {
         return id;
     }
