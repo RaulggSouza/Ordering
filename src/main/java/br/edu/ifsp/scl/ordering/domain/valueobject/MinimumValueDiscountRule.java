@@ -9,4 +9,9 @@ public record MinimumValueDiscountRule(double minimumValue, double discountValue
     public boolean isEligible(Order order) {
         return order.getTotal() >= minimumValue;
     }
+
+    @Override
+    public double getPercentage(Order order) {
+        return discountValue;
+    }
 }

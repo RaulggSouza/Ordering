@@ -49,4 +49,8 @@ public class Discount {
         return order.getDiscounts().stream()
                 .noneMatch(discount -> discount.getDiscountType() == this.discountType);
     }
+
+    public double getPercentage(Order order) {
+        return rule.getPercentage(order);
+    }
 }

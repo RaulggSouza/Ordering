@@ -12,6 +12,7 @@ import br.edu.ifsp.scl.ordering.domain.exceptions.OrderNotFoundException;
 import br.edu.ifsp.scl.ordering.domain.exceptions.OrderStatusNotAllowedException;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -19,6 +20,7 @@ import java.util.Optional;
 public class GetEligibleDiscountsService implements IGetEligibleDiscountsService {
     IOrderRepository orderRepository;
     IDiscountRepository discountRepository;
+
 
     @Override
     public GetEligibleDiscountsResponse getEligibleDiscounts(GetEligibleDiscountsRequest request) {
@@ -31,7 +33,7 @@ public class GetEligibleDiscountsService implements IGetEligibleDiscountsService
                 .filter(discount -> discount.isEligible(order))
                 .toList();
 
-        return new GetEligibleDiscountsResponse(eligibleDiscounts);
+        return GetEligibleDiscountsResponse.createFromDiscounts(eligibleDiscounts, order);
     }
 
     private void validateOrderStatus(Order order) {
