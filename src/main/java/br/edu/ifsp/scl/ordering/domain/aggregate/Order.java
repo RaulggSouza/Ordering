@@ -18,10 +18,11 @@ public class Order {
     private List<Discount> discounts;
     private OrderStatus status;
 
-    public Order(OrderId id, List<OrderItem> items) {
+    public Order(OrderId id, List<OrderItem> items,  OrderStatus status) {
         this.id = id;
         this.items = items;
         this.discounts = new ArrayList<>();
+        this.status = status;
     }
 
     public Order(OrderId id, List<OrderItem> items, List<Discount> discounts) {
@@ -32,6 +33,10 @@ public class Order {
 
     public OrderId getOrderId() {
         return id;
+    }
+
+    public OrderStatus getOrderStatus() {
+        return status;
     }
 
     public List<Discount> getDiscounts() {
