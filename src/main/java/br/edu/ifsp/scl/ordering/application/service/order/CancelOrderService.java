@@ -5,9 +5,11 @@ import br.edu.ifsp.scl.ordering.application.ports.inbound.service.order.cancel.d
 import br.edu.ifsp.scl.ordering.application.ports.outbound.persistence.order.IOrderRepository;
 import br.edu.ifsp.scl.ordering.domain.aggregate.Order;
 import br.edu.ifsp.scl.ordering.domain.exceptions.OrderNotFoundException;
+import org.springframework.stereotype.Service;
 
 import java.util.Objects;
 
+@Service
 public class CancelOrderService implements ICancelOrderService {
     private final IOrderRepository orderRepository;
 
