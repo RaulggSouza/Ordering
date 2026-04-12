@@ -10,6 +10,7 @@ import br.edu.ifsp.scl.ordering.domain.valueobject.Address;
 import br.edu.ifsp.scl.ordering.domain.valueobject.CustomerId;
 import br.edu.ifsp.scl.ordering.domain.valueobject.OrderId;
 import br.edu.ifsp.scl.ordering.domain.valueobject.ProductId;
+import br.edu.ifsp.scl.ordering.testing.tags.Functional;
 import br.edu.ifsp.scl.ordering.testing.tags.TDD;
 import br.edu.ifsp.scl.ordering.testing.tags.UnitTest;
 import org.junit.jupiter.api.DisplayName;
@@ -55,6 +56,8 @@ public class CancelOrderServiceTest {
         verify(orderRepository, times(1)).save(order);
     }
 
+    @UnitTest
+    @Functional
     @Test
     @DisplayName("Should throw IllegalStateException if order status is SHIPPED")
     void shouldThrowIllegalStateExceptionIfOrderStatusIsShipped() {
