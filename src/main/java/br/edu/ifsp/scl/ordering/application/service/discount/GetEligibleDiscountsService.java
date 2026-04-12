@@ -8,6 +8,7 @@ import br.edu.ifsp.scl.ordering.application.ports.outbound.persistence.order.IOr
 import br.edu.ifsp.scl.ordering.domain.aggregate.Order;
 import br.edu.ifsp.scl.ordering.domain.constant.OrderStatus;
 import br.edu.ifsp.scl.ordering.domain.entity.Discount;
+import br.edu.ifsp.scl.ordering.domain.exceptions.OrderNotFoundException;
 import br.edu.ifsp.scl.ordering.domain.exceptions.OrderStatusNotAllowedException;
 import org.springframework.stereotype.Service;
 
@@ -21,9 +22,8 @@ public class GetEligibleDiscountsService implements IGetEligibleDiscountsService
 
     @Override
     public GetEligibleDiscountsResponse getEligibleDiscounts(GetEligibleDiscountsRequest request) {
-        Optional<Order> optionalOrder = orderRepository.findById(request.orderId());
-
-        Order order = optionalOrder.get();
+        Order order = orderRepository.findById(request.orderId())
+                .orElseThrow(() -> new OrderNotFoundException(request.orderId()));
 
         validateOrderStatus(order);
 
