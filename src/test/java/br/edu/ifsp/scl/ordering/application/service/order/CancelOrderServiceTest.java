@@ -52,6 +52,22 @@ public class CancelOrderServiceTest {
         verify(orderRepository, times(1)).save(order);
     }
 
+    @Test
+    @DisplayName("Should cancel an order if its status is invoiced")
+    void shouldCancelAnOrderIfItsStatusIsInvoiced() {
+        OrderId orderId = new OrderId("123");
+        CancelOrderRequest request = new CancelOrderRequest(orderId);
+        Order order = createOrderWithStatus(OrderStatus.INVOICED);
+
+        when(orderRepository.findById(orderId)).thenReturn(Optional.of(order));
+
+        assertThat(sut.cancel(request)).isEqualTo(true);
+        assertThat(order.getStatus()).isEqualTo(OrderStatus.CANCELLED);
+
+        verify(orderRepository, times(1)).findById(orderId);
+        verify(orderRepository, times(1)).save(order);
+    }
+    
     private Order createOrderWithStatus(OrderStatus status){
         Address address = new Address(
                 "Rua A",
