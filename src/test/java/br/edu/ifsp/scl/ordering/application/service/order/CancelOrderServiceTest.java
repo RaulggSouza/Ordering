@@ -15,6 +15,8 @@ import br.edu.ifsp.scl.ordering.testing.tags.UnitTest;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EnumSource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -36,28 +38,13 @@ public class CancelOrderServiceTest {
 
     @UnitTest
     @TDD
-    @Test
-    @DisplayName("Should cancel an order if its status is created")
-    void shouldCancelAnOrderIfItsStatusIsCreated() {
+    @ParameterizedTest(name = "[{index}]: Should cancel if order status is {0}")
+    @EnumSource(value = OrderStatus.class, names = {"CREATED", "INVOICED"})
+    @DisplayName("Should cancel an order if its status is valid")
+    void shouldCancelAnOrderIfItsStatusIsCreated(OrderStatus status) {
         OrderId orderId = new OrderId("123");
         CancelOrderRequest request = new CancelOrderRequest(orderId);
-        Order order = createOrderWithStatus(OrderStatus.CREATED);
-
-        when(orderRepository.findById(orderId)).thenReturn(Optional.of(order));
-
-        assertThat(sut.cancel(request)).isEqualTo(true);
-        assertThat(order.getStatus()).isEqualTo(OrderStatus.CANCELLED);
-
-        verify(orderRepository, times(1)).findById(orderId);
-        verify(orderRepository, times(1)).save(order);
-    }
-
-    @Test
-    @DisplayName("Should cancel an order if its status is invoiced")
-    void shouldCancelAnOrderIfItsStatusIsInvoiced() {
-        OrderId orderId = new OrderId("123");
-        CancelOrderRequest request = new CancelOrderRequest(orderId);
-        Order order = createOrderWithStatus(OrderStatus.INVOICED);
+        Order order = createOrderWithStatus(status);
 
         when(orderRepository.findById(orderId)).thenReturn(Optional.of(order));
 
