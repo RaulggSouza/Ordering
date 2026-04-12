@@ -8,6 +8,8 @@ import br.edu.ifsp.scl.ordering.application.ports.inbound.service.order.add_item
 import br.edu.ifsp.scl.ordering.application.ports.outbound.persistence.order.IOrderRepository;
 import br.edu.ifsp.scl.ordering.application.ports.outbound.persistence.product.IProductRepository;
 import br.edu.ifsp.scl.ordering.domain.aggregate.Order;
+import br.edu.ifsp.scl.ordering.domain.exceptions.EmptyOrderItemListException;
+import br.edu.ifsp.scl.ordering.domain.exceptions.OrderNotFoundException;
 import br.edu.ifsp.scl.ordering.domain.valueobject.OrderId;
 import br.edu.ifsp.scl.ordering.domain.valueobject.ProductId;
 
@@ -25,13 +27,22 @@ public class AddItemsToOrderService implements IAddItemsToOrderService {
 
     @Override
     public AddItemsToOrderResponse addItemsToOrder(AddItemsToOrderRequest request) {
-        Order order = orderRepository.findById(request.orderId()).get();
+        Order order = orderRepository.findById(request.orderId())
+                .orElseThrow(() -> new OrderNotFoundException(request.orderId()));
 
-        productRepository.allExistsByIds(request.addItemsToOrderItemRequest().stream().map((AddItemsToOrderItemRequest::productId)).toList());
+        if(!productRepository.allExistsByIds(request.addItemsToOrderItemRequest().stream().map((AddItemsToOrderItemRequest::productId)).toList())){
+            throw new EmptyOrderItemListException("Product not found");
+        }
+
+        order.addItems(request.addItemsToOrderItemRequest().stream().map(AddItemsToOrderItemRequest::toOrderItem).toList());
 
         orderRepository.save(order);
 
-        return new AddItemsToOrderResponse(new OrderId("1"),
-                List.of(new AddItemsToOrderItemResponse(new ProductId("1"), 1, 100)));
+        return new AddItemsToOrderResponse(
+                order.getOrderId(),
+                order.getItems().stream()
+                        .map(AddItemsToOrderItemResponse::fromOrderItem)
+                        .toList()
+        );
     }
 }

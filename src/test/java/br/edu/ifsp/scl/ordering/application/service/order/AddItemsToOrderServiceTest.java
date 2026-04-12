@@ -61,6 +61,11 @@ public class AddItemsToOrderServiceTest {
         );
 
         when(orderRepository.findById(order.getOrderId())).thenReturn(Optional.of(order));
+        when(productRepository.allExistsByIds(
+                orderItemsToAdd.stream()
+                        .map(AddItemsToOrderItemRequest::productId)
+                        .toList()
+        )).thenReturn(true);
 
         AddItemsToOrderResponse response = sut.addItemsToOrder(request);
 

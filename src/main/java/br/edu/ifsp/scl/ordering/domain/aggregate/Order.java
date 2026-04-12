@@ -60,6 +60,10 @@ public class Order {
         this.status = OrderStatus.CANCELLED;
     }
 
+    public void addItems(List<OrderItem> itemsToAdd) {
+        this.items.addAll(itemsToAdd);
+    }
+
     public OrderId getOrderId() {
         return id;
     }
