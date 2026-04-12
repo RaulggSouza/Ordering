@@ -7,4 +7,5 @@ import java.util.Optional;
 
 public interface IOrderRepository {
     Optional<Order> findById(OrderId orderId);
+    OrderId save(Order order);
 }

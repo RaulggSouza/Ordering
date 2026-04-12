@@ -152,7 +152,7 @@ public class GetEligibleDiscountsServiceTest {
     )
     void shouldThrowAnErrorAndNotLoadDiscountsWhenOrderStatusIsInvalid(String orderStatusInput) {
         OrderStatus orderStatus = OrderStatus.valueOf(orderStatusInput);
-        Order order = Order.createWithStatus(new OrderId("1"), List.of(),  orderStatus);
+        Order order = createOrderWithStatus("1", null, orderStatus);
         GetEligibleDiscountsRequest request = new GetEligibleDiscountsRequest(order.getOrderId());
 
         when(orderRepository.findById(order.getOrderId())).thenReturn(Optional.of(order));
@@ -420,9 +420,13 @@ public class GetEligibleDiscountsServiceTest {
     }
 
     private static Order createOrder(String orderId, String orderProductsInput) {
-        return Order.create(
+        return new Order(
                 new OrderId(orderId),
-                createOrderItems(orderProductsInput)
+                createOrderItems(orderProductsInput),
+                null,
+                OrderStatus.CREATED,
+                null,
+                null
         );
     }
 
@@ -431,10 +435,13 @@ public class GetEligibleDiscountsServiceTest {
             String orderProductsInput,
             List<Discount> discounts
     ) {
-        return Order.createWithDiscounts(
+        return new Order(
                 new OrderId(orderId),
                 createOrderItems(orderProductsInput),
-                discounts
+                discounts,
+                OrderStatus.CREATED,
+                null,
+                null
         );
     }
 
@@ -443,10 +450,13 @@ public class GetEligibleDiscountsServiceTest {
             String orderProductsInput,
             OrderStatus status
     ) {
-        return Order.createWithStatus(
+        return new Order(
                 new OrderId(orderId),
                 createOrderItems(orderProductsInput),
-                status
+                null,
+                status,
+                null,
+                null
         );
     }
 

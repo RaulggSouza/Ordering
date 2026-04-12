@@ -9,12 +9,13 @@ import br.edu.ifsp.scl.ordering.domain.valueobject.OrderId;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 public class Order {
     private final OrderId id;
     private CustomerId customerId;
     private Address shippingAddress;
-    private List<OrderItem> items;
+    private final List<OrderItem> items;
     private List<Discount> discounts;
     private OrderStatus status;
 
@@ -22,24 +23,28 @@ public class Order {
             OrderId id,
             List<OrderItem> items,
             List<Discount> discounts,
-            OrderStatus status
+            OrderStatus status,
+            CustomerId customerId,
+            Address shippingAddress
     ) {
         this.id = id;
         this.items = new ArrayList<>(items);
         this.discounts = new ArrayList<>(discounts);
         this.status = status;
+        this.customerId = customerId;
+        this.shippingAddress = shippingAddress;
     }
 
-    public static Order create(OrderId id, List<OrderItem> items) {
-        return new Order(id, items, List.of(), OrderStatus.CREATED);
+    private Order(List<OrderItem> items, Address shippingAddress, CustomerId customerId) {
+        this.id = new OrderId(UUID.randomUUID().toString());
+        this.items = items;
+        this.shippingAddress = shippingAddress;
+        this.customerId = customerId;
+        this.status = OrderStatus.CREATED;
     }
 
-    public static Order createWithDiscounts(OrderId id, List<OrderItem> items, List<Discount> discounts) {
-        return new Order(id, items, discounts, OrderStatus.CREATED);
-    }
-
-    public static Order createWithStatus(OrderId id, List<OrderItem> items, OrderStatus status) {
-        return new Order(id, items, List.of(), status);
+    public static Order create(List<OrderItem> items, Address shippingAddress, CustomerId customerId){
+        return new Order(items, shippingAddress, customerId);
     }
 
     public OrderId getOrderId() {
@@ -56,5 +61,18 @@ public class Order {
 
     public double getTotal(){
         return items.stream().mapToDouble(OrderItem::getTotal).sum();
+    }
+
+    public CustomerId getCustomerId() {
+        return customerId;
+    }
+
+    public Address getShippingAddress() {
+        return shippingAddress;
+    }
+
+
+    public List<OrderItem> getItems() {
+        return items;
     }
 }
