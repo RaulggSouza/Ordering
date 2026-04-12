@@ -55,9 +55,7 @@ public class GetEligibleDiscountsServiceTest {
         when(orderRepository.findById(order.getOrderId())).thenReturn(Optional.of(order));
         when(discountRepository.getAll()).thenReturn(discounts);
 
-        List<DiscountId> discountIds = Arrays.stream(discountsIdsInput.split(":"))
-                .map(DiscountId::new)
-                .toList();
+        List<DiscountId> discountIds = parseDiscountIds(discountsIdsInput);
 
         List<Discount> eligibleDiscounts = sut.getEligibleDiscounts(request).discounts();
 
@@ -109,18 +107,14 @@ public class GetEligibleDiscountsServiceTest {
     void shouldNotReturnDiscountThatHasTheSameTypeAsTheDiscountsAppliedOnTheOrder(String orderId, String orderProductsInput, String orderDiscountsInput, String expectedDiscountsInput) {
         List<Discount> discounts = createDiscounts();
 
-        List<DiscountId> orderDiscountIds = Arrays.stream(orderDiscountsInput.split(":"))
-                .map(DiscountId::new)
-                .toList();
+        List<DiscountId> orderDiscountIds = parseDiscountIds(orderDiscountsInput);
 
         List<Discount> orderDiscounts = discounts.stream().filter((discount) -> orderDiscountIds.contains(discount.getDiscountId())).toList();
 
         Order order = createOrderWithDiscounts(orderId, orderProductsInput, orderDiscounts);
         GetEligibleDiscountsRequest request = new GetEligibleDiscountsRequest(order.getOrderId());
 
-        List<DiscountId> expectedDiscountIds = Objects.isNull(expectedDiscountsInput) ? List.of() : Arrays.stream(expectedDiscountsInput.split(":"))
-                .map(DiscountId::new)
-                .toList();
+        List<DiscountId> expectedDiscountIds = parseDiscountIds(expectedDiscountsInput);
 
         when(orderRepository.findById(order.getOrderId())).thenReturn(Optional.of(order));
         when(discountRepository.getAll()).thenReturn(discounts);
@@ -187,6 +181,58 @@ public class GetEligibleDiscountsServiceTest {
 
     }
 
+    @TDD
+    @DisplayName("#65 - Should consider the current order state when getting eligible discounts after items change")
+    @ParameterizedTest
+    @CsvSource(
+            nullValues = "NULL",
+            value = {
+                    "1:1:100,1:1:10,1,NULL",
+                    "1:1:100,1:1:2500,1,1:2",
+                    "1:1:2500,1:1:10,1:2,NULL",
+                    "1:1:45,1:1:100,4,1",
+                    "1:1:9500,1:1:45,1:2:3,4"
+            }
+    )
+    void shouldConsiderTheCurrentOrderStateWhenGettingEligibleDiscountsAfterItemsChange(
+            String originalOrderProductsInput,
+            String updatedOrderProductsInput,
+            String firstExpectedDiscountIdsInput,
+            String secondExpectedDiscountIdsInput
+    ) {
+        String orderId = "1";
+        OrderId evaluatedOrderId = new OrderId(orderId);
+
+        List<Discount> availableDiscounts = createDiscounts();
+        GetEligibleDiscountsRequest request = new GetEligibleDiscountsRequest(evaluatedOrderId);
+
+        Order originalOrder = createOrder(orderId, originalOrderProductsInput);
+        Order updatedOrder = createOrder(orderId, updatedOrderProductsInput);
+
+        List<DiscountId> firstExpectedDiscountIds = parseDiscountIds(firstExpectedDiscountIdsInput);
+        List<DiscountId> secondExpectedDiscountIds = parseDiscountIds(secondExpectedDiscountIdsInput);
+
+        when(orderRepository.findById(evaluatedOrderId))
+                .thenReturn(Optional.of(originalOrder))
+                .thenReturn(Optional.of(updatedOrder));
+
+        when(discountRepository.getAll()).thenReturn(availableDiscounts);
+
+        List<Discount> firstEligibleDiscounts = sut.getEligibleDiscounts(request).discounts();
+        List<Discount> secondEligibleDiscounts = sut.getEligibleDiscounts(request).discounts();
+
+        verify(orderRepository, times(2)).findById(evaluatedOrderId);
+        verify(discountRepository, times(2)).getAll();
+
+        assertThat(firstEligibleDiscounts)
+                .extracting(Discount::getDiscountId)
+                .containsExactlyInAnyOrderElementsOf(firstExpectedDiscountIds);
+
+        assertThat(secondEligibleDiscounts)
+                .extracting(Discount::getDiscountId)
+                .containsExactlyInAnyOrderElementsOf(secondExpectedDiscountIds);
+    }
+
 
     private static List<Discount> createDiscounts(){
         return List.of(
@@ -195,6 +241,17 @@ public class GetEligibleDiscountsServiceTest {
                 new Discount(new DiscountId("3"), new TierDiscountRule(List.of(new DiscountTier(9000, 11000))), DiscountType.FIRST_PURCHASE),
                 new Discount(new DiscountId("4"), new TierDiscountRule(List.of(new DiscountTier(20, 30), new DiscountTier(40, 50))), DiscountType.SEASONAL)
         );
+    }
+
+    private static List<DiscountId> parseDiscountIds(String discountIdsInput) {
+        if (discountIdsInput == null || discountIdsInput.isBlank()) {
+            return List.of();
+        }
+
+        return Arrays.stream(discountIdsInput.split(":"))
+                .filter(discountId -> !discountId.isBlank())
+                .map(DiscountId::new)
+                .toList();
     }
 
     private static Order createOrder(String orderId, String orderProductsInput) {
