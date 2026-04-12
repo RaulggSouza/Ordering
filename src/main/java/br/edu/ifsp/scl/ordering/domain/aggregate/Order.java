@@ -27,4 +27,7 @@ public class Order {
         return status == OrderStatus.CREATED;
     }
 
+    public void cancelOrder() {
+        this.status = OrderStatus.CANCELLED;
+    }
 }
