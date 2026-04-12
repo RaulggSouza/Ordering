@@ -67,7 +67,7 @@ public class CancelOrderServiceTest {
         assertThatIllegalStateException().isThrownBy(() -> sut.cancel(request));
 
         verify(orderRepository, times(1)).findById(orderId);
-        verify(orderRepository, never()git).save(order);
+        verify(orderRepository, never()).save(order);
     }
     
     private Order createOrderWithStatus(OrderStatus status){
