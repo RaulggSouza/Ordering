@@ -15,6 +15,7 @@ public class CancelOrderService {
     }
 
     public boolean cancel(CancelOrderRequest request){
+        Objects.requireNonNull(request);
         Objects.requireNonNull(request.orderId());
         Order order = orderRepository.findById(request.orderId())
                 .orElseThrow(() -> new OrderNotFoundException("Order with this id not found. Id: "+request.orderId()));
