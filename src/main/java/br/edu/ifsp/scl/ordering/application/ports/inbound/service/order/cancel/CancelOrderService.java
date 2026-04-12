@@ -14,7 +14,6 @@ public class CancelOrderService {
     public boolean cancel(CancelOrderRequest request){
         Order order = orderRepository.findById(request.orderId()).get();
 
-        if(!order.ableToCancel()) throw new IllegalStateException("Illegal status for cancellation. Status: "+order.getStatus());
         order.cancelOrder();
 
         orderRepository.save(order);

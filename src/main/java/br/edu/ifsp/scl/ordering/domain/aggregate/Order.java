@@ -38,12 +38,12 @@ public class Order {
         return new Order(id, List.of(), status);
     }
 
-    public boolean ableToCancel(){
-        if (status == OrderStatus.CREATED || status == OrderStatus.INVOICED) return true;
-        return !(status == OrderStatus.SHIPPED || status == OrderStatus.COMPLETED || status == OrderStatus.CANCELLED);
+    public boolean canBeCancelled(){
+        return status == OrderStatus.CREATED || status == OrderStatus.INVOICED;
     }
 
     public void cancelOrder() {
+        if (!canBeCancelled()) throw new IllegalStateException("Illegal status for cancellation. Status: "+ this.status);
         this.status = OrderStatus.CANCELLED;
     }
 
