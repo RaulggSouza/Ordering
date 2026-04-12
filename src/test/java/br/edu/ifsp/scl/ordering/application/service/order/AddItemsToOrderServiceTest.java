@@ -10,6 +10,7 @@ import br.edu.ifsp.scl.ordering.domain.aggregate.Order;
 import br.edu.ifsp.scl.ordering.domain.constant.OrderStatus;
 import br.edu.ifsp.scl.ordering.domain.entity.OrderItem;
 import br.edu.ifsp.scl.ordering.domain.exceptions.ProductNotFoundException;
+import br.edu.ifsp.scl.ordering.domain.exceptions.ProductsAlreadyExistInOrderException;
 import br.edu.ifsp.scl.ordering.domain.valueobject.OrderId;
 import br.edu.ifsp.scl.ordering.domain.valueobject.ProductId;
 import br.edu.ifsp.scl.ordering.testing.tags.Functional;
@@ -152,8 +153,7 @@ public class AddItemsToOrderServiceTest {
         )).thenReturn(true);
 
         assertThatThrownBy(() -> sut.addItemsToOrder(request))
-                .isInstanceOf(ProductAlreadyExistsInOrderException.class)
-                .hasMessage("Product already exists in order");
+                .isInstanceOf(ProductsAlreadyExistInOrderException.class);
 
         verify(orderRepository, times(1)).findById(order.getOrderId());
         verify(productRepository, times(1)).allExistsByIds(
