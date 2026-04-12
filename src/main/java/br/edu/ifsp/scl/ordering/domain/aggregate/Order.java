@@ -40,7 +40,7 @@ public class Order {
 
     public boolean ableToCancel(){
         if (status == OrderStatus.CREATED || status == OrderStatus.INVOICED) return true;
-        return !(status == OrderStatus.SHIPPED || status == OrderStatus.COMPLETED);
+        return !(status == OrderStatus.SHIPPED || status == OrderStatus.COMPLETED || status == OrderStatus.CANCELLED);
     }
 
     public void cancelOrder() {
