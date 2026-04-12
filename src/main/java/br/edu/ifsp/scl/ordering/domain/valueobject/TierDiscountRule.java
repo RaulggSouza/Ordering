@@ -17,7 +17,8 @@ public class TierDiscountRule implements DiscountRule {
 
     @Override
     public boolean isEligible(Order order) {
-        return tiers.stream()
-                .anyMatch(tier -> order.getTotal() >= tier.getMinimumValue());
+        double total = order.getTotal();
+
+        return tiers.stream().anyMatch(tier -> tier.contains(total));
     }
 }
