@@ -28,7 +28,7 @@ public class Order {
             Address shippingAddress
     ) {
         this.id = id;
-        this.items = new ArrayList<>(items);
+        this.items = items == null ? new ArrayList<>() : new ArrayList<>(items);
         this.discounts = discounts == null ? new ArrayList<>() : new ArrayList<>(discounts);
         this.status = status;
         this.customerId = customerId;

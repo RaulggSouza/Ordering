@@ -1,5 +1,6 @@
 package br.edu.ifsp.scl.ordering.application.service.discount;
 
+import br.edu.ifsp.scl.ordering.application.ports.inbound.service.discount.get_eligible_discounts.dtos.GetEligibleDiscountsItemResponse;
 import br.edu.ifsp.scl.ordering.application.ports.inbound.service.discount.get_eligible_discounts.dtos.GetEligibleDiscountsRequest;
 import br.edu.ifsp.scl.ordering.application.ports.outbound.persistence.discount.IDiscountRepository;
 import br.edu.ifsp.scl.ordering.application.ports.outbound.persistence.order.IOrderRepository;
@@ -59,13 +60,13 @@ public class GetEligibleDiscountsServiceTest {
 
         List<DiscountId> discountIds = parseDiscountIds(discountsIdsInput);
 
-        List<Discount> eligibleDiscounts = sut.getEligibleDiscounts(request).discounts();
+        List<GetEligibleDiscountsItemResponse> eligibleDiscounts = sut.getEligibleDiscounts(request).items();
 
         verify(orderRepository, times(1)).findById(order.getOrderId());
         verify(discountRepository, times(1)).getAll();
 
         assertThat(eligibleDiscounts)
-                .extracting(Discount::getDiscountId)
+                .extracting(GetEligibleDiscountsItemResponse::discountId)
                 .containsExactlyInAnyOrderElementsOf(discountIds);
     }
 
@@ -86,7 +87,8 @@ public class GetEligibleDiscountsServiceTest {
         when(orderRepository.findById(order.getOrderId())).thenReturn(Optional.of(order));
         when(discountRepository.getAll()).thenReturn(discounts);
 
-        List<Discount> eligibleDiscounts = sut.getEligibleDiscounts(request).discounts();
+        List<GetEligibleDiscountsItemResponse> eligibleDiscounts = sut.getEligibleDiscounts(request).items();
+
         verify(orderRepository, times(1)).findById(order.getOrderId());
         verify(discountRepository, times(1)).getAll();
 
@@ -121,21 +123,26 @@ public class GetEligibleDiscountsServiceTest {
         when(orderRepository.findById(order.getOrderId())).thenReturn(Optional.of(order));
         when(discountRepository.getAll()).thenReturn(discounts);
 
-        List<Discount> eligibleDiscounts = sut.getEligibleDiscounts(request).discounts();
+        List<GetEligibleDiscountsItemResponse> eligibleDiscounts = sut.getEligibleDiscounts(request).items();
         verify(orderRepository, times(1)).findById(order.getOrderId());
         verify(discountRepository, times(1)).getAll();
 
         assertThat(eligibleDiscounts)
-            .extracting(Discount::getDiscountId)
-            .containsExactlyInAnyOrderElementsOf(expectedDiscountIds);
+                .extracting(GetEligibleDiscountsItemResponse::discountId)
+                .containsExactlyInAnyOrderElementsOf(expectedDiscountIds);
 
         assertThat(eligibleDiscounts)
-                .extracting(Discount::getDiscountType)
-                .doesNotContainAnyElementsOf(
-                        orderDiscounts.stream()
-                                .map(Discount::getDiscountType)
-                                .toList()
-                );
+                .extracting(item -> discounts.stream()
+                    .filter(discount -> discount.getDiscountId().equals(item.discountId()))
+                    .findFirst()
+                    .orElseThrow()
+                    .getDiscountType()
+            )
+            .doesNotContainAnyElementsOf(
+                orderDiscounts.stream()
+                    .map(Discount::getDiscountType)
+                    .toList()
+        );
     }
 
     @TDD
@@ -174,7 +181,7 @@ public class GetEligibleDiscountsServiceTest {
         when(orderRepository.findById(order.getOrderId())).thenReturn(Optional.of(order));
         when(discountRepository.getAll()).thenReturn(new ArrayList<>());
 
-        List<Discount> eligibleDiscounts = sut.getEligibleDiscounts(request).discounts();
+        List<GetEligibleDiscountsItemResponse> eligibleDiscounts = sut.getEligibleDiscounts(request).items();
 
         verify(orderRepository).findById(order.getOrderId());
         verify(discountRepository, times(1)).getAll();
@@ -220,18 +227,18 @@ public class GetEligibleDiscountsServiceTest {
 
         when(discountRepository.getAll()).thenReturn(availableDiscounts);
 
-        List<Discount> firstEligibleDiscounts = sut.getEligibleDiscounts(request).discounts();
-        List<Discount> secondEligibleDiscounts = sut.getEligibleDiscounts(request).discounts();
+        List<GetEligibleDiscountsItemResponse> firstEligibleDiscounts = sut.getEligibleDiscounts(request).items();
+        List<GetEligibleDiscountsItemResponse> secondEligibleDiscounts = sut.getEligibleDiscounts(request).items();
 
         verify(orderRepository, times(2)).findById(evaluatedOrderId);
         verify(discountRepository, times(2)).getAll();
 
         assertThat(firstEligibleDiscounts)
-                .extracting(Discount::getDiscountId)
+                .extracting(GetEligibleDiscountsItemResponse::discountId)
                 .containsExactlyInAnyOrderElementsOf(firstExpectedDiscountIds);
 
         assertThat(secondEligibleDiscounts)
-                .extracting(Discount::getDiscountId)
+                .extracting(GetEligibleDiscountsItemResponse::discountId)
                 .containsExactlyInAnyOrderElementsOf(secondExpectedDiscountIds);
     }
 
@@ -261,17 +268,14 @@ public class GetEligibleDiscountsServiceTest {
 
         List<DiscountId> expectedDiscountIds = parseDiscountIds(discountsIdsInput);
 
-        List<Discount> eligibleDiscounts = sut.getEligibleDiscounts(request).discounts();
+        List<GetEligibleDiscountsItemResponse> eligibleDiscounts = sut.getEligibleDiscounts(request).items();
 
         verify(orderRepository, times(1)).findById(order.getOrderId());
         verify(discountRepository, times(1)).getAll();
 
         assertThat(eligibleDiscounts)
-                .extracting(Discount::getDiscountId)
+                .extracting(GetEligibleDiscountsItemResponse::discountId)
                 .containsExactlyInAnyOrderElementsOf(expectedDiscountIds);
-
-        assertThat(eligibleDiscounts)
-                .allMatch(Discount::isActive);
     }
 
     @TDD
@@ -300,13 +304,13 @@ public class GetEligibleDiscountsServiceTest {
         when(orderRepository.findById(order.getOrderId())).thenReturn(Optional.of(order));
         when(discountRepository.getAll()).thenReturn(discounts);
 
-        List<Discount> eligibleDiscounts = sut.getEligibleDiscounts(request).discounts();
+        List<GetEligibleDiscountsItemResponse> eligibleDiscounts = sut.getEligibleDiscounts(request).items();
 
         verify(orderRepository, times(1)).findById(order.getOrderId());
         verify(discountRepository, times(1)).getAll();
 
         assertThat(eligibleDiscounts)
-                .extracting(Discount::getDiscountId)
+                .extracting(GetEligibleDiscountsItemResponse::discountId)
                 .containsExactlyInAnyOrderElementsOf(expectedDiscountIds);
     }
 
@@ -337,8 +341,8 @@ public class GetEligibleDiscountsServiceTest {
         return List.of(
                 new Discount(new DiscountId("1"), new MinimumValueDiscountRule(100, 1), DiscountType.CATEGORY, true, null),
                 new Discount(new DiscountId("2"), new MinimumValueDiscountRule(2000, 1), DiscountType.COUPON, true, null),
-                new Discount(new DiscountId("3"), new TierDiscountRule(List.of(new DiscountTier(9000, 11000))), DiscountType.FIRST_PURCHASE, true, null),
-                new Discount(new DiscountId("4"), new TierDiscountRule(List.of(new DiscountTier(20, 30), new DiscountTier(40, 50))), DiscountType.SEASONAL, true, null)
+                new Discount(new DiscountId("3"), new TierDiscountRule(List.of(new DiscountTier(9000, 11000, 1))), DiscountType.FIRST_PURCHASE, true, null),
+                new Discount(new DiscountId("4"), new TierDiscountRule(List.of(new DiscountTier(20, 30, 1), new DiscountTier(40, 50, 1))), DiscountType.SEASONAL, true, null)
         );
     }
 
@@ -360,14 +364,14 @@ public class GetEligibleDiscountsServiceTest {
                 ),
                 new Discount(
                         new DiscountId("3"),
-                        new TierDiscountRule(List.of(new DiscountTier(9000, 11000))),
+                        new TierDiscountRule(List.of(new DiscountTier(9000, 11000, 1))),
                         DiscountType.FIRST_PURCHASE,
                         true,
                         null
                 ),
                 new Discount(
                         new DiscountId("4"),
-                        new TierDiscountRule(List.of(new DiscountTier(20, 30), new DiscountTier(40, 50))),
+                        new TierDiscountRule(List.of(new DiscountTier(20, 30, 1), new DiscountTier(40, 50, 1))),
                         DiscountType.SEASONAL,
                         false,
                         null
@@ -393,14 +397,14 @@ public class GetEligibleDiscountsServiceTest {
                 ),
                 new Discount(
                         new DiscountId("3"),
-                        new TierDiscountRule(List.of(new DiscountTier(9000, 11000))),
+                        new TierDiscountRule(List.of(new DiscountTier(9000, 11000, 1))),
                         DiscountType.FIRST_PURCHASE,
                         true,
                         LocalDateTime.of(2026, 4, 30, 23, 59)
                 ),
                 new Discount(
                         new DiscountId("4"),
-                        new TierDiscountRule(List.of(new DiscountTier(20, 30), new DiscountTier(40, 50))),
+                        new TierDiscountRule(List.of(new DiscountTier(20, 30, 1), new DiscountTier(40, 50, 1))),
                         DiscountType.SEASONAL,
                         true,
                         LocalDateTime.of(2026, 4, 5, 23, 59)
@@ -423,7 +427,7 @@ public class GetEligibleDiscountsServiceTest {
         return new Order(
                 new OrderId(orderId),
                 createOrderItems(orderProductsInput),
-                null,
+                List.of(),
                 OrderStatus.CREATED,
                 null,
                 null
@@ -453,7 +457,7 @@ public class GetEligibleDiscountsServiceTest {
         return new Order(
                 new OrderId(orderId),
                 createOrderItems(orderProductsInput),
-                null,
+                List.of(),
                 status,
                 null,
                 null
