@@ -25,14 +25,18 @@ public class GetEligibleDiscountsService implements IGetEligibleDiscountsService
 
         Order order = optionalOrder.get();
 
-        if(order.getOrderStatus() != OrderStatus.CREATED){
+        validateOrderStatus(order);
+
+        List<Discount> eligibleDiscounts = discountRepository.getAll().stream()
+                .filter(discount -> discount.isEligible(order))
+                .toList();
+
+        return new GetEligibleDiscountsResponse(eligibleDiscounts);
+    }
+
+    private void validateOrderStatus(Order order) {
+        if (!order.getOrderStatus().allowsGettingEligibleDiscounts()) {
             throw new OrderStatusNotAllowedException(order.getOrderStatus());
         }
-
-        List<Discount> discounts  = discountRepository.getAll();
-
-        List<Discount> evaluatedDiscounts = discounts.stream().filter((discount) -> discount.isEligible(order)).toList();
-
-        return new GetEligibleDiscountsResponse(evaluatedDiscounts);
     }
 }

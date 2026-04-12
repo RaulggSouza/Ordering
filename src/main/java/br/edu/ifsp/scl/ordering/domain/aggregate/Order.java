@@ -18,17 +18,28 @@ public class Order {
     private List<Discount> discounts;
     private OrderStatus status;
 
-    public Order(OrderId id, List<OrderItem> items,  OrderStatus status) {
+    public Order(
+            OrderId id,
+            List<OrderItem> items,
+            List<Discount> discounts,
+            OrderStatus status
+    ) {
         this.id = id;
-        this.items = items;
-        this.discounts = new ArrayList<>();
+        this.items = new ArrayList<>(items);
+        this.discounts = new ArrayList<>(discounts);
         this.status = status;
     }
 
-    public Order(OrderId id, List<OrderItem> items, List<Discount> discounts) {
-        this.id = id;
-        this.items = items;
-        this.discounts = discounts;
+    public static Order create(OrderId id, List<OrderItem> items) {
+        return new Order(id, items, List.of(), OrderStatus.CREATED);
+    }
+
+    public static Order createWithDiscounts(OrderId id, List<OrderItem> items, List<Discount> discounts) {
+        return new Order(id, items, discounts, OrderStatus.CREATED);
+    }
+
+    public static Order createWithStatus(OrderId id, List<OrderItem> items, OrderStatus status) {
+        return new Order(id, items, List.of(), status);
     }
 
     public OrderId getOrderId() {
