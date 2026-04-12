@@ -10,6 +10,8 @@ import br.edu.ifsp.scl.ordering.domain.valueobject.Address;
 import br.edu.ifsp.scl.ordering.domain.valueobject.CustomerId;
 import br.edu.ifsp.scl.ordering.domain.valueobject.OrderId;
 import br.edu.ifsp.scl.ordering.domain.valueobject.ProductId;
+import br.edu.ifsp.scl.ordering.testing.tags.TDD;
+import br.edu.ifsp.scl.ordering.testing.tags.UnitTest;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -32,17 +34,22 @@ public class CancelOrderServiceTest {
     @InjectMocks
     CancelOrderService sut;
 
+    @UnitTest
+    @TDD
     @Test
     @DisplayName("Should cancel an order if its status is created")
     void shouldCancelAnOrderIfItsStatusIsCreated() {
         OrderId orderId = new OrderId("123");
         CancelOrderRequest request = new CancelOrderRequest(orderId);
-        Order order = createOrderWithStatus(OrderStatus.CREATED);
+        Order createdOrder = createOrderWithStatus(OrderStatus.CREATED);
+        Order canceledOrder = createOrderWithStatus(OrderStatus.CANCELLED);
 
-        when(orderRepository.findById(orderId)).thenReturn(Optional.of(order));
+        when(orderRepository.findById(orderId)).thenReturn(Optional.of(createdOrder));
+        when(orderRepository.save(canceledOrder)).thenReturn(orderId);
 
         assertThat(sut.cancel(request)).isEqualTo(true);
         verify(orderRepository, times(1)).findById(orderId);
+        verify(orderRepository, times(1)).save(canceledOrder);
     }
 
     private Order createOrderWithStatus(OrderStatus status){
