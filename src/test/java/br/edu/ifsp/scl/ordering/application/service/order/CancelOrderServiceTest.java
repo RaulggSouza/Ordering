@@ -73,6 +73,8 @@ public class CancelOrderServiceTest {
         verify(orderRepository, never()).save(order);
     }
 
+    @UnitTest
+    @Functional
     @Test
     @DisplayName("Should throw IllegalStateException if order status is COMPLETED")
     void shouldThrowIllegalStateExceptionIfOrderStatusIsCompleted() {
