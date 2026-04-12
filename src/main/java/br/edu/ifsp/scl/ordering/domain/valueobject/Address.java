@@ -1,7 +1,5 @@
 package br.edu.ifsp.scl.ordering.domain.valueobject;
 
-import java.util.Objects;
-
 public record Address(
         String street,
         String number,

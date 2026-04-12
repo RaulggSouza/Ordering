@@ -11,7 +11,7 @@ public class TierDiscountRule implements DiscountRule {
 
     public TierDiscountRule(List<DiscountTier> tiers) {
         this.tiers = tiers.stream()
-                .sorted(Comparator.comparingDouble(DiscountTier::getMinimumValue))
+                .sorted(Comparator.comparingDouble(DiscountTier::minimumValue))
                 .toList();
     }
 
