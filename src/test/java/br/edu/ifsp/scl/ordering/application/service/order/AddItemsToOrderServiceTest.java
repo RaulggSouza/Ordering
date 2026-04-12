@@ -1,6 +1,11 @@
 package br.edu.ifsp.scl.ordering.application.service.order;
 
+import br.edu.ifsp.scl.ordering.application.ports.inbound.service.order.add_items.dtos.AddItemsToOrderItemRequest;
+import br.edu.ifsp.scl.ordering.application.ports.inbound.service.order.add_items.dtos.AddItemsToOrderItemResponse;
+import br.edu.ifsp.scl.ordering.application.ports.inbound.service.order.add_items.dtos.AddItemsToOrderRequest;
+import br.edu.ifsp.scl.ordering.application.ports.inbound.service.order.add_items.dtos.AddItemsToOrderResponse;
 import br.edu.ifsp.scl.ordering.application.ports.outbound.persistence.order.IOrderRepository;
+import br.edu.ifsp.scl.ordering.application.ports.outbound.persistence.product.IProductRepository;
 import br.edu.ifsp.scl.ordering.domain.aggregate.Order;
 import br.edu.ifsp.scl.ordering.domain.constant.OrderStatus;
 import br.edu.ifsp.scl.ordering.domain.entity.OrderItem;
@@ -28,6 +33,9 @@ public class AddItemsToOrderServiceTest {
     @Mock
     IOrderRepository orderRepository;
 
+    @Mock
+    IProductRepository productRepository;
+
     @InjectMocks
     AddItemsToOrderService sut;
 
@@ -44,8 +52,8 @@ public class AddItemsToOrderServiceTest {
     void shouldAddItemsToOrderWhenAllParametersAreValid(String itemsThatAlreadyExistsInOrderInput, String itemsToAddIntoOrderInput, String expectedOrderItemsInput){
         Order order = createOrder("1", itemsThatAlreadyExistsInOrderInput);
 
-        List<OrderItem> orderItemsToAdd = createOrderItems(itemsToAddIntoOrderInput);
-        List<OrderItem> expectedOrderItems = createOrderItems(expectedOrderItemsInput);
+        List<AddItemsToOrderItemRequest> orderItemsToAdd = createOrderItemsToAdd(itemsToAddIntoOrderInput);
+        List<AddItemsToOrderItemResponse> expectedOrderItems = createOrderItemResponse(expectedOrderItemsInput);
 
         AddItemsToOrderRequest request = new AddItemsToOrderRequest(
                 order.getOrderId(),
@@ -57,6 +65,7 @@ public class AddItemsToOrderServiceTest {
         AddItemsToOrderResponse response = sut.addItemsToOrder(request);
 
         verify(orderRepository, times(1)).findById(order.getOrderId());
+        verify(productRepository, times(1)).allExistsByIds(orderItemsToAdd.stream().map((AddItemsToOrderItemRequest::productId)).toList());
         verify(orderRepository, times(1)).save(order);
 
         assertThat(response.orderId()).isEqualTo(order.getOrderId());
@@ -88,6 +97,40 @@ public class AddItemsToOrderServiceTest {
                     double price = Double.parseDouble(parts[2]);
 
                     return new OrderItem(new ProductId(productId), quantity, price);
+                })
+                .toList();
+    }
+
+    private static List<AddItemsToOrderItemRequest> createOrderItemsToAdd(String orderProductsInput) {
+        if (orderProductsInput == null || orderProductsInput.isBlank()) {
+            return List.of();
+        }
+
+        return Arrays.stream(orderProductsInput.split("-"))
+                .map(productString -> {
+                    String[] parts = productString.split(":");
+                    String productId = parts[0];
+                    int quantity = Integer.parseInt(parts[1]);
+                    double price = Double.parseDouble(parts[2]);
+
+                    return new AddItemsToOrderItemRequest(new ProductId(productId), quantity, price);
+                })
+                .toList();
+    }
+
+    private static List<AddItemsToOrderItemResponse> createOrderItemResponse(String orderProductsInput) {
+        if (orderProductsInput == null || orderProductsInput.isBlank()) {
+            return List.of();
+        }
+
+        return Arrays.stream(orderProductsInput.split("-"))
+                .map(productString -> {
+                    String[] parts = productString.split(":");
+                    String productId = parts[0];
+                    int quantity = Integer.parseInt(parts[1]);
+                    double price = Double.parseDouble(parts[2]);
+
+                    return new AddItemsToOrderItemResponse(new ProductId(productId), quantity, price);
                 })
                 .toList();
     }
