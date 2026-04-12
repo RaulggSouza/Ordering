@@ -5,6 +5,7 @@ import br.edu.ifsp.scl.ordering.application.ports.outbound.persistence.discount.
 import br.edu.ifsp.scl.ordering.application.ports.outbound.persistence.order.IOrderRepository;
 import br.edu.ifsp.scl.ordering.domain.aggregate.Order;
 import br.edu.ifsp.scl.ordering.domain.constant.DiscountType;
+import br.edu.ifsp.scl.ordering.domain.constant.OrderStatus;
 import br.edu.ifsp.scl.ordering.domain.entity.Discount;
 import br.edu.ifsp.scl.ordering.domain.entity.OrderItem;
 import br.edu.ifsp.scl.ordering.domain.valueobject.*;
@@ -137,6 +138,32 @@ public class GetEligibleDiscountsServiceTest {
                                 .map(Discount::getDiscountType)
                                 .toList()
                 );
+    }
+
+    @TDD
+    @DisplayName("#62 - should throw an error and not load discounts when order status is invalid")
+    @ParameterizedTest
+    @CsvSource(
+            nullValues = "NULL",
+            value = {
+                    "INVOICED",
+                    "SHIPPED",
+                    "COMPLETED",
+                    "CANCELLED"
+            }
+    )
+    void shouldThrowAnErrorAndNotLoadDiscountsWhenOrderStatusIsInvalid(String orderStatusInput) {
+        OrderStatus orderStatus = OrderStatus.valueOf(orderStatusInput);
+        Order order = new Order(new OrderId("1"), new ArrayList<>(), orderStatus);
+        GetEligibleDiscountsRequest request = new GetEligibleDiscountsRequest(order.getOrderId());
+
+        when(orderRepository.findById(order.getOrderId())).thenReturn(Optional.of(order));
+
+        assertThatThrownBy(() -> sut.getEligibleDiscounts(request))
+                .isInstanceOf(OrderStatusNotAllowedException.class);
+
+        verify(orderRepository).findById(order.getOrderId());
+        verify(discountRepository, never()).getAll();
     }
 
 
