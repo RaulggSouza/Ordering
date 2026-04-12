@@ -6,20 +6,22 @@ import br.edu.ifsp.scl.ordering.application.ports.inbound.service.discount.get_e
 import br.edu.ifsp.scl.ordering.application.ports.outbound.persistence.discount.IDiscountRepository;
 import br.edu.ifsp.scl.ordering.application.ports.outbound.persistence.order.IOrderRepository;
 import br.edu.ifsp.scl.ordering.domain.aggregate.Order;
-import br.edu.ifsp.scl.ordering.domain.constant.OrderStatus;
 import br.edu.ifsp.scl.ordering.domain.entity.Discount;
 import br.edu.ifsp.scl.ordering.domain.exceptions.OrderNotFoundException;
 import br.edu.ifsp.scl.ordering.domain.exceptions.OrderStatusNotAllowedException;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Optional;
 
 @Service
 public class GetEligibleDiscountsService implements IGetEligibleDiscountsService {
     IOrderRepository orderRepository;
     IDiscountRepository discountRepository;
+
+    public GetEligibleDiscountsService(IOrderRepository orderRepository, IDiscountRepository discountRepository) {
+        this.orderRepository = orderRepository;
+        this.discountRepository = discountRepository;
+    }
 
 
     @Override

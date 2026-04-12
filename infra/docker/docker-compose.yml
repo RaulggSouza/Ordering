@@ -1,0 +1,18 @@
+version: '3.9'
+
+services:
+  postgres:
+    image: postgres:16
+    container_name: ordering-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ordering
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - ordering_postgres_data:/var/lib/postgresql/data
+
+volumes:
+  ordering_postgres_data:
