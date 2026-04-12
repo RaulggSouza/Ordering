@@ -9,11 +9,13 @@ public class Discount {
     private final DiscountId discountId;
     private final DiscountType discountType;
     private final DiscountRule rule;
+    private final boolean active;
 
-    public Discount(DiscountId discountId, DiscountRule rule,  DiscountType discountTier) {
+    public Discount(DiscountId discountId, DiscountRule rule,  DiscountType discountTier,  boolean active) {
         this.discountId = discountId;
         this.rule = rule;
         this.discountType = discountTier;
+        this.active = active;
     }
 
     public DiscountId getDiscountId() {
@@ -24,8 +26,14 @@ public class Discount {
         return discountType;
     }
 
+    public boolean isActive() {
+        return active;
+    }
+
     public boolean isEligible(Order order) {
-        return rule.isEligible(order) && doesNotHaveSameTypeApplied(order);
+        return active
+                && rule.isEligible(order)
+                && doesNotHaveSameTypeApplied(order);
     }
 
     private boolean doesNotHaveSameTypeApplied(Order order) {
