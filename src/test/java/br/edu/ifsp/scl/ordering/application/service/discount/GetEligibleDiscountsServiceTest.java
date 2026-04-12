@@ -12,6 +12,7 @@ import br.edu.ifsp.scl.ordering.domain.entity.OrderItem;
 import br.edu.ifsp.scl.ordering.domain.exceptions.OrderNotFoundException;
 import br.edu.ifsp.scl.ordering.domain.exceptions.OrderStatusNotAllowedException;
 import br.edu.ifsp.scl.ordering.domain.valueobject.*;
+import br.edu.ifsp.scl.ordering.testing.tags.Functional;
 import br.edu.ifsp.scl.ordering.testing.tags.TDD;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -145,7 +146,7 @@ public class GetEligibleDiscountsServiceTest {
         );
     }
 
-    @TDD
+    @Functional
     @DisplayName("#63 - should throw an error and not load discounts when order status is invalid")
     @ParameterizedTest
     @CsvSource(
@@ -171,7 +172,7 @@ public class GetEligibleDiscountsServiceTest {
         verify(discountRepository, never()).getAll();
     }
 
-    @TDD
+    @Functional
     @DisplayName("#64 - should return an empty array if no discounts registered")
     @Test
     void shouldReturnEmptyArrayIfNoDiscountsRegistered() {
@@ -314,7 +315,7 @@ public class GetEligibleDiscountsServiceTest {
                 .containsExactlyInAnyOrderElementsOf(expectedDiscountIds);
     }
 
-    @TDD
+    @Functional
     @DisplayName("#100 - Should throw an error when order does not exist")
     @ParameterizedTest
     @CsvSource({
