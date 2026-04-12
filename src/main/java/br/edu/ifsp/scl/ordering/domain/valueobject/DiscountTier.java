@@ -12,4 +12,8 @@ public class DiscountTier {
     public double getMinimumValue() {
         return minimumValue;
     }
+
+    public boolean contains(double value) {
+        return value >= minimumValue && value <= maximumValue;
+    }
 }
