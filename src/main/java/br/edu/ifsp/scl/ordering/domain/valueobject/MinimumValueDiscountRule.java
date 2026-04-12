@@ -3,14 +3,7 @@ package br.edu.ifsp.scl.ordering.domain.valueobject;
 import br.edu.ifsp.scl.ordering.domain.aggregate.Order;
 import br.edu.ifsp.scl.ordering.domain.interfaces.DiscountRule;
 
-public class MinimumValueDiscountRule implements DiscountRule {
-    private final double minimumValue;
-    private final double discountValue;
-
-    public MinimumValueDiscountRule(double minimumValue, double discountValue) {
-        this.minimumValue = minimumValue;
-        this.discountValue = discountValue;
-    }
+public record MinimumValueDiscountRule(double minimumValue, double discountValue) implements DiscountRule {
 
     @Override
     public boolean isEligible(Order order) {

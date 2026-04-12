@@ -29,7 +29,7 @@ public class Order {
     ) {
         this.id = id;
         this.items = new ArrayList<>(items);
-        this.discounts = new ArrayList<>(discounts);
+        this.discounts = discounts == null ? new ArrayList<>() : new ArrayList<>(discounts);
         this.status = status;
         this.customerId = customerId;
         this.shippingAddress = shippingAddress;
