@@ -7,6 +7,7 @@ import br.edu.ifsp.scl.ordering.domain.valueobject.CustomerId;
 import br.edu.ifsp.scl.ordering.domain.valueobject.OrderId;
 
 import java.util.List;
+import java.util.UUID;
 
 public class Order {
     private final OrderId id;
@@ -15,12 +16,24 @@ public class Order {
     private final List<OrderItem> items;
     private OrderStatus status;
 
-    public Order(OrderId id, CustomerId customerId, Address shippingAddress, List<OrderItem> items, OrderStatus status) {
+    Order(OrderId id, CustomerId customerId, Address shippingAddress, List<OrderItem> items, OrderStatus status) {
         this.id = id;
         this.customerId = customerId;
         this.shippingAddress = shippingAddress;
         this.items = items;
         this.status = status;
+    }
+
+    private Order(List<OrderItem> items, Address shippingAddress, CustomerId customerId) {
+        this.id = new OrderId(UUID.randomUUID().toString());
+        this.items = items;
+        this.shippingAddress = shippingAddress;
+        this.customerId = customerId;
+        this.status = OrderStatus.CREATED;
+    }
+
+    public static Order create(List<OrderItem> items, Address shippingAddress, CustomerId customerId){
+        return new Order(items, shippingAddress, customerId);
     }
 
     public boolean ableToCancel(){
@@ -30,6 +43,23 @@ public class Order {
 
     public void cancelOrder() {
         this.status = OrderStatus.CANCELLED;
+    }
+
+    public OrderId getId() {
+        return id;
+    }
+
+    public CustomerId getCustomerId() {
+        return customerId;
+    }
+
+    public Address getShippingAddress() {
+        return shippingAddress;
+    }
+
+
+    public List<OrderItem> getItems() {
+        return items;
     }
 
     public OrderStatus getStatus() {
