@@ -74,29 +74,8 @@ public class CancelOrderServiceTest {
     }
     
     private Order createOrderWithStatus(OrderStatus status){
-        Address address = new Address(
-                "Rua A",
-                "456",
-                "São Carlos",
-                "São Paulo",
-                "789");
-
-        List<OrderItem> items = List.of(
-                new OrderItem(
-                        new ProductId("12"),
-                        3
-                ),
-                new OrderItem(
-                        new ProductId("13"),
-                        4
-                )
-        );
-
-        return new Order(
+        return Order.createWithStatus(
                 new OrderId("123"),
-                new CustomerId("4"),
-                address,
-                items,
                 status
         );
     }

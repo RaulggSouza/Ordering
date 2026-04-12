@@ -16,10 +16,8 @@ public class Order {
     private final List<OrderItem> items;
     private OrderStatus status;
 
-    Order(OrderId id, CustomerId customerId, Address shippingAddress, List<OrderItem> items, OrderStatus status) {
+    private Order(OrderId id, List<OrderItem> items, OrderStatus status) {
         this.id = id;
-        this.customerId = customerId;
-        this.shippingAddress = shippingAddress;
         this.items = items;
         this.status = status;
     }
@@ -34,6 +32,10 @@ public class Order {
 
     public static Order create(List<OrderItem> items, Address shippingAddress, CustomerId customerId){
         return new Order(items, shippingAddress, customerId);
+    }
+
+    public static Order createWithStatus(OrderId id, OrderStatus status){
+        return new Order(id, List.of(), status);
     }
 
     public boolean ableToCancel(){
