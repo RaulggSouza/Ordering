@@ -6,7 +6,9 @@ import br.edu.ifsp.scl.ordering.application.ports.inbound.service.discount.get_e
 import br.edu.ifsp.scl.ordering.application.ports.outbound.persistence.discount.IDiscountRepository;
 import br.edu.ifsp.scl.ordering.application.ports.outbound.persistence.order.IOrderRepository;
 import br.edu.ifsp.scl.ordering.domain.aggregate.Order;
+import br.edu.ifsp.scl.ordering.domain.constant.OrderStatus;
 import br.edu.ifsp.scl.ordering.domain.entity.Discount;
+import br.edu.ifsp.scl.ordering.domain.exceptions.OrderStatusNotAllowedException;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -19,11 +21,17 @@ public class GetEligibleDiscountsService implements IGetEligibleDiscountsService
 
     @Override
     public GetEligibleDiscountsResponse getEligibleDiscounts(GetEligibleDiscountsRequest request) {
-        Optional<Order> order = orderRepository.findById(request.orderId());
+        Optional<Order> optionalOrder = orderRepository.findById(request.orderId());
+
+        Order order = optionalOrder.get();
+
+        if(order.getOrderStatus() != OrderStatus.CREATED){
+            throw new OrderStatusNotAllowedException(order.getOrderStatus());
+        }
 
         List<Discount> discounts  = discountRepository.getAll();
 
-        List<Discount> evaluatedDiscounts = discounts.stream().filter((discount) -> discount.isEligible(order.get())).toList();
+        List<Discount> evaluatedDiscounts = discounts.stream().filter((discount) -> discount.isEligible(order)).toList();
 
         return new GetEligibleDiscountsResponse(evaluatedDiscounts);
     }

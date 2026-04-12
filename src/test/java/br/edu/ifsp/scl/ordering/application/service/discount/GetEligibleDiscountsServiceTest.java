@@ -8,6 +8,7 @@ import br.edu.ifsp.scl.ordering.domain.constant.DiscountType;
 import br.edu.ifsp.scl.ordering.domain.constant.OrderStatus;
 import br.edu.ifsp.scl.ordering.domain.entity.Discount;
 import br.edu.ifsp.scl.ordering.domain.entity.OrderItem;
+import br.edu.ifsp.scl.ordering.domain.exceptions.OrderStatusNotAllowedException;
 import br.edu.ifsp.scl.ordering.domain.valueobject.*;
 import br.edu.ifsp.scl.ordering.testing.tags.TDD;
 import org.junit.jupiter.api.DisplayName;
@@ -187,7 +188,7 @@ public class GetEligibleDiscountsServiceTest {
                 })
                 .toList();
 
-        return new Order(new OrderId(orderId), orderItems);
+        return new Order(new OrderId(orderId), orderItems, OrderStatus.CREATED);
     }
 
     private static Order createOrderWithDiscounts(String orderId, String orderProductsInput, List<Discount> discounts) {
