@@ -20,6 +20,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.time.LocalDateTime;
 import java.util.*;
 
 import static org.assertj.core.api.Assertions.*;
@@ -272,14 +273,50 @@ public class GetEligibleDiscountsServiceTest {
                 .allMatch(Discount::isActive);
     }
 
+    @TDD
+    @DisplayName("#67 - Should return only non expired discounts")
+    @ParameterizedTest
+    @CsvSource(
+            nullValues = "NULL",
+            value = {
+                    "1,1:1:100,1",
+                    "1,1:100:100,1:3",
+                    "1,1:1:45,NULL",
+                    "1,1:1:9500,1:3"
+            }
+    )
+    void shouldReturnOnlyNonExpiredDiscounts(
+            String orderId,
+            String orderProductsInput,
+            String expectedDiscountIdsInput
+    ) {
+        Order order = createOrder(orderId, orderProductsInput);
+        GetEligibleDiscountsRequest request = new GetEligibleDiscountsRequest(order.getOrderId());
+
+        List<Discount> discounts = createDiscountsWithExpiredAndValidDates();
+        List<DiscountId> expectedDiscountIds = parseDiscountIds(expectedDiscountIdsInput);
+
+        when(orderRepository.findById(order.getOrderId())).thenReturn(Optional.of(order));
+        when(discountRepository.getAll()).thenReturn(discounts);
+
+        List<Discount> eligibleDiscounts = sut.getEligibleDiscounts(request).discounts();
+
+        verify(orderRepository, times(1)).findById(order.getOrderId());
+        verify(discountRepository, times(1)).getAll();
+
+        assertThat(eligibleDiscounts)
+                .extracting(Discount::getDiscountId)
+                .containsExactlyInAnyOrderElementsOf(expectedDiscountIds);
+    }
+
 
 
     private static List<Discount> createDiscounts(){
         return List.of(
-                new Discount(new DiscountId("1"), new MinimumValueDiscountRule(100, 1), DiscountType.CATEGORY, true),
-                new Discount(new DiscountId("2"), new MinimumValueDiscountRule(2000, 1), DiscountType.COUPON, true),
-                new Discount(new DiscountId("3"), new TierDiscountRule(List.of(new DiscountTier(9000, 11000))), DiscountType.FIRST_PURCHASE, true),
-                new Discount(new DiscountId("4"), new TierDiscountRule(List.of(new DiscountTier(20, 30), new DiscountTier(40, 50))), DiscountType.SEASONAL, true)
+                new Discount(new DiscountId("1"), new MinimumValueDiscountRule(100, 1), DiscountType.CATEGORY, true, null),
+                new Discount(new DiscountId("2"), new MinimumValueDiscountRule(2000, 1), DiscountType.COUPON, true, null),
+                new Discount(new DiscountId("3"), new TierDiscountRule(List.of(new DiscountTier(9000, 11000))), DiscountType.FIRST_PURCHASE, true, null),
+                new Discount(new DiscountId("4"), new TierDiscountRule(List.of(new DiscountTier(20, 30), new DiscountTier(40, 50))), DiscountType.SEASONAL, true, null)
         );
     }
 
@@ -289,25 +326,62 @@ public class GetEligibleDiscountsServiceTest {
                         new DiscountId("1"),
                         new MinimumValueDiscountRule(100, 1),
                         DiscountType.CATEGORY,
-                        true
+                        true,
+                        null
                 ),
                 new Discount(
                         new DiscountId("2"),
                         new MinimumValueDiscountRule(2000, 1),
                         DiscountType.COUPON,
-                        false
+                        false,
+                        null
                 ),
                 new Discount(
                         new DiscountId("3"),
                         new TierDiscountRule(List.of(new DiscountTier(9000, 11000))),
                         DiscountType.FIRST_PURCHASE,
-                        true
+                        true,
+                        null
                 ),
                 new Discount(
                         new DiscountId("4"),
                         new TierDiscountRule(List.of(new DiscountTier(20, 30), new DiscountTier(40, 50))),
                         DiscountType.SEASONAL,
-                        false
+                        false,
+                        null
+                )
+        );
+    }
+
+    private static List<Discount> createDiscountsWithExpiredAndValidDates() {
+        return List.of(
+                new Discount(
+                        new DiscountId("1"),
+                        new MinimumValueDiscountRule(100, 1),
+                        DiscountType.CATEGORY,
+                        true,
+                        LocalDateTime.of(2026, 4, 20, 23, 59)
+                ),
+                new Discount(
+                        new DiscountId("2"),
+                        new MinimumValueDiscountRule(2000, 1),
+                        DiscountType.COUPON,
+                        true,
+                        LocalDateTime.of(2026, 4, 1, 23, 59)
+                ),
+                new Discount(
+                        new DiscountId("3"),
+                        new TierDiscountRule(List.of(new DiscountTier(9000, 11000))),
+                        DiscountType.FIRST_PURCHASE,
+                        true,
+                        LocalDateTime.of(2026, 4, 30, 23, 59)
+                ),
+                new Discount(
+                        new DiscountId("4"),
+                        new TierDiscountRule(List.of(new DiscountTier(20, 30), new DiscountTier(40, 50))),
+                        DiscountType.SEASONAL,
+                        true,
+                        LocalDateTime.of(2026, 4, 5, 23, 59)
                 )
         );
     }
