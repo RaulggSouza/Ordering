@@ -14,8 +14,8 @@ public class CancelOrderService {
     }
 
     public boolean cancel(CancelOrderRequest request){
-        Optional<Order> order = orderRepository.findById(request.orderId());
+        Order order = orderRepository.findById(request.orderId()).get();
 
-        return true;
+        return order.ableToCancel();
     }
 }

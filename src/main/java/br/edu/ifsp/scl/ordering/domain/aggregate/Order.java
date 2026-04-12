@@ -9,10 +9,10 @@ import br.edu.ifsp.scl.ordering.domain.valueobject.OrderId;
 import java.util.List;
 
 public class Order {
-    private OrderId id;
+    private final OrderId id;
     private CustomerId customerId;
     private Address shippingAddress;
-    private List<OrderItem> items;
+    private final List<OrderItem> items;
     private OrderStatus status;
 
     public Order(OrderId id, CustomerId customerId, Address shippingAddress, List<OrderItem> items, OrderStatus status) {
@@ -22,4 +22,9 @@ public class Order {
         this.items = items;
         this.status = status;
     }
+
+    public boolean ableToCancel(){
+        return status == OrderStatus.CREATED;
+    }
+
 }
