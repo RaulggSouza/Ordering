@@ -350,11 +350,13 @@ public class CreateOrderServiceTest {
             "Rua A,123,São Carlos,,456",
             "Rua A,123,São Carlos,São Paulo, "
     }, nullValues = "NULL")
-    @DisplayName("Should throw IllegalArgumentException when created Address is invalid")
+    @DisplayName("Should throw IllegalArgumentException when Address is invalid")
     void shouldThrowIllegalArgumentExceptionWhenCreatedAddressIsInvalid(String street, String number, String city, String state, String postalCode) {
         assertThatIllegalArgumentException().isThrownBy(() -> new Address(street, number, city, state, postalCode));
     }
 
+    @UnitTest
+    @Functional
     @Test
     @DisplayName("Should throw NullPointerException when Address is null")
     void shouldThrowNullPointerExceptionWhenAddressIsNull() {
