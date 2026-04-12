@@ -1,6 +1,7 @@
 package br.edu.ifsp.scl.ordering.application.service.order;
 
 import br.edu.ifsp.scl.ordering.application.ports.inbound.service.order.create.ICreateOrderService;
+import br.edu.ifsp.scl.ordering.application.ports.inbound.service.order.create.dtos.CreateOrderItemRequest;
 import br.edu.ifsp.scl.ordering.application.ports.inbound.service.order.create.dtos.CreateOrderRequest;
 import br.edu.ifsp.scl.ordering.application.ports.outbound.persistence.customer.ICustomerRepository;
 import br.edu.ifsp.scl.ordering.application.ports.outbound.persistence.inventory.IProductInventoryRepository;
@@ -52,7 +53,7 @@ public class CreateOrderService implements ICreateOrderService {
         boolean allExistsByIds = productRepository.allExistsByIds(productIds);
         if(!allExistsByIds) throw new ProductNotFoundException("Products does not exists");
 
-        List<ProductId> outOfStockItems = productInventoryRepository.findOutOfStockItems(productIds);
+        List<ProductId> outOfStockItems = productInventoryRepository.findOutOfStockItems(items);
         if (!outOfStockItems.isEmpty()) throw new ProductOutOfStockException("Products out of stock. Products: "+outOfStockItems);
 
         Order order = Order.create(items, request.address(), request.customerId());
@@ -67,10 +68,7 @@ public class CreateOrderService implements ICreateOrderService {
         });
 
         return request.items().stream()
-                .map(item -> new OrderItem(
-                        item.productId(),
-                        item.quantity()
-                ))
+                .map(CreateOrderItemRequest::toDomain)
                 .toList();
     }
 }
