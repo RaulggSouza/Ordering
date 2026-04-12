@@ -24,7 +24,8 @@ public class Order {
     }
 
     public boolean ableToCancel(){
-        return status == OrderStatus.CREATED || status == OrderStatus.INVOICED;
+        if (status == OrderStatus.CREATED || status == OrderStatus.INVOICED) return true;
+        return !(status == OrderStatus.SHIPPED) ;
     }
 
     public void cancelOrder() {
