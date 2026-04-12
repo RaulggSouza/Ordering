@@ -41,7 +41,7 @@ public class GetEligibleDiscountsServiceTest {
     @CsvSource(
             nullValues = "NULL",
             value = {
-                    "1,1:1:10,1", // total do pedido: 10
+                    "1,1:1:100,1", // total do pedido: 100
                     "1,1:10:100-2:10:100,1:2", // total do pedido: 2000
                     "1,1:100:100,1:2:3", // total do pedido: 10000
                     "1,1:100:120,1:2" // total do pedido: 12000
@@ -69,7 +69,7 @@ public class GetEligibleDiscountsServiceTest {
 
     private static List<Discount> createDiscounts(){
         return List.of(
-                new Discount(new DiscountId("1"), new MinimumValueDiscountRule(1, 1)),
+                new Discount(new DiscountId("1"), new MinimumValueDiscountRule(1, 100)),
                 new Discount(new DiscountId("2"), new MinimumValueDiscountRule(2000, 1)),
                 new Discount(new DiscountId("3"), new TierDiscountRule(List.of(new DiscountTier(9000, 11000))))
         );
