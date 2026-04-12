@@ -124,6 +124,20 @@ public class CancelOrderServiceTest {
         verify(orderRepository, times(1)).findById(orderId);
         verify(orderRepository, never()).save(order);
     }
+
+    @UnitTest
+    @Functional
+    @Test
+    @DisplayName("Should throw NullPointerException when id is null")
+    void shouldThrowNullPointerExceptionWhenIdIsNull() {
+        CancelOrderRequest request = new CancelOrderRequest(null);
+        Order order = createOrderWithStatus(OrderStatus.CREATED);
+
+        assertThatNullPointerException().isThrownBy(() -> sut.cancel(request));
+
+        verify(orderRepository, never()).findById(any(OrderId.class));
+        verify(orderRepository, never()).save(order);
+    }
     
     private Order createOrderWithStatus(OrderStatus status){
         return Order.createWithStatus(
