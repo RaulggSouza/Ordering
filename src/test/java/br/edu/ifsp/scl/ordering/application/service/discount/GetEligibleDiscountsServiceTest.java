@@ -39,12 +39,11 @@ public class GetEligibleDiscountsServiceTest {
     @DisplayName("#59 - should return all eligible discounts")
     @ParameterizedTest
     @CsvSource(
-            nullValues = "NULL",
             value = {
-                    "1,1:1:100,1", // total do pedido: 100
-                    "1,1:10:100-2:10:100,1:2", // total do pedido: 2000
-                    "1,1:100:100,1:2:3", // total do pedido: 10000
-                    "1,1:100:120,1:2" // total do pedido: 12000
+                "1,1:1:100,1", // total do pedido: 100
+                "1,1:10:100-2:10:100,1:2", // total do pedido: 2000
+                "1,1:100:100,1:2:3", // total do pedido: 10000
+                "1,1:100:120,1:2" // total do pedido: 12000
             }
     )
     void shouldReturnAllEligibleDiscounts(String orderId, String orderProductsInput, String discountsIdsInput) {
@@ -69,10 +68,33 @@ public class GetEligibleDiscountsServiceTest {
                 .containsExactlyInAnyOrderElementsOf(discountIds);
     }
 
+    @TDD
+    @DisplayName("#60 - Should return an empty array if not eligible")
+    @ParameterizedTest
+    @CsvSource(
+        value = {
+            "1,1:1:1", // total do pedido: 10
+        }
+    )
+    void shouldReturnEmptyArrayIfNotEligible(String orderId, String orderProductsInput) {
+        Order order = createOrder(orderId, orderProductsInput);
+        GetEligibleDiscountsRequest request = new GetEligibleDiscountsRequest(order.getOrderId());
+        List<Discount> discounts = createDiscounts();
+
+        when(orderRepository.findById(order.getOrderId())).thenReturn(Optional.of(order));
+        when(discountRepository.getAll()).thenReturn(discounts);
+
+        List<Discount> eligibleDiscounts = sut.getEligibleDiscounts(request).discounts();
+        verify(orderRepository, times(1)).findById(order.getOrderId());
+        verify(discountRepository, times(1)).getAll();
+
+        assertThat(eligibleDiscounts).isEmpty();
+    }
+
 
     private static List<Discount> createDiscounts(){
         return List.of(
-                new Discount(new DiscountId("1"), new MinimumValueDiscountRule(1, 100)),
+                new Discount(new DiscountId("1"), new MinimumValueDiscountRule(100, 1)),
                 new Discount(new DiscountId("2"), new MinimumValueDiscountRule(2000, 1)),
                 new Discount(new DiscountId("3"), new TierDiscountRule(List.of(new DiscountTier(9000, 11000))))
         );
