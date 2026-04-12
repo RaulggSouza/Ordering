@@ -2,6 +2,7 @@ package br.edu.ifsp.scl.ordering.application.service.order;
 
 import br.edu.ifsp.scl.ordering.application.ports.inbound.service.order.cancel.CancelOrderService;
 import br.edu.ifsp.scl.ordering.application.ports.inbound.service.order.cancel.dtos.CancelOrderRequest;
+import br.edu.ifsp.scl.ordering.application.ports.outbound.persistence.order.IOrderRepository;
 import br.edu.ifsp.scl.ordering.domain.aggregate.Order;
 import br.edu.ifsp.scl.ordering.domain.constant.OrderStatus;
 import br.edu.ifsp.scl.ordering.domain.entity.OrderItem;
@@ -11,8 +12,10 @@ import br.edu.ifsp.scl.ordering.domain.valueobject.OrderId;
 import br.edu.ifsp.scl.ordering.domain.valueobject.ProductId;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.List;
 import java.util.Optional;
@@ -21,6 +24,7 @@ import static org.assertj.core.api.Assertions.*;
 import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.Mockito.*;
 
+@ExtendWith(MockitoExtension.class)
 public class CancelOrderServiceTest {
     @Mock
     IOrderRepository orderRepository;
