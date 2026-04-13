@@ -164,6 +164,51 @@ public class AddItemsToOrderServiceTest {
         verify(orderRepository, never()).save(any());
     }
 
+    @TDD
+    @UnitTest
+    @ParameterizedTest
+    @DisplayName("#39 - Should throw an error when item quantity is less than or equal to zero")
+    @CsvSource(
+            nullValues = "NULL",
+            value = {
+                    "NULL,1:0:100",
+                    "NULL,1:-1:100",
+                    "2:1:50,1:0:100",
+                    "2:1:50,1:-5:100"
+            }
+    )
+    void shouldThrowAnErrorWhenItemQuantityIsLessThanOrEqualToZero(
+            String itemsThatAlreadyExistsInOrderInput,
+            String itemsToAddIntoOrderInput
+    ) {
+        Order order = createOrder("1", itemsThatAlreadyExistsInOrderInput);
+
+        List<AddItemsToOrderItemRequest> orderItemsToAdd = createOrderItemsToAdd(itemsToAddIntoOrderInput);
+
+        AddItemsToOrderRequest request = new AddItemsToOrderRequest(
+                order.getOrderId(),
+                orderItemsToAdd
+        );
+
+        when(orderRepository.findById(order.getOrderId())).thenReturn(Optional.of(order));
+        when(productRepository.allExistsByIds(
+                orderItemsToAdd.stream()
+                        .map(AddItemsToOrderItemRequest::productId)
+                        .toList()
+        )).thenReturn(true);
+
+        assertThatThrownBy(() -> sut.addItemsToOrder(request))
+                .isInstanceOf(InvalidOrderItemQuantityException.class);
+
+        verify(orderRepository, times(1)).findById(order.getOrderId());
+        verify(productRepository, times(1)).allExistsByIds(
+                orderItemsToAdd.stream()
+                        .map(AddItemsToOrderItemRequest::productId)
+                        .toList()
+        );
+        verify(orderRepository, never()).save(any());
+    }
+
 
     private static Order createOrder(String orderId, String orderProductsInput) {
         return new Order(
