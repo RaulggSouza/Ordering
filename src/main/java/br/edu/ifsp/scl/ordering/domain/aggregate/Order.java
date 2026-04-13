@@ -4,6 +4,7 @@ import br.edu.ifsp.scl.ordering.domain.constant.OrderStatus;
 import br.edu.ifsp.scl.ordering.domain.entity.Discount;
 import br.edu.ifsp.scl.ordering.domain.entity.OrderItem;
 import br.edu.ifsp.scl.ordering.domain.exceptions.InvalidOrderItemQuantityException;
+import br.edu.ifsp.scl.ordering.domain.exceptions.OrderItemNotFoundException;
 import br.edu.ifsp.scl.ordering.domain.exceptions.OrderStatusNotAllowedException;
 import br.edu.ifsp.scl.ordering.domain.exceptions.ProductsAlreadyExistInOrderException;
 import br.edu.ifsp.scl.ordering.domain.valueobject.Address;
@@ -107,6 +108,7 @@ public class Order {
             throw new InvalidOrderItemQuantityException(List.of(productId));
         }
 
+        boolean itemUpdated = false;
         for (int index = 0; index < this.items.size(); index++) {
             OrderItem currentItem = this.items.get(index);
 
@@ -119,6 +121,10 @@ public class Order {
 
                 this.items.set(index, updatedItem);
             }
+        }
+
+        if (!itemUpdated) {
+            throw new OrderItemNotFoundException(productId);
         }
 
         removeIneligibleDiscounts();
