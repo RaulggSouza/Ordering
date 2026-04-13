@@ -12,6 +12,7 @@ import br.edu.ifsp.scl.ordering.domain.entity.Discount;
 import br.edu.ifsp.scl.ordering.domain.entity.OrderItem;
 import br.edu.ifsp.scl.ordering.domain.exceptions.InvalidOrderItemQuantityException;
 import br.edu.ifsp.scl.ordering.domain.exceptions.OrderItemNotFoundException;
+import br.edu.ifsp.scl.ordering.domain.exceptions.OrderStatusNotAllowedException;
 import br.edu.ifsp.scl.ordering.domain.valueobject.DiscountId;
 import br.edu.ifsp.scl.ordering.domain.valueobject.MinimumValueDiscountRule;
 import br.edu.ifsp.scl.ordering.domain.valueobject.OrderId;
@@ -220,6 +221,40 @@ public class UpdateOrderItemQuantityServiceTest {
         verify(orderRepository, never()).save(any());
     }
 
+    @TDD
+    @UnitTest
+    @ParameterizedTest
+    @DisplayName("#96 - Should throw an error when order status does not allow updating item quantity")
+    @CsvSource(
+            value = {
+                    "INVOICED",
+                    "SHIPPED",
+                    "COMPLETED",
+                    "CANCELLED"
+            }
+    )
+    void shouldThrowAnErrorWhenOrderStatusDoesNotAllowUpdatingItemQuantity(String orderStatusInput) {
+        OrderStatus orderStatus = OrderStatus.valueOf(orderStatusInput);
+        Order order = createOrderWithStatus("1", "1:1:100", orderStatus);
+        ProductId productId = new ProductId("1");
+
+        UpdateOrderItemQuantityRequest request = new UpdateOrderItemQuantityRequest(
+                order.getOrderId(),
+                productId,
+                2
+        );
+
+        when(orderRepository.findById(order.getOrderId())).thenReturn(Optional.of(order));
+        when(productRepository.existsById(productId)).thenReturn(true);
+
+        assertThatThrownBy(() -> sut.updateOrderItemQuantity(request))
+                .isInstanceOf(OrderStatusNotAllowedException.class);
+
+        verify(orderRepository, times(1)).findById(order.getOrderId());
+        verify(productRepository, times(1)).existsById(productId);
+        verify(orderRepository, never()).save(any());
+    }
+
     private static Order createOrder(String orderId, String orderProductsInput) {
         return new Order(
                 new OrderId(orderId),
@@ -241,6 +276,21 @@ public class UpdateOrderItemQuantityServiceTest {
                 createOrderItems(orderProductsInput),
                 discounts,
                 OrderStatus.CREATED,
+                null,
+                null
+        );
+    }
+
+    private static Order createOrderWithStatus(
+            String orderId,
+            String orderProductsInput,
+            OrderStatus status
+    ) {
+        return new Order(
+                new OrderId(orderId),
+                createOrderItems(orderProductsInput),
+                List.of(),
+                status,
                 null,
                 null
         );
