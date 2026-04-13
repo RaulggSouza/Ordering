@@ -1,6 +1,5 @@
 package br.edu.ifsp.scl.ordering.application.service.order;
 
-import br.edu.ifsp.scl.ordering.application.ports.inbound.service.order.remove_item.IRemoveItemFromOrderService;
 import br.edu.ifsp.scl.ordering.application.ports.inbound.service.order.remove_item.dtos.RemoveItemFromOrderItemResponse;
 import br.edu.ifsp.scl.ordering.application.ports.inbound.service.order.remove_item.dtos.RemoveItemFromOrderRequest;
 import br.edu.ifsp.scl.ordering.application.ports.inbound.service.order.remove_item.dtos.RemoveItemFromOrderResponse;
@@ -171,6 +170,41 @@ public class RemoveItemFromOrderServiceTest {
 
         assertThatThrownBy(() -> sut.removeItemFromOrder(request))
                 .isInstanceOf(OrderItemNotFoundException.class);
+
+        verify(orderRepository, times(1)).findById(order.getOrderId());
+        verify(productRepository, times(1)).existsById(productIdToRemove);
+        verify(orderRepository, never()).save(any());
+    }
+
+    @TDD
+    @UnitTest
+    @ParameterizedTest
+    @DisplayName("#49 - Should throw an error when trying to remove the only item from order")
+    @CsvSource(
+            nullValues = "NULL",
+            value = {
+                    "1:1:100,1",
+                    "2:3:50,2",
+                    "7:2:30,7"
+            }
+    )
+    void shouldThrowAnErrorWhenTryingToRemoveTheOnlyItemFromOrder(
+            String itemsThatAlreadyExistsInOrderInput,
+            String productIdToRemoveInput
+    ) {
+        Order order = createOrder("1", itemsThatAlreadyExistsInOrderInput);
+        ProductId productIdToRemove = new ProductId(productIdToRemoveInput);
+
+        RemoveItemFromOrderRequest request = new RemoveItemFromOrderRequest(
+                order.getOrderId(),
+                productIdToRemove
+        );
+
+        when(orderRepository.findById(order.getOrderId())).thenReturn(Optional.of(order));
+        when(productRepository.existsById(productIdToRemove)).thenReturn(true);
+
+        assertThatThrownBy(() -> sut.removeItemFromOrder(request))
+                .isInstanceOf(OrderMustHaveAtLeastOneItemException.class);
 
         verify(orderRepository, times(1)).findById(order.getOrderId());
         verify(productRepository, times(1)).existsById(productIdToRemove);
