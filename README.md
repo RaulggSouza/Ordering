@@ -31,7 +31,9 @@ O agregado principal é o **Order**. Ele será composto por entidades como **Cus
 
 ### Banco de dados (Postgres via Docker)
 
-Subir o Postgres:
+Com o Docker rodando, ao iniciar a aplicação usando um `src/main/resources/application.properties` baseado no `.example`, o Spring Boot sobe o Postgres automaticamente via Docker Compose (`infra/docker/docker-compose.yml`).
+
+Se preferir subir manualmente:
 
 ```bash
 docker compose -f infra/docker/docker-compose.yml up -d
