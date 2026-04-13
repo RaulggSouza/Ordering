@@ -12,6 +12,7 @@ import br.edu.ifsp.scl.ordering.domain.entity.Discount;
 import br.edu.ifsp.scl.ordering.domain.entity.OrderItem;
 import br.edu.ifsp.scl.ordering.domain.exceptions.InvalidOrderItemQuantityException;
 import br.edu.ifsp.scl.ordering.domain.exceptions.OrderItemNotFoundException;
+import br.edu.ifsp.scl.ordering.domain.exceptions.OrderNotFoundException;
 import br.edu.ifsp.scl.ordering.domain.exceptions.OrderStatusNotAllowedException;
 import br.edu.ifsp.scl.ordering.domain.valueobject.DiscountId;
 import br.edu.ifsp.scl.ordering.domain.valueobject.MinimumValueDiscountRule;
@@ -252,6 +253,42 @@ public class UpdateOrderItemQuantityServiceTest {
 
         verify(orderRepository, times(1)).findById(order.getOrderId());
         verify(productRepository, times(1)).existsById(productId);
+        verify(orderRepository, never()).save(any());
+    }
+
+    @Functional
+    @UnitTest
+    @ParameterizedTest
+    @DisplayName("#106 - Should throw an error when order does not exist")
+    @CsvSource(
+            nullValues = "NULL",
+            value = {
+                    "1,1,2",
+                    "999,2,1",
+                    "abc,3,5"
+            }
+    )
+    void shouldThrowAnErrorWhenOrderDoesNotExist(
+            String orderIdInput,
+            String productIdInput,
+            Integer newQuantityInput
+    ) {
+        OrderId orderId = new OrderId(orderIdInput);
+        ProductId productId = new ProductId(productIdInput);
+
+        UpdateOrderItemQuantityRequest request = new UpdateOrderItemQuantityRequest(
+                orderId,
+                productId,
+                newQuantityInput
+        );
+
+        when(orderRepository.findById(orderId)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> sut.updateOrderItemQuantity(request))
+                .isInstanceOf(OrderNotFoundException.class);
+
+        verify(orderRepository, times(1)).findById(orderId);
+        verify(productRepository, never()).existsById(any());
         verify(orderRepository, never()).save(any());
     }
 
