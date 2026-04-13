@@ -65,6 +65,10 @@ public class Order {
     }
 
     public void removeItem(ProductId productId) {
+        if (!this.status.allowsRemoveItems()) {
+            throw new OrderStatusNotAllowedException(this.getOrderStatus());
+        }
+
         if (this.items.size() == 1) {
             throw new OrderMustHaveAtLeastOneItemException();
         }
