@@ -9,7 +9,7 @@ import br.edu.ifsp.scl.ordering.domain.aggregate.Order;
 import br.edu.ifsp.scl.ordering.domain.constant.DiscountType;
 import br.edu.ifsp.scl.ordering.domain.constant.OrderStatus;
 import br.edu.ifsp.scl.ordering.domain.entity.Discount;
-import br.edu.ifsp.scl.ordering.domain.exceptions.DuplicateDiscountTypeException;
+import br.edu.ifsp.scl.ordering.domain.exceptions.MutipleDiscountTypeException;
 import br.edu.ifsp.scl.ordering.domain.exceptions.IllegalOrderOperationException;
 import org.springframework.stereotype.Service;
 
@@ -40,7 +40,7 @@ public class ApplyDiscountService implements IApplyDiscountService {
                 .toList();
 
         if (hasMultipleDiscountsOfSameKind(discountsToApply))
-            throw new DuplicateDiscountTypeException("The order \"%s\" has multiple discounts of the same kind."
+            throw new MutipleDiscountTypeException("The order \"%s\" has multiple discounts of the same kind."
                     .formatted(order.getOrderId())
             );
 

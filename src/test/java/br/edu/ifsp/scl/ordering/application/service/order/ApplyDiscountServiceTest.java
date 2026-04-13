@@ -8,8 +8,8 @@ import br.edu.ifsp.scl.ordering.domain.constant.DiscountType;
 import br.edu.ifsp.scl.ordering.domain.constant.OrderStatus;
 import br.edu.ifsp.scl.ordering.domain.entity.Discount;
 import br.edu.ifsp.scl.ordering.domain.entity.OrderItem;
-import br.edu.ifsp.scl.ordering.domain.exceptions.DuplicateDiscountTypeException;
 import br.edu.ifsp.scl.ordering.domain.exceptions.IllegalOrderOperationException;
+import br.edu.ifsp.scl.ordering.domain.exceptions.MutipleDiscountTypeException;
 import br.edu.ifsp.scl.ordering.domain.valueobject.DiscountId;
 import br.edu.ifsp.scl.ordering.domain.valueobject.MinimumValueDiscountRule;
 import br.edu.ifsp.scl.ordering.domain.valueobject.OrderId;
@@ -32,7 +32,6 @@ import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
-import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -112,8 +111,8 @@ public class ApplyDiscountServiceTest {
     @UnitTest
     @TDD
     @Test
-    @DisplayName("# 87 - Should throw IllegalOrderOperationException when applying two discounts of same kind")
-    void shouldThrowIllegalOrderOperationExceptionWhenApplyingTwoDiscountsOfSameKind() {
+    @DisplayName("#87 - Should throw MultipleDiscountTypeException when applying multiple discounts of same kind")
+    void shouldThrowMultipleDiscountTypeExceptionWhenApplyingMultipleDiscountsOfSameKind() {
         DiscountId secondDiscountId = new DiscountId("duplicated-discount-10-percent");
         Discount secondDiscount = createDiscountWith10Percent(secondDiscountId);
 
@@ -123,7 +122,7 @@ public class ApplyDiscountServiceTest {
 
         ApplyDiscountRequest request = new ApplyDiscountRequest(orderId, List.of(discountId, secondDiscountId));
 
-        assertThatExceptionOfType(DuplicateDiscountTypeException.class)
+        assertThatExceptionOfType(MutipleDiscountTypeException.class)
                 .isThrownBy(() -> sut.apply(request));
     }
 
