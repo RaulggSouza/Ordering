@@ -9,12 +9,15 @@ import br.edu.ifsp.scl.ordering.domain.aggregate.Order;
 import br.edu.ifsp.scl.ordering.domain.constant.DiscountType;
 import br.edu.ifsp.scl.ordering.domain.constant.OrderStatus;
 import br.edu.ifsp.scl.ordering.domain.entity.Discount;
-import br.edu.ifsp.scl.ordering.domain.exceptions.MutipleDiscountTypeException;
 import br.edu.ifsp.scl.ordering.domain.exceptions.IllegalOrderOperationException;
+import br.edu.ifsp.scl.ordering.domain.exceptions.MutipleDiscountTypeException;
 import org.springframework.stereotype.Service;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 public class ApplyDiscountService implements IApplyDiscountService {
@@ -49,10 +52,11 @@ public class ApplyDiscountService implements IApplyDiscountService {
         return new ApplyDiscountResponse(order.getOrderId(), discountsToApply);
     }
 
-    private static boolean hasMultipleDiscountsOfSameKind(List<Discount> discountsToApply) {
-        return discountsToApply.stream()
+    private static boolean hasMultipleDiscountsOfSameKind(List<Discount> discountsToApply) {List<DiscountType> discountTypes = discountsToApply.stream()
                 .map(Discount::getDiscountType)
-                .toList()
-                .size() != DiscountType.values().length;
+                .toList();
+
+        int distinctQuantity = new HashSet<>(discountTypes).size();
+        return distinctQuantity != discountTypes.size();
     }
 }
