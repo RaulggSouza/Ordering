@@ -53,7 +53,7 @@ public class ApplyDiscountServiceTest {
         orderId = new OrderId("order-1");
         discountId = new DiscountId("discount-1");
 
-        order = createOrderWithTotalAs100(orderId);
+        order = createOrderWithTotalAs(orderId, 100.0);
         discount = createDiscountWith10Percent(discountId);
     }
 
@@ -126,12 +126,27 @@ public class ApplyDiscountServiceTest {
                 .isThrownBy(() -> sut.apply(request));
     }
 
-    private Order createOrderWithTotalAs100(OrderId orderId) {
-        ProductId productId = new ProductId("product-value-100");
-        OrderItem orderItem = new OrderItem(productId, 1, 100.0);
+    @TDD
+    @UnitTest
+    @Test
+    @DisplayName("#88 - Should not allow the order net total to be less than zero when applying an eligible discount")
+    void shouldNotAllowTheOrderNetTotalToBeLessThanZeroWhenApplyingAnEligibleDiscount() {
+        DiscountId invalidDiscountId = new DiscountId("full-discount");
+        Discount invalidDiscount = createDiscountWithPercentage(invalidDiscountId, 101);
+
+        when(discountRepository.findById(invalidDiscountId)).thenReturn(Optional.of(invalidDiscount));
+        when(orderRepository.findById(orderId)).thenReturn(Optional.of(order));
+
+        ApplyDiscountRequest request = new ApplyDiscountRequest(orderId, List.of(invalidDiscountId));
+        assertThatExceptionOfType(IllegalOrderOperationException.class)
+                .isThrownBy(() -> sut.apply(request));
+    }
+
+    private Order createOrderWithTotalAs(OrderId orderId, double total) {
+        OrderItem item = new OrderItem(new ProductId("sample"), 1, total);
         return new Order(
                 orderId,
-                List.of(orderItem),
+                List.of(item),
                 List.of(),
                 OrderStatus.CREATED,
                 null,
@@ -156,7 +171,17 @@ public class ApplyDiscountServiceTest {
                 new MinimumValueDiscountRule(0, 10),
                 DiscountType.COUPON,
                 true,
-                LocalDateTime.now().minusHours(1)
+                LocalDateTime.now().plusHours(1)
+        );
+    }
+
+    private Discount createDiscountWithPercentage(DiscountId fullDiscountId, double percentage) {
+        return new Discount(
+                fullDiscountId,
+                new MinimumValueDiscountRule(0, percentage),
+                DiscountType.COUPON,
+                true,
+                LocalDateTime.now().plusHours(1)
         );
     }
 }
