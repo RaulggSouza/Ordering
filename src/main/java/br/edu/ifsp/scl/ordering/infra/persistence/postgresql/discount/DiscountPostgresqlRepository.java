@@ -10,6 +10,7 @@ import br.edu.ifsp.scl.ordering.domain.valueobject.TierDiscountRule;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public class DiscountPostgresqlRepository implements IDiscountRepository {
@@ -24,6 +25,12 @@ public class DiscountPostgresqlRepository implements IDiscountRepository {
         return repository.findAll().stream()
                 .map(this::toDomain)
                 .toList();
+    }
+
+    @Override
+    public Optional<Discount> findById(DiscountId discountId) {
+        Discount discountDomain = toDomain(repository.findById(discountId.value()).orElseThrow());
+        return Optional.of(discountDomain);
     }
 
     private Discount toDomain(DiscountEntity discountEntity) {

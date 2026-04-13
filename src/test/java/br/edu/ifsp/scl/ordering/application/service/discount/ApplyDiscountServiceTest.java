@@ -3,11 +3,13 @@ package br.edu.ifsp.scl.ordering.application.service.discount;
 import br.edu.ifsp.scl.ordering.application.ports.outbound.persistence.discount.IDiscountRepository;
 import br.edu.ifsp.scl.ordering.application.ports.outbound.persistence.order.IOrderRepository;
 import br.edu.ifsp.scl.ordering.domain.aggregate.Order;
+import br.edu.ifsp.scl.ordering.domain.constant.DiscountType;
 import br.edu.ifsp.scl.ordering.domain.constant.OrderStatus;
 import br.edu.ifsp.scl.ordering.domain.entity.Discount;
 import br.edu.ifsp.scl.ordering.domain.entity.OrderItem;
-import br.edu.ifsp.scl.ordering.domain.exception.IllegalOrderOperationException;
+import br.edu.ifsp.scl.ordering.domain.exceptions.IllegalOrderOperationException;
 import br.edu.ifsp.scl.ordering.domain.valueobject.DiscountId;
+import br.edu.ifsp.scl.ordering.domain.valueobject.MinimumValueDiscountRule;
 import br.edu.ifsp.scl.ordering.domain.valueobject.OrderId;
 import br.edu.ifsp.scl.ordering.domain.valueobject.ProductId;
 import org.junit.jupiter.api.BeforeEach;
@@ -20,6 +22,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -88,19 +91,34 @@ public class ApplyDiscountServiceTest {
     private Order createOrderWithTotalAs100(OrderId orderId) {
         ProductId productId = new ProductId("product-value-100");
         OrderItem orderItem = new OrderItem(productId, 1, 100.0);
-        Order order = new Order(orderId);
-        order.changeStatus(OrderStatus.CREATED);
-        order.addItem(orderItem);
-        return order;
+        return new Order(
+                orderId,
+                List.of(orderItem),
+                List.of(),
+                OrderStatus.CREATED,
+                null,
+                null
+        );
     }
 
     private Order createOrderWithStatus(OrderId orderId, OrderStatus status) {
-        Order order = new Order(orderId);
-        order.changeStatus(status);
-        return order;
+        return new Order(
+                orderId,
+                List.of(),
+                List.of(),
+                status,
+                null,
+                null
+        );
     }
 
     private Discount createDiscountWithValue10(DiscountId discountId) {
-        return new Discount(discountId, 10.0);
+        return new Discount(
+                discountId,
+                new MinimumValueDiscountRule(0, 10.0),
+                DiscountType.COUPON,
+                true,
+                LocalDateTime.now().minusHours(1)
+        );
     }
 }
