@@ -67,6 +67,10 @@ public class Order {
         this.status = OrderStatus.CANCELLED;
     }
 
+    public void removeItem(ProductId productId) {
+        items.removeIf(item -> item.productId().equals(productId));
+    }
+
     public void addItems(List<OrderItem> itemsToAdd) {
         if (itemsToAdd == null || itemsToAdd.isEmpty()) {
             return;

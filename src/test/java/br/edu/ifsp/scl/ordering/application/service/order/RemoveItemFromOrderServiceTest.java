@@ -1,6 +1,9 @@
 package br.edu.ifsp.scl.ordering.application.service.order;
 
 import br.edu.ifsp.scl.ordering.application.ports.inbound.service.order.remove_item.IRemoveItemFromOrderService;
+import br.edu.ifsp.scl.ordering.application.ports.inbound.service.order.remove_item.dtos.RemoveItemFromOrderItemResponse;
+import br.edu.ifsp.scl.ordering.application.ports.inbound.service.order.remove_item.dtos.RemoveItemFromOrderRequest;
+import br.edu.ifsp.scl.ordering.application.ports.inbound.service.order.remove_item.dtos.RemoveItemFromOrderResponse;
 import br.edu.ifsp.scl.ordering.application.ports.outbound.persistence.order.IOrderRepository;
 import br.edu.ifsp.scl.ordering.application.ports.outbound.persistence.product.IProductRepository;
 import br.edu.ifsp.scl.ordering.domain.aggregate.Order;
