@@ -89,25 +89,29 @@ public class UpdateOrderItemQuantityServiceTest {
     @TDD
     @UnitTest
     @ParameterizedTest
-    @DisplayName("#42 - Should update item quantity and remove non eligible discounts")
+    @DisplayName("#42 - Should update item quantity and remove only discounts that become ineligible")
     @CsvSource(
             nullValues = "NULL",
             value = {
-                    "1:2:100,1,1,1:1:100"
+                    "1:3:100,1,2,1:2:100,1:200:10;2:300:15,1:200:10",
+                    "1:3:100,1,1,1:1:100,1:200:10;2:300:15,NULL",
+                    "1:5:100,1,4,1:4:100,1:200:10;2:300:15,1:200:10;2:300:15"
             }
     )
-    void shouldUpdateItemQuantityAndRemoveAppliedDiscountsThatBecomeIneligible(
+    void shouldUpdateItemQuantityAndRemoveOnlyDiscountsThatBecomeIneligible(
             String itemsThatAlreadyExistsInOrderInput,
             String productIdInput,
             Integer newQuantityInput,
-            String expectedOrderItemsInput
+            String expectedOrderItemsInput,
+            String appliedDiscountsInput,
+            String expectedDiscountsInput
     ) {
-        Discount appliedDiscount = createMinimumValueDiscount("1", 200, 10);
+        List<Discount> appliedDiscounts = createMinimumValueDiscounts(appliedDiscountsInput);
 
         Order order = createOrderWithDiscounts(
                 "1",
                 itemsThatAlreadyExistsInOrderInput,
-                List.of(appliedDiscount)
+                appliedDiscounts
         );
 
         ProductId productId = new ProductId(productIdInput);
@@ -121,17 +125,23 @@ public class UpdateOrderItemQuantityServiceTest {
         List<UpdateOrderItemQuantityItemResponse> expectedOrderItems =
                 createResponseUpdateOrderItemQuantity(expectedOrderItemsInput);
 
+        List<DiscountId> expectedDiscountIds = createDiscountIds(expectedDiscountsInput);
+
         when(orderRepository.findById(order.getOrderId())).thenReturn(Optional.of(order));
         when(productRepository.existsById(productId)).thenReturn(true);
 
         UpdateOrderItemQuantityResponse response = sut.updateOrderItemQuantity(request);
 
         verify(orderRepository, times(1)).findById(order.getOrderId());
+        verify(productRepository, times(1)).existsById(productId);
         verify(orderRepository, times(1)).save(order);
 
         assertThat(response.orderId()).isEqualTo(order.getOrderId());
         assertThat(response.items()).isEqualTo(expectedOrderItems);
-        assertThat(order.getDiscounts()).isEmpty();
+
+        assertThat(order.getDiscounts())
+                .extracting(Discount::getDiscountId)
+                .containsExactlyInAnyOrderElementsOf(expectedDiscountIds);
     }
 
     private static Order createOrder(String orderId, String orderProductsInput) {
@@ -158,6 +168,36 @@ public class UpdateOrderItemQuantityServiceTest {
                 null,
                 null
         );
+    }
+
+    private static List<Discount> createMinimumValueDiscounts(String discountsInput) {
+        if (discountsInput == null || discountsInput.isBlank()) {
+            return List.of();
+        }
+
+        return Arrays.stream(discountsInput.split(";"))
+                .map(discountString -> {
+                    String[] parts = discountString.split(":");
+                    String discountId = parts[0];
+                    double minimumValue = Double.parseDouble(parts[1]);
+                    double percentage = Double.parseDouble(parts[2]);
+
+                    return createMinimumValueDiscount(discountId, minimumValue, percentage);
+                })
+                .toList();
+    }
+
+    private static List<DiscountId> createDiscountIds(String discountsInput) {
+        if (discountsInput == null || discountsInput.isBlank()) {
+            return List.of();
+        }
+
+        return Arrays.stream(discountsInput.split(";"))
+                .map(discountString -> {
+                    String[] parts = discountString.split(":");
+                    return new DiscountId(parts[0]);
+                })
+                .toList();
     }
 
     private static Discount createMinimumValueDiscount(

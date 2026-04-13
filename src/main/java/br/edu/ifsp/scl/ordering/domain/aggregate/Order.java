@@ -121,7 +121,7 @@ public class Order {
     }
 
     private void removeIneligibleDiscounts() {
-        this.discounts.removeIf(discount -> !discount.isEligible(this));
+        this.discounts.removeIf(discount -> !discount.isStillEligible(this));
     }
 
     public OrderId getOrderId() {
