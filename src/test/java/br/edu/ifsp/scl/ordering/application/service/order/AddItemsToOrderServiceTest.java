@@ -9,10 +9,7 @@ import br.edu.ifsp.scl.ordering.application.ports.outbound.persistence.product.I
 import br.edu.ifsp.scl.ordering.domain.aggregate.Order;
 import br.edu.ifsp.scl.ordering.domain.constant.OrderStatus;
 import br.edu.ifsp.scl.ordering.domain.entity.OrderItem;
-import br.edu.ifsp.scl.ordering.domain.exceptions.InvalidOrderItemQuantityException;
-import br.edu.ifsp.scl.ordering.domain.exceptions.OrderStatusNotAllowedException;
-import br.edu.ifsp.scl.ordering.domain.exceptions.ProductNotFoundException;
-import br.edu.ifsp.scl.ordering.domain.exceptions.ProductsAlreadyExistInOrderException;
+import br.edu.ifsp.scl.ordering.domain.exceptions.*;
 import br.edu.ifsp.scl.ordering.domain.valueobject.OrderId;
 import br.edu.ifsp.scl.ordering.domain.valueobject.ProductId;
 import br.edu.ifsp.scl.ordering.testing.tags.Functional;
@@ -242,6 +239,29 @@ public class AddItemsToOrderServiceTest {
 
         verify(orderRepository, times(1)).findById(order.getOrderId());
         verify(productRepository, times(1)).allExistsByIds(anyList());
+        verify(orderRepository, never()).save(any());
+    }
+
+    @Functional
+    @UnitTest
+    @Test
+    @DisplayName("#104 - Should throw an error when order does not exist")
+    void shouldThrowAnErrorWhenOrderDoesNotExist(
+    ) {
+        OrderId orderId = new OrderId("1");
+
+        AddItemsToOrderRequest request = new AddItemsToOrderRequest(
+                orderId,
+                createOrderItemsToAdd("")
+        );
+
+        when(orderRepository.findById(orderId)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> sut.addItemsToOrder(request))
+                .isInstanceOf(OrderNotFoundException.class);
+
+        verify(orderRepository, times(1)).findById(orderId);
+        verify(productRepository, never()).allExistsByIds(anyList());
         verify(orderRepository, never()).save(any());
     }
 
