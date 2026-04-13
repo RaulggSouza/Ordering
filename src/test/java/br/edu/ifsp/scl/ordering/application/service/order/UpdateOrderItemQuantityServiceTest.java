@@ -182,6 +182,43 @@ public class UpdateOrderItemQuantityServiceTest {
         verify(orderRepository, never()).save(any());
     }
 
+    @TDD
+    @UnitTest
+    @ParameterizedTest
+    @DisplayName("#44 - Should throw an error when item does not belong to order")
+    @CsvSource(
+            nullValues = "NULL",
+            value = {
+                    "1:1:100,2,2",
+                    "1:2:100;2:1:50,3,1",
+                    "1:2:100;2:1:50,4,5"
+            }
+    )
+    void shouldThrowAnErrorWhenItemDoesNotBelongToOrder(
+            String itemsThatAlreadyExistsInOrderInput,
+            String productIdInput,
+            Integer newQuantityInput
+    ) {
+        Order order = createOrder("1", itemsThatAlreadyExistsInOrderInput);
+        ProductId productId = new ProductId(productIdInput);
+
+        UpdateOrderItemQuantityRequest request = new UpdateOrderItemQuantityRequest(
+                order.getOrderId(),
+                productId,
+                newQuantityInput
+        );
+
+        when(orderRepository.findById(order.getOrderId())).thenReturn(Optional.of(order));
+        when(productRepository.existsById(productId)).thenReturn(true);
+
+        assertThatThrownBy(() -> sut.updateOrderItemQuantity(request))
+                .isInstanceOf(OrderItemNotFoundException.class);
+
+        verify(orderRepository, times(1)).findById(order.getOrderId());
+        verify(productRepository, times(1)).existsById(productId);
+        verify(orderRepository, never()).save(any());
+    }
+
     private static Order createOrder(String orderId, String orderProductsInput) {
         return new Order(
                 new OrderId(orderId),
