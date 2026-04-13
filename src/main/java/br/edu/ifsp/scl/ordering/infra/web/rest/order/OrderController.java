@@ -15,8 +15,8 @@ import br.edu.ifsp.scl.ordering.application.ports.inbound.service.order.update_i
 import br.edu.ifsp.scl.ordering.application.ports.inbound.service.order.update_item_quantity.dtos.UpdateOrderItemQuantityResponse;
 import br.edu.ifsp.scl.ordering.domain.valueobject.OrderId;
 import br.edu.ifsp.scl.ordering.domain.valueobject.ProductId;
-import br.edu.ifsp.scl.ordering.infra.web.rest.order.dtos.CreateOrderBodyDTO;
-import br.edu.ifsp.scl.ordering.infra.web.rest.order.dtos.CreateOrderResponseDTO;
+import br.edu.ifsp.scl.ordering.infra.web.rest.order.dtos.create.CreateOrderBodyDTO;
+import br.edu.ifsp.scl.ordering.infra.web.rest.order.dtos.create.CreateOrderResponseDTO;
 import br.edu.ifsp.scl.ordering.infra.web.rest.order.dtos.add_items.AddItemsToOrderRequestDTO;
 import br.edu.ifsp.scl.ordering.infra.web.rest.order.dtos.add_items.AddItemsToOrderResponseDTO;
 import br.edu.ifsp.scl.ordering.infra.web.rest.order.dtos.list_orders.ListOrdersOrderResponseDTO;

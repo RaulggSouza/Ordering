@@ -1,4 +1,4 @@
-package br.edu.ifsp.scl.ordering.infra.web.rest.order.dtos;
+package br.edu.ifsp.scl.ordering.infra.web.rest.order.dtos.create;
 
 import br.edu.ifsp.scl.ordering.application.ports.inbound.service.order.create.dtos.CreateOrderItemRequest;
 import br.edu.ifsp.scl.ordering.domain.valueobject.ProductId;

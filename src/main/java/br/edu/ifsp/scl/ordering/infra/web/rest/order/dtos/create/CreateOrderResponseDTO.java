@@ -1,4 +1,4 @@
-package br.edu.ifsp.scl.ordering.infra.web.rest.order.dtos;
+package br.edu.ifsp.scl.ordering.infra.web.rest.order.dtos.create;
 
 import br.edu.ifsp.scl.ordering.domain.valueobject.OrderId;
 
