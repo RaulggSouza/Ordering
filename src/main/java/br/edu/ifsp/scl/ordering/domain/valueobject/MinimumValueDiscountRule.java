@@ -7,7 +7,7 @@ public record MinimumValueDiscountRule(double minimumValue, double discountValue
 
     @Override
     public boolean isEligible(Order order) {
-        return order.getTotal() >= minimumValue;
+        return order.getGrossTotal() >= minimumValue;
     }
 
     @Override

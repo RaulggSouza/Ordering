@@ -47,20 +47,21 @@ public class Order {
         this.status = OrderStatus.CREATED;
     }
 
-    public static Order create(List<OrderItem> items, Address shippingAddress, CustomerId customerId){
+    public static Order create(List<OrderItem> items, Address shippingAddress, CustomerId customerId) {
         return new Order(items, shippingAddress, customerId);
     }
 
-    public static Order createWithStatus(OrderId id, OrderStatus status, CustomerId customerId, Address address){
+    public static Order createWithStatus(OrderId id, OrderStatus status, CustomerId customerId, Address address) {
         return new Order(id, List.of(), List.of(), status, customerId, address);
     }
 
-    public boolean canBeCancelled(){
+    public boolean canBeCancelled() {
         return status == OrderStatus.CREATED || status == OrderStatus.INVOICED;
     }
 
     public void cancelOrder() {
-        if (!canBeCancelled()) throw new IllegalStateException("Illegal status for cancellation. Status: "+ this.status);
+        if (!canBeCancelled())
+            throw new IllegalStateException("Illegal status for cancellation. Status: " + this.status);
         this.status = OrderStatus.CANCELLED;
     }
 
@@ -90,7 +91,7 @@ public class Order {
             return;
         }
 
-        if(!this.status.allowsAddItems()){
+        if (!this.status.allowsAddItems()) {
             throw new OrderStatusNotAllowedException(this.getOrderStatus());
         }
 
@@ -167,8 +168,26 @@ public class Order {
         return status;
     }
 
-    public double getTotal(){
+    public List<Discount> getDiscounts() {
+        return List.copyOf(discounts);
+    }
+
+    public double getGrossTotal() {
         return items.stream().mapToDouble(OrderItem::getTotal).sum();
+    }
+
+    public double getTotal() {
+        return getGrossTotal() - getNetTotalPecentage();
+    }
+
+    private double getNetTotalPecentage() {
+        return (getDiscountPercentageSum() / 100) * getGrossTotal();
+    }
+
+    private double getDiscountPercentageSum() {
+        return discounts.stream()
+                .mapToDouble(d -> d.getPercentage(this))
+                .sum();
     }
 
     public CustomerId getCustomerId() {
@@ -181,5 +200,9 @@ public class Order {
 
     public List<OrderItem> getItems() {
         return items;
+    }
+
+    public void addDiscount(Discount discount) {
+        this.discounts.add(discount);
     }
 }
