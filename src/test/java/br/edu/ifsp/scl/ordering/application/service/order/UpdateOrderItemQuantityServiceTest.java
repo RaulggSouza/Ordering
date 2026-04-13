@@ -6,8 +6,12 @@ import br.edu.ifsp.scl.ordering.application.ports.inbound.service.order.update_i
 import br.edu.ifsp.scl.ordering.application.ports.outbound.persistence.order.IOrderRepository;
 import br.edu.ifsp.scl.ordering.application.ports.outbound.persistence.product.IProductRepository;
 import br.edu.ifsp.scl.ordering.domain.aggregate.Order;
+import br.edu.ifsp.scl.ordering.domain.constant.DiscountType;
 import br.edu.ifsp.scl.ordering.domain.constant.OrderStatus;
+import br.edu.ifsp.scl.ordering.domain.entity.Discount;
 import br.edu.ifsp.scl.ordering.domain.entity.OrderItem;
+import br.edu.ifsp.scl.ordering.domain.valueobject.DiscountId;
+import br.edu.ifsp.scl.ordering.domain.valueobject.MinimumValueDiscountRule;
 import br.edu.ifsp.scl.ordering.domain.valueobject.OrderId;
 import br.edu.ifsp.scl.ordering.domain.valueobject.ProductId;
 import br.edu.ifsp.scl.ordering.testing.tags.TDD;
@@ -82,6 +86,54 @@ public class UpdateOrderItemQuantityServiceTest {
         assertThat(response.items()).isEqualTo(expectedOrderItems);
     }
 
+    @TDD
+    @UnitTest
+    @ParameterizedTest
+    @DisplayName("#42 - Should update item quantity and remove non eligible discounts")
+    @CsvSource(
+            nullValues = "NULL",
+            value = {
+                    "1:2:100,1,1,1:1:100"
+            }
+    )
+    void shouldUpdateItemQuantityAndRemoveAppliedDiscountsThatBecomeIneligible(
+            String itemsThatAlreadyExistsInOrderInput,
+            String productIdInput,
+            Integer newQuantityInput,
+            String expectedOrderItemsInput
+    ) {
+        Discount appliedDiscount = createMinimumValueDiscount("1", 200, 10);
+
+        Order order = createOrderWithDiscounts(
+                "1",
+                itemsThatAlreadyExistsInOrderInput,
+                List.of(appliedDiscount)
+        );
+
+        ProductId productId = new ProductId(productIdInput);
+
+        UpdateOrderItemQuantityRequest request = new UpdateOrderItemQuantityRequest(
+                order.getOrderId(),
+                productId,
+                newQuantityInput
+        );
+
+        List<UpdateOrderItemQuantityItemResponse> expectedOrderItems =
+                createResponseUpdateOrderItemQuantity(expectedOrderItemsInput);
+
+        when(orderRepository.findById(order.getOrderId())).thenReturn(Optional.of(order));
+        when(productRepository.existsById(productId)).thenReturn(true);
+
+        UpdateOrderItemQuantityResponse response = sut.updateOrderItemQuantity(request);
+
+        verify(orderRepository, times(1)).findById(order.getOrderId());
+        verify(orderRepository, times(1)).save(order);
+
+        assertThat(response.orderId()).isEqualTo(order.getOrderId());
+        assertThat(response.items()).isEqualTo(expectedOrderItems);
+        assertThat(order.getDiscounts()).isEmpty();
+    }
+
     private static Order createOrder(String orderId, String orderProductsInput) {
         return new Order(
                 new OrderId(orderId),
@@ -89,6 +141,35 @@ public class UpdateOrderItemQuantityServiceTest {
                 List.of(),
                 OrderStatus.CREATED,
                 null,
+                null
+        );
+    }
+
+    private static Order createOrderWithDiscounts(
+            String orderId,
+            String orderProductsInput,
+            List<Discount> discounts
+    ) {
+        return new Order(
+                new OrderId(orderId),
+                createOrderItems(orderProductsInput),
+                discounts,
+                OrderStatus.CREATED,
+                null,
+                null
+        );
+    }
+
+    private static Discount createMinimumValueDiscount(
+            String discountId,
+            double minimumValue,
+            double percentage
+    ) {
+        return new Discount(
+                new DiscountId(discountId),
+                new MinimumValueDiscountRule(minimumValue, percentage),
+                DiscountType.COUPON,
+                true,
                 null
         );
     }
