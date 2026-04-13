@@ -9,6 +9,7 @@ import br.edu.ifsp.scl.ordering.application.ports.outbound.persistence.product.I
 import br.edu.ifsp.scl.ordering.domain.aggregate.Order;
 import br.edu.ifsp.scl.ordering.domain.constant.OrderStatus;
 import br.edu.ifsp.scl.ordering.domain.entity.OrderItem;
+import br.edu.ifsp.scl.ordering.domain.exceptions.InvalidOrderItemQuantityException;
 import br.edu.ifsp.scl.ordering.domain.exceptions.ProductNotFoundException;
 import br.edu.ifsp.scl.ordering.domain.exceptions.ProductsAlreadyExistInOrderException;
 import br.edu.ifsp.scl.ordering.domain.valueobject.OrderId;
@@ -51,11 +52,11 @@ public class AddItemsToOrderServiceTest {
         nullValues = "NULL",
         value = {
             "NULL,1:1:100,1:1:100",
-            "NULL,1:1:100-2:2:50,1:1:100-2:2:50",
-            "1:1:100,2:1:200,1:1:100-2:1:200",
-            "1:1:100-2:2:50,3:1:30,1:1:100-2:2:50-3:1:30",
-            "NULL,1:2:10-2:3:20-3:1:30,1:2:10-2:3:20-3:1:30",
-            "1:1:100,2:2:50-3:1:40,1:1:100-2:2:50-3:1:40"
+            "NULL,1:1:100;2:2:50,1:1:100;2:2:50",
+            "1:1:100,2:1:200,1:1:100;2:1:200",
+            "1:1:100;2:2:50,3:1:30,1:1:100;2:2:50;3:1:30",
+            "NULL,1:2:10;2:3:20;3:1:30,1:2:10;2:3:20;3:1:30",
+            "1:1:100,2:2:50;3:1:40,1:1:100;2:2:50;3:1:40"
         }
     )
     void shouldAddItemsToOrderWhenAllParametersAreValid(String itemsThatAlreadyExistsInOrderInput, String itemsToAddIntoOrderInput, String expectedOrderItemsInput){
@@ -127,9 +128,9 @@ public class AddItemsToOrderServiceTest {
     @CsvSource(
             nullValues = "NULL",
             value = {
-                    "1:1:100,1:1:100",
-                    "1:2:100-2:1:50,1:1:100",
-                    "1:1:100-2:2:50,2:1:50"
+                "1:1:100,1:1:100",
+                "1:2:100;2:1:50,1:1:100",
+                "1:1:100;2:2:50,2:1:50"
             }
     )
     void shouldThrowAnErrorWhenProductAlreadyExistsInOrder(
@@ -171,10 +172,10 @@ public class AddItemsToOrderServiceTest {
     @CsvSource(
             nullValues = "NULL",
             value = {
-                    "NULL,1:0:100",
-                    "NULL,1:-1:100",
-                    "2:1:50,1:0:100",
-                    "2:1:50,1:-5:100"
+                "NULL,1:0:100",
+                "NULL,1:-1:100",
+                "2:1:50,1:0:100",
+                "2:1:50,1:-5:100"
             }
     )
     void shouldThrowAnErrorWhenItemQuantityIsLessThanOrEqualToZero(
@@ -226,7 +227,7 @@ public class AddItemsToOrderServiceTest {
             return List.of();
         }
 
-        return Arrays.stream(orderProductsInput.split("-"))
+        return Arrays.stream(orderProductsInput.split(";"))
                 .map(productString -> {
                     String[] parts = productString.split(":");
                     String productId = parts[0];
@@ -243,7 +244,7 @@ public class AddItemsToOrderServiceTest {
             return List.of();
         }
 
-        return Arrays.stream(orderProductsInput.split("-"))
+        return Arrays.stream(orderProductsInput.split(";"))
                 .map(productString -> {
                     String[] parts = productString.split(":");
                     String productId = parts[0];
@@ -260,7 +261,7 @@ public class AddItemsToOrderServiceTest {
             return List.of();
         }
 
-        return Arrays.stream(orderProductsInput.split("-"))
+        return Arrays.stream(orderProductsInput.split(";"))
                 .map(productString -> {
                     String[] parts = productString.split(":");
                     String productId = parts[0];
