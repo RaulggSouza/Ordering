@@ -10,6 +10,7 @@ import br.edu.ifsp.scl.ordering.domain.aggregate.Order;
 import br.edu.ifsp.scl.ordering.domain.constant.OrderStatus;
 import br.edu.ifsp.scl.ordering.domain.entity.OrderItem;
 import br.edu.ifsp.scl.ordering.domain.exceptions.InvalidOrderItemQuantityException;
+import br.edu.ifsp.scl.ordering.domain.exceptions.OrderStatusNotAllowedException;
 import br.edu.ifsp.scl.ordering.domain.exceptions.ProductNotFoundException;
 import br.edu.ifsp.scl.ordering.domain.exceptions.ProductsAlreadyExistInOrderException;
 import br.edu.ifsp.scl.ordering.domain.valueobject.OrderId;
@@ -210,6 +211,40 @@ public class AddItemsToOrderServiceTest {
         verify(orderRepository, never()).save(any());
     }
 
+    @Functional
+    @UnitTest
+    @ParameterizedTest
+    @DisplayName("#95 - Should throw an error when order status does not allow adding items")
+    @CsvSource(
+            value = {
+                    "INVOICED",
+                    "SHIPPED",
+                    "COMPLETED",
+                    "CANCELLED"
+            }
+    )
+    void shouldThrowAnErrorWhenOrderStatusDoesNotAllowAddingItems(String orderStatusInput) {
+        OrderStatus orderStatus = OrderStatus.valueOf(orderStatusInput);
+        Order order = createOrderWithStatus("1", "2:1:50", orderStatus);
+
+        List<AddItemsToOrderItemRequest> orderItemsToAdd = createOrderItemsToAdd("1:1:100");
+
+        AddItemsToOrderRequest request = new AddItemsToOrderRequest(
+                order.getOrderId(),
+                orderItemsToAdd
+        );
+
+        when(orderRepository.findById(order.getOrderId())).thenReturn(Optional.of(order));
+        when(productRepository.allExistsByIds(anyList())).thenReturn(true);
+
+        assertThatThrownBy(() -> sut.addItemsToOrder(request))
+                .isInstanceOf(OrderStatusNotAllowedException.class);
+
+        verify(orderRepository, times(1)).findById(order.getOrderId());
+        verify(productRepository, times(1)).allExistsByIds(anyList());
+        verify(orderRepository, never()).save(any());
+    }
+
 
     private static Order createOrder(String orderId, String orderProductsInput) {
         return new Order(
@@ -217,6 +252,21 @@ public class AddItemsToOrderServiceTest {
                 createOrderItems(orderProductsInput),
                 List.of(),
                 OrderStatus.CREATED,
+                null,
+                null
+        );
+    }
+
+    private static Order createOrderWithStatus(
+            String orderId,
+            String orderProductsInput,
+            OrderStatus status
+    ) {
+        return new Order(
+                new OrderId(orderId),
+                createOrderItems(orderProductsInput),
+                List.of(),
+                status,
                 null,
                 null
         );
