@@ -114,9 +114,14 @@ public class Order {
                 );
 
                 this.items.set(index, updatedItem);
-                return;
             }
         }
+
+        removeIneligibleDiscounts();
+    }
+
+    private void removeIneligibleDiscounts() {
+        this.discounts.removeIf(discount -> !discount.isEligible(this));
     }
 
     public OrderId getOrderId() {
