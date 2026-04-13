@@ -1,6 +1,7 @@
 package br.edu.ifsp.scl.ordering.application.service.order;
 
 import br.edu.ifsp.scl.ordering.application.ports.inbound.service.order.apply_discount.dtos.ApplyDiscountRequest;
+import br.edu.ifsp.scl.ordering.application.ports.inbound.service.order.apply_discount.dtos.ApplyDiscountResponse;
 import br.edu.ifsp.scl.ordering.application.ports.outbound.persistence.discount.IDiscountRepository;
 import br.edu.ifsp.scl.ordering.application.ports.outbound.persistence.order.IOrderRepository;
 import br.edu.ifsp.scl.ordering.domain.aggregate.Order;
@@ -16,12 +17,12 @@ import br.edu.ifsp.scl.ordering.domain.valueobject.OrderId;
 import br.edu.ifsp.scl.ordering.domain.valueobject.ProductId;
 import br.edu.ifsp.scl.ordering.testing.tags.TDD;
 import br.edu.ifsp.scl.ordering.testing.tags.UnitTest;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -43,69 +44,53 @@ public class ApplyDiscountServiceTest {
     @InjectMocks
     private ApplyDiscountService sut;
 
-    private OrderId orderId;
-    private DiscountId discountId;
-    private Order order;
-    private Discount discount;
-
-    @BeforeEach
-    void setup() {
-        orderId = new OrderId("order-1");
-        discountId = new DiscountId("discount-1");
-
-        order = createOrderWithTotalAs(orderId, 100.0);
-        discount = createDiscountWith10Percent(discountId);
-    }
-
     @TDD
     @UnitTest
     @Test
     @DisplayName("#83 - Should add the selected discount to order discount list")
     void shouldAddTheSelectedDiscountToOrderDiscountList() {
+        OrderId orderId = new OrderId("order-1");
+        DiscountId discountId = new DiscountId("discount-10");
+
+        Order order = createOrderWithTotalAs(orderId, 100.0);
+        Discount discount = createDiscount(discountId, DiscountType.COUPON, 10.0);
+
+        ApplyDiscountRequest request = new ApplyDiscountRequest(orderId, List.of(discountId));
+
         when(orderRepository.findById(orderId)).thenReturn(Optional.of(order));
         when(discountRepository.findById(discountId)).thenReturn(Optional.of(discount));
 
-        ApplyDiscountRequest request = new ApplyDiscountRequest(orderId, List.of(discountId));
-        sut.apply(request);
+        ApplyDiscountResponse response = sut.apply(request);
 
         assertThat(order.getDiscounts()).contains(discount);
-
-        verify(orderRepository).findById(orderId);
-        verify(discountRepository).findById(discountId);
-    }
-
-    @TDD
-    @UnitTest
-    @Test
-    @DisplayName("#84 - Should update order total to gross total minus selected discounts")
-    void shouldUpdateOrderTotalToGrossTotalMinusSelectedDiscounts() {
-        when(orderRepository.findById(orderId)).thenReturn(Optional.of(order));
-        when(discountRepository.findById(discountId)).thenReturn(Optional.of(discount));
-
-        ApplyDiscountRequest request = new ApplyDiscountRequest(orderId, List.of(discountId));
-
-        sut.apply(request);
+        assertThat(response.appliedDiscounts()).contains(discount);
         assertThat(order.getTotal()).isEqualTo(90.0);
 
-        verify(orderRepository).findById(orderId);
-        verify(discountRepository).findById(discountId);
+        verify(orderRepository, times(1)).findById(orderId);
+        verify(discountRepository, times(1)).findById(discountId);
+        verify(orderRepository, times(1)).save(order);
     }
 
     @TDD
     @UnitTest
-    @ParameterizedTest(name = "Throwing for {0} order")
+    @ParameterizedTest(name = "Invalid status: {0}")
     @EnumSource(value = OrderStatus.class, names = {"CREATED"}, mode = EnumSource.Mode.EXCLUDE)
     @DisplayName("#85 - Should throw IllegalOrderOperationException for order with invalid status")
     void shouldThrowIllegalOrderOperationExceptionWhenApplyDiscountForCancelledOrder(OrderStatus status) {
-        order = createOrderWithStatus(orderId, status);
-        when(orderRepository.findById(orderId)).thenReturn(Optional.of(order));
+        OrderId orderId = new OrderId("order-id");
+        DiscountId discountId = new DiscountId("discount-1");
 
+        Order order = createOrderWithStatus(orderId, status);
         ApplyDiscountRequest request = new ApplyDiscountRequest(orderId, List.of(discountId));
+
+        when(orderRepository.findById(orderId)).thenReturn(Optional.of(order));
 
         assertThatExceptionOfType(IllegalOrderOperationException.class)
                 .isThrownBy(() -> sut.apply(request));
 
+        verify(orderRepository, times(1)).findById(orderId);
         verify(discountRepository, never()).findById(discountId);
+        verify(orderRepository, never()).save(order);
     }
 
     @UnitTest
@@ -113,33 +98,55 @@ public class ApplyDiscountServiceTest {
     @Test
     @DisplayName("#87 - Should throw MultipleDiscountTypeException when applying multiple discounts of same kind")
     void shouldThrowMultipleDiscountTypeExceptionWhenApplyingMultipleDiscountsOfSameKind() {
-        DiscountId secondDiscountId = new DiscountId("duplicated-discount-10-percent");
-        Discount secondDiscount = createDiscountWith10Percent(secondDiscountId);
+        OrderId orderId = new OrderId("order-1");
+        DiscountId firstDiscountId = new DiscountId("discount-1");
+        DiscountId secondDiscountId = new DiscountId("discount-2");
+
+        Order order = createOrderWithTotalAs(orderId, 100.0);
+        Discount firstDiscount = createDiscount(firstDiscountId, DiscountType.COUPON, 10);
+        Discount secondDiscount = createDiscount(secondDiscountId, DiscountType.COUPON, 15);
+
+        ApplyDiscountRequest request = new ApplyDiscountRequest(
+                orderId,
+                List.of(firstDiscountId, secondDiscountId)
+        );
 
         when(orderRepository.findById(orderId)).thenReturn(Optional.of(order));
-        when(discountRepository.findById(discountId)).thenReturn(Optional.of(discount));
+        when(discountRepository.findById(firstDiscountId)).thenReturn(Optional.of(firstDiscount));
         when(discountRepository.findById(secondDiscountId)).thenReturn(Optional.of(secondDiscount));
-
-        ApplyDiscountRequest request = new ApplyDiscountRequest(orderId, List.of(discountId, secondDiscountId));
 
         assertThatExceptionOfType(MutipleDiscountTypeException.class)
                 .isThrownBy(() -> sut.apply(request));
+
+        verify(orderRepository, times(1)).findById(orderId);
+        verify(discountRepository, times(1)).findById(firstDiscountId);
+        verify(discountRepository, times(1)).findById(secondDiscountId);
+        verify(orderRepository, never()).save(any());
     }
 
     @TDD
     @UnitTest
-    @Test
+    @ParameterizedTest
+    @ValueSource(doubles = { 100.1, 101.0, 150.0, 200.0 })
     @DisplayName("#88 - Should not allow the order net total to be less than zero when applying an eligible discount")
-    void shouldNotAllowTheOrderNetTotalToBeLessThanZeroWhenApplyingAnEligibleDiscount() {
-        DiscountId invalidDiscountId = new DiscountId("full-discount");
-        Discount invalidDiscount = createDiscountWithPercentage(invalidDiscountId, 101);
+    void shouldNotAllowTheOrderNetTotalToBeLessThanZeroWhenApplyingAnEligibleDiscount(double percentage) {
+        OrderId orderId = new OrderId("order-1");
+        DiscountId discountId = new DiscountId("full-discount");
 
-        when(discountRepository.findById(invalidDiscountId)).thenReturn(Optional.of(invalidDiscount));
+        Order order = createOrderWithTotalAs(orderId, 100.0);
+        Discount discount = createDiscount(discountId, DiscountType.COUPON, percentage);
+
+        ApplyDiscountRequest request = new ApplyDiscountRequest(orderId, List.of(discountId));
+
         when(orderRepository.findById(orderId)).thenReturn(Optional.of(order));
+        when(discountRepository.findById(discountId)).thenReturn(Optional.of(discount));
 
-        ApplyDiscountRequest request = new ApplyDiscountRequest(orderId, List.of(invalidDiscountId));
         assertThatExceptionOfType(IllegalOrderOperationException.class)
                 .isThrownBy(() -> sut.apply(request));
+
+        verify(orderRepository, times(1)).findById(orderId);
+        verify(discountRepository, times(1)).findById(discountId);
+        verify(orderRepository, never()).save(any());
     }
 
     private Order createOrderWithTotalAs(OrderId orderId, double total) {
@@ -165,21 +172,11 @@ public class ApplyDiscountServiceTest {
         );
     }
 
-    private Discount createDiscountWith10Percent(DiscountId discountId) {
+    private Discount createDiscount(DiscountId discountId, DiscountType type, double percentage) {
         return new Discount(
                 discountId,
-                new MinimumValueDiscountRule(0, 10),
-                DiscountType.COUPON,
-                true,
-                LocalDateTime.now().plusHours(1)
-        );
-    }
-
-    private Discount createDiscountWithPercentage(DiscountId fullDiscountId, double percentage) {
-        return new Discount(
-                fullDiscountId,
-                new MinimumValueDiscountRule(0, percentage),
-                DiscountType.COUPON,
+                new MinimumValueDiscountRule(0.0, percentage),
+                type,
                 true,
                 LocalDateTime.now().plusHours(1)
         );
