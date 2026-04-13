@@ -26,3 +26,69 @@ O agregado principal é o **Order**. Ele será composto por entidades como **Cus
 
 - **JDK**: usar um JDK compatível com a versão configurada no `pom.xml` (atualmente `25`).
 - **Package base** (atual): `br.edu.ifsp.scl.ordering`
+
+## Setup local
+
+### Banco de dados (Postgres via Docker)
+
+Subir o Postgres:
+
+```bash
+docker compose -f infra/docker/docker-compose.yml up -d
+```
+
+Parar/remover:
+
+```bash
+docker compose -f infra/docker/docker-compose.yml down -v
+```
+
+### Configuração da aplicação
+
+O arquivo `src/main/resources/application.properties` não é versionado (fica local). Para começar:
+
+```bash
+cp src/main/resources/application.properties.example src/main/resources/application.properties
+```
+
+### Rodar a aplicação
+
+```bash
+mvn spring-boot:run
+```
+
+### Seed de mocks (Flyway)
+
+Somente no profile `local`, depois do schema ser criado/atualizado via JPA (`ddl-auto`), o Flyway roda as migrations em `src/main/resources/db/migration` (habilitado por `ordering.flyway.migrate-after-jpa`).
+
+- Seed: `src/main/resources/db/migration/V1__POPULATE_TABLES_WITH_MOCKS.sql`
+- Config: `src/main/resources/application.properties` (copiado do `.example`) — inclui `spring.flyway.baseline-on-migrate=true` e `spring.flyway.baseline-version=0` para permitir rodar o Flyway em um schema já criado via JPA e ainda executar a migration `V1__...`
+
+Para rodar o seed novamente em um banco local, a forma mais simples é derrubar o volume:
+
+```bash
+docker compose -f infra/docker/docker-compose.yml down -v
+```
+
+## Swagger (OpenAPI)
+
+Com a aplicação rodando:
+
+- Swagger UI: http://localhost:8080/swagger-ui/index.html
+- OpenAPI JSON: http://localhost:8080/v3/api-docs
+
+## Testes
+
+Rodar todos:
+
+```bash
+mvn test
+```
+
+Rodar por tags (JUnit 5):
+
+```bash
+mvn test -Dgroups=UnitTest
+mvn test -Dgroups=TDD
+mvn test -Dgroups=Functional
+```
