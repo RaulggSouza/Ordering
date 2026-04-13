@@ -8,15 +8,12 @@ import br.edu.ifsp.scl.ordering.application.ports.inbound.service.order.add_item
 import br.edu.ifsp.scl.ordering.application.ports.outbound.persistence.order.IOrderRepository;
 import br.edu.ifsp.scl.ordering.application.ports.outbound.persistence.product.IProductRepository;
 import br.edu.ifsp.scl.ordering.domain.aggregate.Order;
-import br.edu.ifsp.scl.ordering.domain.exceptions.EmptyOrderItemListException;
 import br.edu.ifsp.scl.ordering.domain.exceptions.OrderNotFoundException;
 import br.edu.ifsp.scl.ordering.domain.exceptions.ProductNotFoundException;
-import br.edu.ifsp.scl.ordering.domain.valueobject.OrderId;
-import br.edu.ifsp.scl.ordering.domain.valueobject.ProductId;
+import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.List;
 
+@Service
 public class AddItemsToOrderService implements IAddItemsToOrderService {
     private final IOrderRepository orderRepository;
     private final IProductRepository  productRepository;
