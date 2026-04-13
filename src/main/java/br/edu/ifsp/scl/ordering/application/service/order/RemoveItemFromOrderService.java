@@ -8,7 +8,9 @@ import br.edu.ifsp.scl.ordering.application.ports.outbound.persistence.product.I
 import br.edu.ifsp.scl.ordering.domain.aggregate.Order;
 import br.edu.ifsp.scl.ordering.domain.exceptions.OrderNotFoundException;
 import br.edu.ifsp.scl.ordering.domain.exceptions.ProductNotFoundException;
+import org.springframework.stereotype.Service;
 
+@Service
 public class RemoveItemFromOrderService implements IRemoveItemFromOrderService {
     private final IOrderRepository orderRepository;
     private final IProductRepository productRepository;
