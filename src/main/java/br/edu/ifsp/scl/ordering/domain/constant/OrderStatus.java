@@ -10,4 +10,8 @@ public enum OrderStatus {
     public boolean allowsGettingEligibleDiscounts() {
         return this == CREATED;
     }
+
+    public boolean allowsAddItems() {
+        return this == CREATED;
+    }
 }

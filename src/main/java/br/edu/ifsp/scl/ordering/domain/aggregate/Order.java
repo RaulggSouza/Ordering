@@ -3,13 +3,19 @@ package br.edu.ifsp.scl.ordering.domain.aggregate;
 import br.edu.ifsp.scl.ordering.domain.constant.OrderStatus;
 import br.edu.ifsp.scl.ordering.domain.entity.Discount;
 import br.edu.ifsp.scl.ordering.domain.entity.OrderItem;
+import br.edu.ifsp.scl.ordering.domain.exceptions.InvalidOrderItemQuantityException;
+import br.edu.ifsp.scl.ordering.domain.exceptions.OrderStatusNotAllowedException;
+import br.edu.ifsp.scl.ordering.domain.exceptions.ProductsAlreadyExistInOrderException;
 import br.edu.ifsp.scl.ordering.domain.valueobject.Address;
 import br.edu.ifsp.scl.ordering.domain.valueobject.CustomerId;
 import br.edu.ifsp.scl.ordering.domain.valueobject.OrderId;
+import br.edu.ifsp.scl.ordering.domain.valueobject.ProductId;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 public class Order {
     private final OrderId id;
@@ -58,6 +64,42 @@ public class Order {
     public void cancelOrder() {
         if (!canBeCancelled()) throw new IllegalStateException("Illegal status for cancellation. Status: "+ this.status);
         this.status = OrderStatus.CANCELLED;
+    }
+
+    public void addItems(List<OrderItem> itemsToAdd) {
+        if (itemsToAdd == null || itemsToAdd.isEmpty()) {
+            return;
+        }
+
+        if(!this.status.allowsAddItems()){
+            throw new OrderStatusNotAllowedException(this.getOrderStatus());
+        }
+
+        List<ProductId> invalidQuantityProductIds = itemsToAdd.stream()
+                .filter(item -> item.quantity() <= 0)
+                .map(OrderItem::productId)
+                .distinct()
+                .toList();
+
+        if (!invalidQuantityProductIds.isEmpty()) {
+            throw new InvalidOrderItemQuantityException(invalidQuantityProductIds);
+        }
+
+        Set<ProductId> existingProductIds = this.items.stream()
+                .map(OrderItem::productId)
+                .collect(Collectors.toSet());
+
+        List<ProductId> duplicatedProductIds = itemsToAdd.stream()
+                .map(OrderItem::productId)
+                .filter(existingProductIds::contains)
+                .distinct()
+                .toList();
+
+        if (!duplicatedProductIds.isEmpty()) {
+            throw new ProductsAlreadyExistInOrderException(duplicatedProductIds);
+        }
+
+        this.items.addAll(itemsToAdd);
     }
 
     public OrderId getOrderId() {

@@ -14,6 +14,7 @@ import br.edu.ifsp.scl.ordering.domain.exceptions.OrderStatusNotAllowedException
 import br.edu.ifsp.scl.ordering.domain.valueobject.*;
 import br.edu.ifsp.scl.ordering.testing.tags.Functional;
 import br.edu.ifsp.scl.ordering.testing.tags.TDD;
+import br.edu.ifsp.scl.ordering.testing.tags.UnitTest;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -41,6 +42,7 @@ public class GetEligibleDiscountsServiceTest {
     GetEligibleDiscountsService sut;
 
     @TDD
+    @UnitTest
     @DisplayName("#59 - should return all eligible discounts")
     @ParameterizedTest
     @CsvSource(
@@ -72,6 +74,7 @@ public class GetEligibleDiscountsServiceTest {
     }
 
     @TDD
+    @UnitTest
     @DisplayName("#60 - Should return an empty array if not eligible")
     @ParameterizedTest
     @CsvSource(
@@ -97,6 +100,7 @@ public class GetEligibleDiscountsServiceTest {
     }
 
     @TDD
+    @UnitTest
     @DisplayName("#61 - Should not return any discount that has the same type as the discounts that are already applied on the order")
     @ParameterizedTest
     @CsvSource(
@@ -147,6 +151,7 @@ public class GetEligibleDiscountsServiceTest {
     }
 
     @Functional
+    @UnitTest
     @DisplayName("#63 - should throw an error and not load discounts when order status is invalid")
     @ParameterizedTest
     @CsvSource(
@@ -173,6 +178,7 @@ public class GetEligibleDiscountsServiceTest {
     }
 
     @Functional
+    @UnitTest
     @DisplayName("#64 - should return an empty array if no discounts registered")
     @Test
     void shouldReturnEmptyArrayIfNoDiscountsRegistered() {
@@ -192,6 +198,7 @@ public class GetEligibleDiscountsServiceTest {
     }
 
     @TDD
+    @UnitTest
     @DisplayName("#65 - Should consider the current order state when getting eligible discounts after items change")
     @ParameterizedTest
     @CsvSource(
@@ -244,6 +251,7 @@ public class GetEligibleDiscountsServiceTest {
     }
 
     @TDD
+    @UnitTest
     @DisplayName("#66 - Should return only active discounts")
     @ParameterizedTest
     @CsvSource(
@@ -280,6 +288,7 @@ public class GetEligibleDiscountsServiceTest {
     }
 
     @TDD
+    @UnitTest
     @DisplayName("#67 - Should return only non expired discounts")
     @ParameterizedTest
     @CsvSource(
@@ -316,6 +325,7 @@ public class GetEligibleDiscountsServiceTest {
     }
 
     @Functional
+    @UnitTest
     @DisplayName("#100 - Should throw an error when order does not exist")
     @ParameterizedTest
     @CsvSource({
