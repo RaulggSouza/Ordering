@@ -103,6 +103,10 @@ public class Order {
     }
 
     public void updateItemQuantity(ProductId productId, int quantity){
+        if (quantity <= 0) {
+            throw new InvalidOrderItemQuantityException(List.of(productId));
+        }
+
         for (int index = 0; index < this.items.size(); index++) {
             OrderItem currentItem = this.items.get(index);
 
