@@ -4,6 +4,7 @@ import br.edu.ifsp.scl.ordering.domain.constant.OrderStatus;
 import br.edu.ifsp.scl.ordering.domain.entity.Discount;
 import br.edu.ifsp.scl.ordering.domain.entity.OrderItem;
 import br.edu.ifsp.scl.ordering.domain.exceptions.InvalidOrderItemQuantityException;
+import br.edu.ifsp.scl.ordering.domain.exceptions.OrderStatusNotAllowedException;
 import br.edu.ifsp.scl.ordering.domain.exceptions.ProductsAlreadyExistInOrderException;
 import br.edu.ifsp.scl.ordering.domain.valueobject.Address;
 import br.edu.ifsp.scl.ordering.domain.valueobject.CustomerId;
@@ -68,6 +69,10 @@ public class Order {
     public void addItems(List<OrderItem> itemsToAdd) {
         if (itemsToAdd == null || itemsToAdd.isEmpty()) {
             return;
+        }
+
+        if(!this.status.allowsAddItems()){
+            throw new OrderStatusNotAllowedException(this.getOrderStatus());
         }
 
         List<ProductId> invalidQuantityProductIds = itemsToAdd.stream()
