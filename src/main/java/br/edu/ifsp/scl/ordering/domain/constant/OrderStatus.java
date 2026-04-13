@@ -5,5 +5,17 @@ public enum OrderStatus {
     INVOICED,
     SHIPPED,
     COMPLETED,
-    CANCELLED
+    CANCELLED;
+
+    public boolean allowsGettingEligibleDiscounts() {
+        return this == CREATED;
+    }
+
+    public boolean allowsAddItems() {
+        return this == CREATED;
+    }
+
+    public boolean allowsUpdateItems() { return this == CREATED; }
+
+    public boolean allowsRemoveItems() {return this == CREATED; }
 }

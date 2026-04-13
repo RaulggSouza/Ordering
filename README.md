@@ -8,12 +8,11 @@ A especificação funcional do sistema (backlog) é mantida nas **Issues** do re
 
 ## Escopo do domínio
 
-O agregado principal é o **Order**. Ele será composto por entidades como **Customer** e **SKUs**. Caso o agregado fique pequeno para o escopo do projeto, podemos considerar inserir outras entidades, como **DistributionCenter**, etc.
+O agregado principal é o **Order**. Ele será composto por entidades como **Customer**, **SKUs** e **Discount**. Caso o agregado fique pequeno para o escopo do projeto, podemos considerar inserir outras entidades, como **DistributionCenter**, etc.
 
 ### Value Objects (ideias iniciais)
 - **Money**: representa valores monetários (moeda, arredondamento e regras associadas).
 - **Address**: representa o endereço de entrega e também o endereço do Customer.
-- **Discount**: representa descontos associados ao pedido; pode existir mais de um desconto no pedido e eles podem ser acumulativos (respeitando as regras do backlog).
 
 ## Regras de negócio (alto nível)
 - Criar pedido
