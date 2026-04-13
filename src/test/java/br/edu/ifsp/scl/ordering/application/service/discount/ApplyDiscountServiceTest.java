@@ -1,5 +1,6 @@
 package br.edu.ifsp.scl.ordering.application.service.discount;
 
+import br.edu.ifsp.scl.ordering.application.ports.inbound.service.discount.apply_discount.dtos.ApplyDiscountRequest;
 import br.edu.ifsp.scl.ordering.application.ports.outbound.persistence.discount.IDiscountRepository;
 import br.edu.ifsp.scl.ordering.application.ports.outbound.persistence.order.IOrderRepository;
 import br.edu.ifsp.scl.ordering.domain.aggregate.Order;
@@ -12,6 +13,8 @@ import br.edu.ifsp.scl.ordering.domain.valueobject.DiscountId;
 import br.edu.ifsp.scl.ordering.domain.valueobject.MinimumValueDiscountRule;
 import br.edu.ifsp.scl.ordering.domain.valueobject.OrderId;
 import br.edu.ifsp.scl.ordering.domain.valueobject.ProductId;
+import br.edu.ifsp.scl.ordering.testing.tags.TDD;
+import br.edu.ifsp.scl.ordering.testing.tags.UnitTest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -53,37 +56,53 @@ public class ApplyDiscountServiceTest {
         discount = createDiscountWith10Percent(discountId);
     }
 
+    @TDD
+    @UnitTest
     @Test
-    @DisplayName("Should add the selected discount to order discount list")
+    @DisplayName("#83 - Should add the selected discount to order discount list")
     void shouldAddTheSelectedDiscountToOrderDiscountList() {
         when(orderRepository.findById(orderId)).thenReturn(Optional.of(order));
         when(discountRepository.findById(discountId)).thenReturn(Optional.of(discount));
 
-        sut.apply(orderId, List.of(discountId));
+        ApplyDiscountRequest request = new ApplyDiscountRequest(orderId, List.of(discountId));
+        sut.apply(request);
+
         assertThat(order.getDiscounts()).contains(discount);
+
         verify(orderRepository).findById(orderId);
         verify(discountRepository).findById(discountId);
     }
 
+    @TDD
+    @UnitTest
     @Test
-    @DisplayName("Should update order total to gross total minus selected discounts")
+    @DisplayName("#84 - Should update order total to gross total minus selected discounts")
     void shouldUpdateOrderTotalToGrossTotalMinusSelectedDiscounts() {
         when(orderRepository.findById(orderId)).thenReturn(Optional.of(order));
         when(discountRepository.findById(discountId)).thenReturn(Optional.of(discount));
 
-        sut.apply(orderId, List.of(discountId));
+        ApplyDiscountRequest request = new ApplyDiscountRequest(orderId, List.of(discountId));
+
+        sut.apply(request);
         assertThat(order.getTotal()).isEqualTo(90.0);
+
+        verify(orderRepository).findById(orderId);
+        verify(discountRepository).findById(discountId);
     }
 
+    @TDD
+    @UnitTest
     @ParameterizedTest(name = "Throwing for {0} order")
     @EnumSource(value = OrderStatus.class, names = {"CREATED"}, mode = EnumSource.Mode.EXCLUDE)
-    @DisplayName("Should throw IllegalOrderOperationException for order with invalid status")
+    @DisplayName("#85 - Should throw IllegalOrderOperationException for order with invalid status")
     void shouldThrowIllegalOrderOperationExceptionWhenApplyDiscountForCancelledOrder(OrderStatus status) {
         order = createOrderWithStatus(orderId, status);
         when(orderRepository.findById(orderId)).thenReturn(Optional.of(order));
 
+        ApplyDiscountRequest request = new ApplyDiscountRequest(orderId, List.of(discountId));
+
         assertThatExceptionOfType(IllegalOrderOperationException.class)
-                .isThrownBy(() -> sut.apply(orderId, List.of(discountId)));
+                .isThrownBy(() -> sut.apply(request));
 
         verify(discountRepository, never()).findById(discountId);
     }

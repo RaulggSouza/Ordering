@@ -1,17 +1,21 @@
 package br.edu.ifsp.scl.ordering.application.service.discount;
 
+import br.edu.ifsp.scl.ordering.application.ports.inbound.service.discount.apply_discount.IApplyDiscountService;
+import br.edu.ifsp.scl.ordering.application.ports.inbound.service.discount.apply_discount.dtos.ApplyDiscountRequest;
+import br.edu.ifsp.scl.ordering.application.ports.inbound.service.discount.apply_discount.dtos.ApplyDiscountResponse;
 import br.edu.ifsp.scl.ordering.application.ports.outbound.persistence.discount.IDiscountRepository;
 import br.edu.ifsp.scl.ordering.application.ports.outbound.persistence.order.IOrderRepository;
 import br.edu.ifsp.scl.ordering.domain.aggregate.Order;
 import br.edu.ifsp.scl.ordering.domain.constant.OrderStatus;
+import br.edu.ifsp.scl.ordering.domain.entity.Discount;
 import br.edu.ifsp.scl.ordering.domain.exceptions.IllegalOrderOperationException;
-import br.edu.ifsp.scl.ordering.domain.valueobject.DiscountId;
-import br.edu.ifsp.scl.ordering.domain.valueobject.OrderId;
+import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
 
-public class ApplyDiscountService {
+@Service
+public class ApplyDiscountService implements IApplyDiscountService {
     private final IOrderRepository orderRepository;
     private final IDiscountRepository discountRepository;
 
@@ -20,16 +24,21 @@ public class ApplyDiscountService {
         this.discountRepository = discountRepository;
     }
 
-    public void apply(OrderId orderId, List<DiscountId> discountIds) {
-        Order order = orderRepository.findById(orderId).orElseThrow();
+    @Override
+    public ApplyDiscountResponse apply(ApplyDiscountRequest request) {
+        Order order = orderRepository.findById(request.orderId()).orElseThrow();
         if (order.getOrderStatus() != OrderStatus.CREATED)
             throw new IllegalOrderOperationException("Cannot apply discount for cancelled order \"%s\"!"
-                    .formatted(orderId)
+                    .formatted(request.orderId())
             );
 
-        discountIds.stream()
+        List<Discount> appliedDiscounts = request.discountIds().stream()
                 .map(discountRepository::findById)
                 .flatMap(Optional::stream)
-                .forEach(order::addDiscount);
+                .toList();
+
+        appliedDiscounts.forEach(order::addDiscount);
+
+        return new ApplyDiscountResponse(order.getOrderId(), appliedDiscounts);
     }
 }
