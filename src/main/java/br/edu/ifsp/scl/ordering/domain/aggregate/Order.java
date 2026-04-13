@@ -68,7 +68,11 @@ public class Order {
     }
 
     public void removeItem(ProductId productId) {
-        items.removeIf(item -> item.productId().equals(productId));
+        boolean removed = items.removeIf(item -> item.productId().equals(productId));
+
+        if(!removed){
+            throw new OrderItemNotFoundException(productId);
+        }
 
         removeIneligibleDiscounts();
     }
