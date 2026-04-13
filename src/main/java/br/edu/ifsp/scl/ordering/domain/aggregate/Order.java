@@ -102,6 +102,23 @@ public class Order {
         this.items.addAll(itemsToAdd);
     }
 
+    public void updateItemQuantity(ProductId productId, int quantity){
+        for (int index = 0; index < this.items.size(); index++) {
+            OrderItem currentItem = this.items.get(index);
+
+            if (currentItem.productId().equals(productId)) {
+                OrderItem updatedItem = new OrderItem(
+                        currentItem.productId(),
+                        quantity,
+                        currentItem.price()
+                );
+
+                this.items.set(index, updatedItem);
+                return;
+            }
+        }
+    }
+
     public OrderId getOrderId() {
         return id;
     }

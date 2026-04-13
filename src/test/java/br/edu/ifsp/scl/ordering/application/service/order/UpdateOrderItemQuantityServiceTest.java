@@ -1,5 +1,8 @@
 package br.edu.ifsp.scl.ordering.application.service.order;
 
+import br.edu.ifsp.scl.ordering.application.ports.inbound.service.order.update_item_quantity.dtos.UpdateOrderItemQuantityItemResponse;
+import br.edu.ifsp.scl.ordering.application.ports.inbound.service.order.update_item_quantity.dtos.UpdateOrderItemQuantityRequest;
+import br.edu.ifsp.scl.ordering.application.ports.inbound.service.order.update_item_quantity.dtos.UpdateOrderItemQuantityResponse;
 import br.edu.ifsp.scl.ordering.application.ports.outbound.persistence.order.IOrderRepository;
 import br.edu.ifsp.scl.ordering.application.ports.outbound.persistence.product.IProductRepository;
 import br.edu.ifsp.scl.ordering.domain.aggregate.Order;
@@ -56,10 +59,11 @@ public class UpdateOrderItemQuantityServiceTest {
             String expectedOrderItemsInput
     ) {
         Order order = createOrder("1", itemsThatAlreadyExistsInOrderInput);
+        ProductId productId = new ProductId(productIdInput);
 
         UpdateOrderItemQuantityRequest request = new UpdateOrderItemQuantityRequest(
                 order.getOrderId(),
-                new ProductId(productIdInput),
+                productId,
                 newQuantityInput
         );
 
@@ -67,6 +71,7 @@ public class UpdateOrderItemQuantityServiceTest {
                 createResponseUpdateOrderItemQuantity(expectedOrderItemsInput);
 
         when(orderRepository.findById(order.getOrderId())).thenReturn(Optional.of(order));
+        when(productRepository.existsById(productId)).thenReturn(true);
 
         UpdateOrderItemQuantityResponse response = sut.updateOrderItemQuantity(request);
 

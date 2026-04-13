@@ -6,4 +6,5 @@ import java.util.List;
 
 public interface IProductRepository {
     boolean allExistsByIds(List<ProductId> productIds);
+    boolean existsById(ProductId productId);
 }
