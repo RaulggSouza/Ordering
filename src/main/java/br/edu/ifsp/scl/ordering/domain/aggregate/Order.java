@@ -173,7 +173,9 @@ public class Order {
     }
 
     public double getGrossTotal() {
-        return items.stream().mapToDouble(OrderItem::getTotal).sum();
+        return items.stream()
+                .mapToDouble(OrderItem::getTotal)
+                .sum();
     }
 
     public double getTotal() {

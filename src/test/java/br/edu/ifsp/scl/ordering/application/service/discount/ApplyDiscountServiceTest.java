@@ -50,7 +50,7 @@ public class ApplyDiscountServiceTest {
         discountId = new DiscountId("discount-1");
 
         order = createOrderWithTotalAs100(orderId);
-        discount = createDiscountWithValue10(discountId);
+        discount = createDiscountWith10Percent(discountId);
     }
 
     @Test
@@ -112,10 +112,10 @@ public class ApplyDiscountServiceTest {
         );
     }
 
-    private Discount createDiscountWithValue10(DiscountId discountId) {
+    private Discount createDiscountWith10Percent(DiscountId discountId) {
         return new Discount(
                 discountId,
-                new MinimumValueDiscountRule(0, 10.0),
+                new MinimumValueDiscountRule(0, 10),
                 DiscountType.COUPON,
                 true,
                 LocalDateTime.now().minusHours(1)
