@@ -69,6 +69,8 @@ public class Order {
 
     public void removeItem(ProductId productId) {
         items.removeIf(item -> item.productId().equals(productId));
+
+        removeIneligibleDiscounts();
     }
 
     public void addItems(List<OrderItem> itemsToAdd) {
