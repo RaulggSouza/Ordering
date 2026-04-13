@@ -3,10 +3,7 @@ package br.edu.ifsp.scl.ordering.domain.aggregate;
 import br.edu.ifsp.scl.ordering.domain.constant.OrderStatus;
 import br.edu.ifsp.scl.ordering.domain.entity.Discount;
 import br.edu.ifsp.scl.ordering.domain.entity.OrderItem;
-import br.edu.ifsp.scl.ordering.domain.exceptions.InvalidOrderItemQuantityException;
-import br.edu.ifsp.scl.ordering.domain.exceptions.OrderItemNotFoundException;
-import br.edu.ifsp.scl.ordering.domain.exceptions.OrderStatusNotAllowedException;
-import br.edu.ifsp.scl.ordering.domain.exceptions.ProductsAlreadyExistInOrderException;
+import br.edu.ifsp.scl.ordering.domain.exceptions.*;
 import br.edu.ifsp.scl.ordering.domain.valueobject.Address;
 import br.edu.ifsp.scl.ordering.domain.valueobject.CustomerId;
 import br.edu.ifsp.scl.ordering.domain.valueobject.OrderId;
@@ -67,6 +64,27 @@ public class Order {
         this.status = OrderStatus.CANCELLED;
     }
 
+    public void removeItem(ProductId productId) {
+        if (!this.status.allowsRemoveItems()) {
+            throw new OrderStatusNotAllowedException(this.getOrderStatus());
+        }
+
+        boolean itemExistsInOrder = this.items.stream()
+                .anyMatch(item -> item.productId().equals(productId));
+
+        if (!itemExistsInOrder) {
+            throw new OrderItemNotFoundException(productId);
+        }
+
+        if (this.items.size() == 1) {
+            throw new OrderMustHaveAtLeastOneItemException();
+        }
+
+        this.items.removeIf(item -> item.productId().equals(productId));
+
+        removeIneligibleDiscounts();
+    }
+
     public void addItems(List<OrderItem> itemsToAdd) {
         if (itemsToAdd == null || itemsToAdd.isEmpty()) {
             return;
@@ -103,7 +121,7 @@ public class Order {
         this.items.addAll(itemsToAdd);
     }
 
-    public void updateItemQuantity(ProductId productId, int quantity){
+    public void updateItemQuantity(ProductId productId, int quantity) {
         if (!this.status.allowsUpdateItems()) {
             throw new OrderStatusNotAllowedException(this.getOrderStatus());
         }
@@ -112,7 +130,8 @@ public class Order {
             throw new InvalidOrderItemQuantityException(List.of(productId));
         }
 
-        boolean itemUpdated = false;
+        boolean updated = false;
+
         for (int index = 0; index < this.items.size(); index++) {
             OrderItem currentItem = this.items.get(index);
 
@@ -124,10 +143,12 @@ public class Order {
                 );
 
                 this.items.set(index, updatedItem);
+                updated = true;
+                break;
             }
         }
 
-        if (!itemUpdated) {
+        if (!updated) {
             throw new OrderItemNotFoundException(productId);
         }
 

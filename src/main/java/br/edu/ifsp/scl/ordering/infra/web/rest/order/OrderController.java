@@ -1,11 +1,13 @@
 package br.edu.ifsp.scl.ordering.infra.web.rest.order;
 
 import br.edu.ifsp.scl.ordering.application.ports.inbound.service.order.add_items.IAddItemsToOrderService;
-import br.edu.ifsp.scl.ordering.application.ports.inbound.service.order.add_items.dtos.AddItemsToOrderItemRequest;
 import br.edu.ifsp.scl.ordering.application.ports.inbound.service.order.add_items.dtos.AddItemsToOrderRequest;
 import br.edu.ifsp.scl.ordering.application.ports.inbound.service.order.add_items.dtos.AddItemsToOrderResponse;
 import br.edu.ifsp.scl.ordering.application.ports.inbound.service.order.cancel.ICancelOrderService;
 import br.edu.ifsp.scl.ordering.application.ports.inbound.service.order.create.ICreateOrderService;
+import br.edu.ifsp.scl.ordering.application.ports.inbound.service.order.remove_item.IRemoveItemFromOrderService;
+import br.edu.ifsp.scl.ordering.application.ports.inbound.service.order.remove_item.dtos.RemoveItemFromOrderRequest;
+import br.edu.ifsp.scl.ordering.application.ports.inbound.service.order.remove_item.dtos.RemoveItemFromOrderResponse;
 import br.edu.ifsp.scl.ordering.application.ports.inbound.service.order.update_item_quantity.IUpdateOrderItemQuantityService;
 import br.edu.ifsp.scl.ordering.application.ports.inbound.service.order.update_item_quantity.dtos.UpdateOrderItemQuantityRequest;
 import br.edu.ifsp.scl.ordering.application.ports.inbound.service.order.update_item_quantity.dtos.UpdateOrderItemQuantityResponse;
@@ -16,6 +18,7 @@ import br.edu.ifsp.scl.ordering.infra.web.rest.order.dtos.CreateOrderResponseDTO
 import br.edu.ifsp.scl.ordering.infra.web.rest.order.dtos.add_items.AddItemsToOrderRequestDTO;
 import br.edu.ifsp.scl.ordering.infra.web.rest.order.dtos.add_items.AddItemsToOrderResponseDTO;
 import br.edu.ifsp.scl.ordering.infra.web.rest.order.dtos.cancel.CancelOrderBodyDTO;
+import br.edu.ifsp.scl.ordering.infra.web.rest.order.dtos.remove_item.RemoveItemFromOrderResponseDTO;
 import br.edu.ifsp.scl.ordering.infra.web.rest.order.dtos.update_item_quantity.UpdateOrderItemQuantityRequestDTO;
 import br.edu.ifsp.scl.ordering.infra.web.rest.order.dtos.update_item_quantity.UpdateOrderItemQuantityResponseDTO;
 import org.springframework.http.ResponseEntity;
@@ -34,17 +37,20 @@ public class OrderController {
     private final ICancelOrderService cancelOrderService;
     private final IAddItemsToOrderService addItemsToOrderService;
     private final IUpdateOrderItemQuantityService  updateOrderItemQuantityService;
+    private final IRemoveItemFromOrderService removeItemFromOrderService;
 
     public OrderController(
             ICreateOrderService createOrderService,
             ICancelOrderService cancelOrderService,
             IAddItemsToOrderService addItemsToOrderService,
-            IUpdateOrderItemQuantityService updateOrderItemQuantityService
+            IUpdateOrderItemQuantityService updateOrderItemQuantityService,
+            IRemoveItemFromOrderService removeItemFromOrderService
     ) {
         this.createOrderService = createOrderService;
         this.cancelOrderService = cancelOrderService;
         this.addItemsToOrderService = addItemsToOrderService;
         this.updateOrderItemQuantityService = updateOrderItemQuantityService;
+        this.removeItemFromOrderService = removeItemFromOrderService;
     }
 
     @PostMapping
@@ -89,6 +95,24 @@ public class OrderController {
 
         return ResponseEntity.ok(
                 UpdateOrderItemQuantityResponseDTO.fromApplicationResponse(response)
+        );
+    }
+
+    @DeleteMapping("/{orderId}/items/{productId}")
+    public ResponseEntity<RemoveItemFromOrderResponseDTO> removeItemFromOrder(
+            @PathVariable String orderId,
+            @PathVariable String productId
+    ) {
+        RemoveItemFromOrderRequest request = new RemoveItemFromOrderRequest(
+                new OrderId(orderId),
+                new ProductId(productId)
+        );
+
+        RemoveItemFromOrderResponse response =
+                removeItemFromOrderService.removeItemFromOrder(request);
+
+        return ResponseEntity.ok(
+                RemoveItemFromOrderResponseDTO.fromApplicationResponse(response)
         );
     }
 }
