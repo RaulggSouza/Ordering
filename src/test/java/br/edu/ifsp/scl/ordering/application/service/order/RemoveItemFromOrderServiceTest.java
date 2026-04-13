@@ -11,10 +11,12 @@ import br.edu.ifsp.scl.ordering.domain.constant.DiscountType;
 import br.edu.ifsp.scl.ordering.domain.constant.OrderStatus;
 import br.edu.ifsp.scl.ordering.domain.entity.Discount;
 import br.edu.ifsp.scl.ordering.domain.entity.OrderItem;
+import br.edu.ifsp.scl.ordering.domain.exceptions.OrderItemNotFoundException;
 import br.edu.ifsp.scl.ordering.domain.valueobject.DiscountId;
 import br.edu.ifsp.scl.ordering.domain.valueobject.MinimumValueDiscountRule;
 import br.edu.ifsp.scl.ordering.domain.valueobject.OrderId;
 import br.edu.ifsp.scl.ordering.domain.valueobject.ProductId;
+import br.edu.ifsp.scl.ordering.testing.tags.Functional;
 import br.edu.ifsp.scl.ordering.testing.tags.TDD;
 import br.edu.ifsp.scl.ordering.testing.tags.UnitTest;
 import org.junit.jupiter.api.DisplayName;
@@ -138,6 +140,41 @@ public class RemoveItemFromOrderServiceTest {
         assertThat(order.getDiscounts())
                 .extracting(Discount::getDiscountId)
                 .containsExactlyInAnyOrderElementsOf(expectedDiscountIds);
+    }
+
+    @Functional
+    @UnitTest
+    @ParameterizedTest
+    @DisplayName("#48 - Should throw an error when item does not belong to order")
+    @CsvSource(
+            nullValues = "NULL",
+            value = {
+                    "1:1:100;2:2:50,3",
+                    "1:1:100,2",
+                    "2:2:50;3:1:30,1"
+            }
+    )
+    void shouldThrowAnErrorWhenItemDoesNotBelongToOrder(
+            String itemsThatAlreadyExistsInOrderInput,
+            String productIdToRemoveInput
+    ) {
+        Order order = createOrder("1", itemsThatAlreadyExistsInOrderInput);
+        ProductId productIdToRemove = new ProductId(productIdToRemoveInput);
+
+        RemoveItemFromOrderRequest request = new RemoveItemFromOrderRequest(
+                order.getOrderId(),
+                productIdToRemove
+        );
+
+        when(orderRepository.findById(order.getOrderId())).thenReturn(Optional.of(order));
+        when(productRepository.existsById(productIdToRemove)).thenReturn(true);
+
+        assertThatThrownBy(() -> sut.removeItemFromOrder(request))
+                .isInstanceOf(OrderItemNotFoundException.class);
+
+        verify(orderRepository, times(1)).findById(order.getOrderId());
+        verify(productRepository, times(1)).existsById(productIdToRemove);
+        verify(orderRepository, never()).save(any());
     }
 
     private static Order createOrder(String orderId, String orderProductsInput) {
