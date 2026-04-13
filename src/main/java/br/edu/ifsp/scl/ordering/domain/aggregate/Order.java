@@ -69,15 +69,18 @@ public class Order {
             throw new OrderStatusNotAllowedException(this.getOrderStatus());
         }
 
+        boolean itemExistsInOrder = this.items.stream()
+                .anyMatch(item -> item.productId().equals(productId));
+
+        if (!itemExistsInOrder) {
+            throw new OrderItemNotFoundException(productId);
+        }
+
         if (this.items.size() == 1) {
             throw new OrderMustHaveAtLeastOneItemException();
         }
 
-        boolean removed = items.removeIf(item -> item.productId().equals(productId));
-
-        if(!removed){
-            throw new OrderItemNotFoundException(productId);
-        }
+        this.items.removeIf(item -> item.productId().equals(productId));
 
         removeIneligibleDiscounts();
     }
@@ -118,7 +121,7 @@ public class Order {
         this.items.addAll(itemsToAdd);
     }
 
-    public void updateItemQuantity(ProductId productId, int quantity){
+    public void updateItemQuantity(ProductId productId, int quantity) {
         if (!this.status.allowsUpdateItems()) {
             throw new OrderStatusNotAllowedException(this.getOrderStatus());
         }
@@ -127,7 +130,8 @@ public class Order {
             throw new InvalidOrderItemQuantityException(List.of(productId));
         }
 
-        boolean itemUpdated = false;
+        boolean updated = false;
+
         for (int index = 0; index < this.items.size(); index++) {
             OrderItem currentItem = this.items.get(index);
 
@@ -139,10 +143,12 @@ public class Order {
                 );
 
                 this.items.set(index, updatedItem);
+                updated = true;
+                break;
             }
         }
 
-        if (!itemUpdated) {
+        if (!updated) {
             throw new OrderItemNotFoundException(productId);
         }
 
