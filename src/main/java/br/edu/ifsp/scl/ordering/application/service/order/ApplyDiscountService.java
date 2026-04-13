@@ -55,6 +55,7 @@ public class ApplyDiscountService implements IApplyDiscountService {
             );
 
         discountsToApply.forEach(order::addDiscount);
+        orderRepository.save(order);
 
         return new ApplyDiscountResponse(order.getOrderId(), discountsToApply);
     }
