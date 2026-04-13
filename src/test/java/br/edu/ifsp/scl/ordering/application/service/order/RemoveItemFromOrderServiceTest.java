@@ -12,6 +12,7 @@ import br.edu.ifsp.scl.ordering.domain.entity.Discount;
 import br.edu.ifsp.scl.ordering.domain.entity.OrderItem;
 import br.edu.ifsp.scl.ordering.domain.exceptions.OrderItemNotFoundException;
 import br.edu.ifsp.scl.ordering.domain.exceptions.OrderMustHaveAtLeastOneItemException;
+import br.edu.ifsp.scl.ordering.domain.exceptions.OrderNotFoundException;
 import br.edu.ifsp.scl.ordering.domain.exceptions.OrderStatusNotAllowedException;
 import br.edu.ifsp.scl.ordering.domain.valueobject.DiscountId;
 import br.edu.ifsp.scl.ordering.domain.valueobject.MinimumValueDiscountRule;
@@ -243,6 +244,40 @@ public class RemoveItemFromOrderServiceTest {
 
         verify(orderRepository, times(1)).findById(order.getOrderId());
         verify(productRepository, times(1)).existsById(productIdToRemove);
+        verify(orderRepository, never()).save(any());
+    }
+
+    @Functional
+    @UnitTest
+    @ParameterizedTest
+    @DisplayName("#108 - Should throw an error when order does not exist")
+    @CsvSource(
+            nullValues = "NULL",
+            value = {
+                    "1,1",
+                    "999,2",
+                    "abc,3"
+            }
+    )
+    void shouldThrowAnErrorWhenOrderDoesNotExist(
+            String orderIdInput,
+            String productIdToRemoveInput
+    ) {
+        OrderId orderId = new OrderId(orderIdInput);
+        ProductId productIdToRemove = new ProductId(productIdToRemoveInput);
+
+        RemoveItemFromOrderRequest request = new RemoveItemFromOrderRequest(
+                orderId,
+                productIdToRemove
+        );
+
+        when(orderRepository.findById(orderId)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> sut.removeItemFromOrder(request))
+                .isInstanceOf(OrderNotFoundException.class);
+
+        verify(orderRepository, times(1)).findById(orderId);
+        verify(productRepository, never()).existsById(any());
         verify(orderRepository, never()).save(any());
     }
 
