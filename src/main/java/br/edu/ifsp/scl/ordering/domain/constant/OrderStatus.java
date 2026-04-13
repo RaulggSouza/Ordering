@@ -14,4 +14,6 @@ public enum OrderStatus {
     public boolean allowsAddItems() {
         return this == CREATED;
     }
+
+    public boolean allowsUpdateItems() { return this == CREATED; }
 }

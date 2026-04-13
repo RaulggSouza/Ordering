@@ -104,6 +104,10 @@ public class Order {
     }
 
     public void updateItemQuantity(ProductId productId, int quantity){
+        if (!this.status.allowsUpdateItems()) {
+            throw new OrderStatusNotAllowedException(this.getOrderStatus());
+        }
+
         if (quantity <= 0) {
             throw new InvalidOrderItemQuantityException(List.of(productId));
         }

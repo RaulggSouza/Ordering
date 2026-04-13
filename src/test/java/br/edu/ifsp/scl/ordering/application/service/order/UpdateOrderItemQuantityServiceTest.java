@@ -184,7 +184,7 @@ public class UpdateOrderItemQuantityServiceTest {
         verify(orderRepository, never()).save(any());
     }
 
-    @TDD
+    @Functional
     @UnitTest
     @ParameterizedTest
     @DisplayName("#44 - Should throw an error when item does not belong to order")
@@ -221,7 +221,7 @@ public class UpdateOrderItemQuantityServiceTest {
         verify(orderRepository, never()).save(any());
     }
 
-    @TDD
+    @Functional
     @UnitTest
     @ParameterizedTest
     @DisplayName("#96 - Should throw an error when order status does not allow updating item quantity")
