@@ -27,6 +27,13 @@ public class OrderPostgresqlRepository implements IOrderRepository {
     }
 
     @Override
+    public List<Order> findAll() {
+        return repository.findAll().stream()
+                .map(this::toDomain)
+                .toList();
+    }
+
+    @Override
     public OrderId save(Order order) {
         OrderEntity saved = repository.save(toEntity(order));
         return new OrderId(saved.getId());

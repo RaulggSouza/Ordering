@@ -6,6 +6,7 @@ import br.edu.ifsp.scl.ordering.application.ports.inbound.service.order.add_item
 import br.edu.ifsp.scl.ordering.application.ports.inbound.service.order.cancel.ICancelOrderService;
 import br.edu.ifsp.scl.ordering.application.ports.inbound.service.order.cancel.dtos.CancelOrderRequest;
 import br.edu.ifsp.scl.ordering.application.ports.inbound.service.order.create.ICreateOrderService;
+import br.edu.ifsp.scl.ordering.application.ports.inbound.service.order.list.IListOrderService;
 import br.edu.ifsp.scl.ordering.application.ports.inbound.service.order.remove_item.IRemoveItemFromOrderService;
 import br.edu.ifsp.scl.ordering.application.ports.inbound.service.order.remove_item.dtos.RemoveItemFromOrderRequest;
 import br.edu.ifsp.scl.ordering.application.ports.inbound.service.order.remove_item.dtos.RemoveItemFromOrderResponse;
@@ -18,6 +19,7 @@ import br.edu.ifsp.scl.ordering.infra.web.rest.order.dtos.CreateOrderBodyDTO;
 import br.edu.ifsp.scl.ordering.infra.web.rest.order.dtos.CreateOrderResponseDTO;
 import br.edu.ifsp.scl.ordering.infra.web.rest.order.dtos.add_items.AddItemsToOrderRequestDTO;
 import br.edu.ifsp.scl.ordering.infra.web.rest.order.dtos.add_items.AddItemsToOrderResponseDTO;
+import br.edu.ifsp.scl.ordering.infra.web.rest.order.dtos.list_orders.ListOrdersOrderResponseDTO;
 import br.edu.ifsp.scl.ordering.infra.web.rest.order.dtos.remove_item.RemoveItemFromOrderResponseDTO;
 import br.edu.ifsp.scl.ordering.infra.web.rest.order.dtos.update_item_quantity.UpdateOrderItemQuantityRequestDTO;
 import br.edu.ifsp.scl.ordering.infra.web.rest.order.dtos.update_item_quantity.UpdateOrderItemQuantityResponseDTO;
@@ -29,11 +31,13 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.net.URI;
+import java.util.List;
 
 @RestController
 @RequestMapping("/orders")
 public class OrderController {
     private final ICreateOrderService createOrderService;
+    private final IListOrderService listOrderService;
     private final ICancelOrderService cancelOrderService;
     private final IAddItemsToOrderService addItemsToOrderService;
     private final IUpdateOrderItemQuantityService  updateOrderItemQuantityService;
@@ -41,16 +45,27 @@ public class OrderController {
 
     public OrderController(
             ICreateOrderService createOrderService,
+            IListOrderService listOrderService,
             ICancelOrderService cancelOrderService,
             IAddItemsToOrderService addItemsToOrderService,
             IUpdateOrderItemQuantityService updateOrderItemQuantityService,
             IRemoveItemFromOrderService removeItemFromOrderService
     ) {
         this.createOrderService = createOrderService;
+        this.listOrderService = listOrderService;
         this.cancelOrderService = cancelOrderService;
         this.addItemsToOrderService = addItemsToOrderService;
         this.updateOrderItemQuantityService = updateOrderItemQuantityService;
         this.removeItemFromOrderService = removeItemFromOrderService;
+    }
+
+    @GetMapping
+    public ResponseEntity<List<ListOrdersOrderResponseDTO>> list() {
+        List<ListOrdersOrderResponseDTO> response = listOrderService.listOrders().stream()
+                .map(ListOrdersOrderResponseDTO::fromApplicationResponse)
+                .toList();
+
+        return ResponseEntity.ok(response);
     }
 
     @PostMapping
