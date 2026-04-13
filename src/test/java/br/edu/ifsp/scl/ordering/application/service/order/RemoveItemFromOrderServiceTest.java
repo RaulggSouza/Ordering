@@ -11,6 +11,7 @@ import br.edu.ifsp.scl.ordering.domain.constant.OrderStatus;
 import br.edu.ifsp.scl.ordering.domain.entity.Discount;
 import br.edu.ifsp.scl.ordering.domain.entity.OrderItem;
 import br.edu.ifsp.scl.ordering.domain.exceptions.OrderItemNotFoundException;
+import br.edu.ifsp.scl.ordering.domain.exceptions.OrderMustHaveAtLeastOneItemException;
 import br.edu.ifsp.scl.ordering.domain.valueobject.DiscountId;
 import br.edu.ifsp.scl.ordering.domain.valueobject.MinimumValueDiscountRule;
 import br.edu.ifsp.scl.ordering.domain.valueobject.OrderId;

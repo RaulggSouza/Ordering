@@ -3,10 +3,7 @@ package br.edu.ifsp.scl.ordering.domain.aggregate;
 import br.edu.ifsp.scl.ordering.domain.constant.OrderStatus;
 import br.edu.ifsp.scl.ordering.domain.entity.Discount;
 import br.edu.ifsp.scl.ordering.domain.entity.OrderItem;
-import br.edu.ifsp.scl.ordering.domain.exceptions.InvalidOrderItemQuantityException;
-import br.edu.ifsp.scl.ordering.domain.exceptions.OrderItemNotFoundException;
-import br.edu.ifsp.scl.ordering.domain.exceptions.OrderStatusNotAllowedException;
-import br.edu.ifsp.scl.ordering.domain.exceptions.ProductsAlreadyExistInOrderException;
+import br.edu.ifsp.scl.ordering.domain.exceptions.*;
 import br.edu.ifsp.scl.ordering.domain.valueobject.Address;
 import br.edu.ifsp.scl.ordering.domain.valueobject.CustomerId;
 import br.edu.ifsp.scl.ordering.domain.valueobject.OrderId;
@@ -68,6 +65,10 @@ public class Order {
     }
 
     public void removeItem(ProductId productId) {
+        if (this.items.size() == 1) {
+            throw new OrderMustHaveAtLeastOneItemException();
+        }
+
         boolean removed = items.removeIf(item -> item.productId().equals(productId));
 
         if(!removed){
