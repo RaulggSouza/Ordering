@@ -8,6 +8,7 @@ import br.edu.ifsp.scl.ordering.domain.constant.DiscountType;
 import br.edu.ifsp.scl.ordering.domain.constant.OrderStatus;
 import br.edu.ifsp.scl.ordering.domain.entity.Discount;
 import br.edu.ifsp.scl.ordering.domain.entity.OrderItem;
+import br.edu.ifsp.scl.ordering.domain.exceptions.DuplicateDiscountTypeException;
 import br.edu.ifsp.scl.ordering.domain.exceptions.IllegalOrderOperationException;
 import br.edu.ifsp.scl.ordering.domain.valueobject.DiscountId;
 import br.edu.ifsp.scl.ordering.domain.valueobject.MinimumValueDiscountRule;
@@ -31,6 +32,7 @@ import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -105,6 +107,24 @@ public class ApplyDiscountServiceTest {
                 .isThrownBy(() -> sut.apply(request));
 
         verify(discountRepository, never()).findById(discountId);
+    }
+
+    @UnitTest
+    @TDD
+    @Test
+    @DisplayName("# 87 - Should throw IllegalOrderOperationException when applying two discounts of same kind")
+    void shouldThrowIllegalOrderOperationExceptionWhenApplyingTwoDiscountsOfSameKind() {
+        DiscountId secondDiscountId = new DiscountId("duplicated-discount-10-percent");
+        Discount secondDiscount = createDiscountWith10Percent(secondDiscountId);
+
+        when(orderRepository.findById(orderId)).thenReturn(Optional.of(order));
+        when(discountRepository.findById(discountId)).thenReturn(Optional.of(discount));
+        when(discountRepository.findById(secondDiscountId)).thenReturn(Optional.of(secondDiscount));
+
+        ApplyDiscountRequest request = new ApplyDiscountRequest(orderId, List.of(discountId, secondDiscountId));
+
+        assertThatExceptionOfType(DuplicateDiscountTypeException.class)
+                .isThrownBy(() -> sut.apply(request));
     }
 
     private Order createOrderWithTotalAs100(OrderId orderId) {
