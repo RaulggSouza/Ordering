@@ -1,6 +1,6 @@
-package br.edu.ifsp.scl.ordering.application.service.discount;
+package br.edu.ifsp.scl.ordering.application.service.order;
 
-import br.edu.ifsp.scl.ordering.application.ports.inbound.service.discount.apply_discount.dtos.ApplyDiscountRequest;
+import br.edu.ifsp.scl.ordering.application.ports.inbound.service.order.apply_discount.dtos.ApplyDiscountRequest;
 import br.edu.ifsp.scl.ordering.application.ports.outbound.persistence.discount.IDiscountRepository;
 import br.edu.ifsp.scl.ordering.application.ports.outbound.persistence.order.IOrderRepository;
 import br.edu.ifsp.scl.ordering.domain.aggregate.Order;

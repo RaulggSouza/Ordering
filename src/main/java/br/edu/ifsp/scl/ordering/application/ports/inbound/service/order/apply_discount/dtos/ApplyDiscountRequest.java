@@ -1,4 +1,4 @@
-package br.edu.ifsp.scl.ordering.application.ports.inbound.service.discount.apply_discount.dtos;
+package br.edu.ifsp.scl.ordering.application.ports.inbound.service.order.apply_discount.dtos;
 
 import br.edu.ifsp.scl.ordering.domain.valueobject.DiscountId;
 import br.edu.ifsp.scl.ordering.domain.valueobject.OrderId;
