@@ -3,6 +3,7 @@ package br.edu.ifsp.scl.ordering.domain.aggregate;
 import br.edu.ifsp.scl.ordering.domain.constant.OrderStatus;
 import br.edu.ifsp.scl.ordering.domain.entity.Discount;
 import br.edu.ifsp.scl.ordering.domain.entity.OrderItem;
+import br.edu.ifsp.scl.ordering.domain.exceptions.InvalidOrderItemQuantityException;
 import br.edu.ifsp.scl.ordering.domain.exceptions.ProductsAlreadyExistInOrderException;
 import br.edu.ifsp.scl.ordering.domain.valueobject.Address;
 import br.edu.ifsp.scl.ordering.domain.valueobject.CustomerId;
@@ -67,6 +68,16 @@ public class Order {
     public void addItems(List<OrderItem> itemsToAdd) {
         if (itemsToAdd == null || itemsToAdd.isEmpty()) {
             return;
+        }
+
+        List<ProductId> invalidQuantityProductIds = itemsToAdd.stream()
+                .filter(item -> item.quantity() <= 0)
+                .map(OrderItem::productId)
+                .distinct()
+                .toList();
+
+        if (!invalidQuantityProductIds.isEmpty()) {
+            throw new InvalidOrderItemQuantityException(invalidQuantityProductIds);
         }
 
         Set<ProductId> existingProductIds = this.items.stream()
