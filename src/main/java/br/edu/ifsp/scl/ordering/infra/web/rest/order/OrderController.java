@@ -4,6 +4,7 @@ import br.edu.ifsp.scl.ordering.application.ports.inbound.service.order.add_item
 import br.edu.ifsp.scl.ordering.application.ports.inbound.service.order.add_items.dtos.AddItemsToOrderRequest;
 import br.edu.ifsp.scl.ordering.application.ports.inbound.service.order.add_items.dtos.AddItemsToOrderResponse;
 import br.edu.ifsp.scl.ordering.application.ports.inbound.service.order.cancel.ICancelOrderService;
+import br.edu.ifsp.scl.ordering.application.ports.inbound.service.order.cancel.dtos.CancelOrderRequest;
 import br.edu.ifsp.scl.ordering.application.ports.inbound.service.order.create.ICreateOrderService;
 import br.edu.ifsp.scl.ordering.application.ports.inbound.service.order.remove_item.IRemoveItemFromOrderService;
 import br.edu.ifsp.scl.ordering.application.ports.inbound.service.order.remove_item.dtos.RemoveItemFromOrderRequest;
@@ -17,7 +18,6 @@ import br.edu.ifsp.scl.ordering.infra.web.rest.order.dtos.CreateOrderBodyDTO;
 import br.edu.ifsp.scl.ordering.infra.web.rest.order.dtos.CreateOrderResponseDTO;
 import br.edu.ifsp.scl.ordering.infra.web.rest.order.dtos.add_items.AddItemsToOrderRequestDTO;
 import br.edu.ifsp.scl.ordering.infra.web.rest.order.dtos.add_items.AddItemsToOrderResponseDTO;
-import br.edu.ifsp.scl.ordering.infra.web.rest.order.dtos.cancel.CancelOrderBodyDTO;
 import br.edu.ifsp.scl.ordering.infra.web.rest.order.dtos.remove_item.RemoveItemFromOrderResponseDTO;
 import br.edu.ifsp.scl.ordering.infra.web.rest.order.dtos.update_item_quantity.UpdateOrderItemQuantityRequestDTO;
 import br.edu.ifsp.scl.ordering.infra.web.rest.order.dtos.update_item_quantity.UpdateOrderItemQuantityResponseDTO;
@@ -62,8 +62,8 @@ public class OrderController {
     }
 
     @PutMapping("/{orderId}/cancel")
-    public ResponseEntity<Void> cancel(@PathVariable CancelOrderBodyDTO orderId) {
-        cancelOrderService.cancel(orderId.toRequest());
+    public ResponseEntity<Void> cancel(@PathVariable String orderId) {
+        cancelOrderService.cancel(new CancelOrderRequest(new OrderId(orderId)));
         return ResponseEntity.noContent().build();
     }
 
