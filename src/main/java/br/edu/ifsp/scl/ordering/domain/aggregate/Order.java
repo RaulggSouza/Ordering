@@ -4,6 +4,7 @@ import br.edu.ifsp.scl.ordering.domain.constant.OrderStatus;
 import br.edu.ifsp.scl.ordering.domain.entity.Discount;
 import br.edu.ifsp.scl.ordering.domain.entity.OrderItem;
 import br.edu.ifsp.scl.ordering.domain.exceptions.InvalidOrderItemQuantityException;
+import br.edu.ifsp.scl.ordering.domain.exceptions.OrderItemNotFoundException;
 import br.edu.ifsp.scl.ordering.domain.exceptions.OrderStatusNotAllowedException;
 import br.edu.ifsp.scl.ordering.domain.exceptions.ProductsAlreadyExistInOrderException;
 import br.edu.ifsp.scl.ordering.domain.valueobject.Address;
@@ -100,6 +101,41 @@ public class Order {
         }
 
         this.items.addAll(itemsToAdd);
+    }
+
+    public void updateItemQuantity(ProductId productId, int quantity){
+        if (!this.status.allowsUpdateItems()) {
+            throw new OrderStatusNotAllowedException(this.getOrderStatus());
+        }
+
+        if (quantity <= 0) {
+            throw new InvalidOrderItemQuantityException(List.of(productId));
+        }
+
+        boolean itemUpdated = false;
+        for (int index = 0; index < this.items.size(); index++) {
+            OrderItem currentItem = this.items.get(index);
+
+            if (currentItem.productId().equals(productId)) {
+                OrderItem updatedItem = new OrderItem(
+                        currentItem.productId(),
+                        quantity,
+                        currentItem.price()
+                );
+
+                this.items.set(index, updatedItem);
+            }
+        }
+
+        if (!itemUpdated) {
+            throw new OrderItemNotFoundException(productId);
+        }
+
+        removeIneligibleDiscounts();
+    }
+
+    private void removeIneligibleDiscounts() {
+        this.discounts.removeIf(discount -> !discount.isStillEligible(this));
     }
 
     public OrderId getOrderId() {

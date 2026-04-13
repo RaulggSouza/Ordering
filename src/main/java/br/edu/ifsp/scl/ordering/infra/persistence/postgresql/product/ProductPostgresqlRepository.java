@@ -24,4 +24,9 @@ public class ProductPostgresqlRepository implements IProductRepository {
         long count = repository.countByIdIn(ids);
         return count == ids.size();
     }
+
+    @Override
+    public boolean existsById(ProductId productId) {
+        return repository.existsById(productId.value());
+    }
 }

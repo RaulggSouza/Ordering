@@ -45,6 +45,12 @@ public class Discount {
                 && doesNotHaveSameTypeApplied(order);
     }
 
+    public boolean isStillEligible(Order order) {
+        return active
+                && !isExpired()
+                && rule.isEligible(order);
+    }
+
     private boolean doesNotHaveSameTypeApplied(Order order) {
         return order.getDiscounts().stream()
                 .noneMatch(discount -> discount.getDiscountType() == this.discountType);
