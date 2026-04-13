@@ -10,10 +10,12 @@ import br.edu.ifsp.scl.ordering.domain.constant.DiscountType;
 import br.edu.ifsp.scl.ordering.domain.constant.OrderStatus;
 import br.edu.ifsp.scl.ordering.domain.entity.Discount;
 import br.edu.ifsp.scl.ordering.domain.entity.OrderItem;
+import br.edu.ifsp.scl.ordering.domain.exceptions.InvalidOrderItemQuantityException;
 import br.edu.ifsp.scl.ordering.domain.valueobject.DiscountId;
 import br.edu.ifsp.scl.ordering.domain.valueobject.MinimumValueDiscountRule;
 import br.edu.ifsp.scl.ordering.domain.valueobject.OrderId;
 import br.edu.ifsp.scl.ordering.domain.valueobject.ProductId;
+import br.edu.ifsp.scl.ordering.testing.tags.Functional;
 import br.edu.ifsp.scl.ordering.testing.tags.TDD;
 import br.edu.ifsp.scl.ordering.testing.tags.UnitTest;
 import org.junit.jupiter.api.DisplayName;
@@ -28,10 +30,8 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.assertj.core.api.Assertions.*;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 public class UpdateOrderItemQuantityServiceTest {
@@ -142,6 +142,44 @@ public class UpdateOrderItemQuantityServiceTest {
         assertThat(order.getDiscounts())
                 .extracting(Discount::getDiscountId)
                 .containsExactlyInAnyOrderElementsOf(expectedDiscountIds);
+    }
+
+    @Functional
+    @UnitTest
+    @ParameterizedTest
+    @DisplayName("#43 - Should throw an error when updated item quantity is less than or equal to zero")
+    @CsvSource(
+            nullValues = "NULL",
+            value = {
+                    "1:1:100,1,0",
+                    "1:1:100,1,-1",
+                    "1:2:100;2:1:50,1,0",
+                    "1:2:100;2:1:50,2,-5"
+            }
+    )
+    void shouldThrowAnErrorWhenUpdatedItemQuantityIsLessThanOrEqualToZero(
+            String itemsThatAlreadyExistsInOrderInput,
+            String productIdInput,
+            Integer newQuantityInput
+    ) {
+        Order order = createOrder("1", itemsThatAlreadyExistsInOrderInput);
+        ProductId productId = new ProductId(productIdInput);
+
+        UpdateOrderItemQuantityRequest request = new UpdateOrderItemQuantityRequest(
+                order.getOrderId(),
+                productId,
+                newQuantityInput
+        );
+
+        when(orderRepository.findById(order.getOrderId())).thenReturn(Optional.of(order));
+        when(productRepository.existsById(productId)).thenReturn(true);
+
+        assertThatThrownBy(() -> sut.updateOrderItemQuantity(request))
+                .isInstanceOf(InvalidOrderItemQuantityException.class);
+
+        verify(orderRepository, times(1)).findById(order.getOrderId());
+        verify(productRepository, times(1)).existsById(productId);
+        verify(orderRepository, never()).save(any());
     }
 
     private static Order createOrder(String orderId, String orderProductsInput) {
