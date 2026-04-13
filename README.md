@@ -57,6 +57,26 @@ cp src/main/resources/application.properties.example src/main/resources/applicat
 mvn spring-boot:run
 ```
 
+### Seed de mocks (Flyway)
+
+Somente no profile `local`, depois do schema ser criado/atualizado via JPA (`ddl-auto`), o Flyway roda as migrations em `src/main/resources/db/migration` (habilitado por `ordering.flyway.migrate-after-jpa`).
+
+- Seed: `src/main/resources/db/migration/V1__POPULATE_TABLES_WITH_MOCKS.sql`
+- Config: `src/main/resources/application.properties` (copiado do `.example`) — inclui `spring.flyway.baseline-on-migrate=true` e `spring.flyway.baseline-version=0` para permitir rodar o Flyway em um schema já criado via JPA e ainda executar a migration `V1__...`
+
+Para rodar o seed novamente em um banco local, a forma mais simples é derrubar o volume:
+
+```bash
+docker compose -f infra/docker/docker-compose.yml down -v
+```
+
+## Swagger (OpenAPI)
+
+Com a aplicação rodando:
+
+- Swagger UI: http://localhost:8080/swagger-ui/index.html
+- OpenAPI JSON: http://localhost:8080/v3/api-docs
+
 ## Testes
 
 Rodar todos:
