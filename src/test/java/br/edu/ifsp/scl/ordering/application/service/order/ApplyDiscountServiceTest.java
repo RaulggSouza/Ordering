@@ -149,6 +149,51 @@ public class ApplyDiscountServiceTest {
         verify(orderRepository, never()).save(any());
     }
 
+    @TDD
+    @UnitTest
+    @Test
+    @DisplayName("Should accumulate multiple eligible discount applications")
+    void shouldAccumulateMultipleEligibleDiscountApplications() {
+        OrderId orderId = new OrderId("order-1");
+        DiscountId firstDiscountId = new DiscountId("discount-10");
+        DiscountId secondDiscountId = new DiscountId("discount-5");
+
+        Order order = createOrderWithTotalAs(orderId, 100.0);
+
+        Discount firstDiscount = createDiscount(
+                firstDiscountId,
+                DiscountType.COUPON,
+                10
+        );
+
+        Discount secondDiscount = createDiscount(
+                secondDiscountId,
+                DiscountType.SEASONAL,
+                5
+        );
+
+        when(orderRepository.findById(orderId)).thenReturn(Optional.of(order));
+
+        when(discountRepository.findById(firstDiscountId))
+                .thenReturn(Optional.of(firstDiscount));
+
+        when(discountRepository.findById(secondDiscountId))
+                .thenReturn(Optional.of(secondDiscount));
+
+        sut.apply(new ApplyDiscountRequest(orderId, List.of(firstDiscountId)));
+        sut.apply(new ApplyDiscountRequest(orderId, List.of(secondDiscountId)));
+
+        assertThat(order.getDiscounts())
+                .containsExactly(firstDiscount, secondDiscount);
+
+        assertThat(order.getTotal()).isEqualTo(85.5);
+
+        verify(orderRepository, times(2)).findById(orderId);
+        verify(discountRepository, times(1)).findById(firstDiscountId);
+        verify(discountRepository, times(1)).findById(secondDiscountId);
+        verify(orderRepository, times(2)).save(order);
+    }
+
     private Order createOrderWithTotalAs(OrderId orderId, double total) {
         OrderItem item = new OrderItem(new ProductId("sample"), 1, total);
         return new Order(
