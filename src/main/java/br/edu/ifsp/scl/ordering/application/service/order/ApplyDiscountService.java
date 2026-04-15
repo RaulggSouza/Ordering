@@ -9,10 +9,7 @@ import br.edu.ifsp.scl.ordering.domain.aggregate.Order;
 import br.edu.ifsp.scl.ordering.domain.constant.DiscountType;
 import br.edu.ifsp.scl.ordering.domain.constant.OrderStatus;
 import br.edu.ifsp.scl.ordering.domain.entity.Discount;
-import br.edu.ifsp.scl.ordering.domain.exceptions.ExpiredDiscountException;
-import br.edu.ifsp.scl.ordering.domain.exceptions.IllegalOrderOperationException;
-import br.edu.ifsp.scl.ordering.domain.exceptions.InvalidDiscountException;
-import br.edu.ifsp.scl.ordering.domain.exceptions.MutipleDiscountTypeException;
+import br.edu.ifsp.scl.ordering.domain.exceptions.*;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -32,7 +29,12 @@ public class ApplyDiscountService implements IApplyDiscountService {
 
     @Override
     public ApplyDiscountResponse apply(ApplyDiscountRequest request) {
-        Order order = orderRepository.findById(request.orderId()).orElseThrow();
+        Optional<Order> orderObtained = orderRepository.findById(request.orderId());
+        if (orderObtained.isEmpty())
+            throw new OrderNotFoundException(request.orderId());
+
+        Order order = orderObtained.get();
+
         if (order.getOrderStatus() != OrderStatus.CREATED)
             throw new IllegalOrderOperationException("Cannot apply discount for cancelled order \"%s\"!"
                     .formatted(request.orderId())
