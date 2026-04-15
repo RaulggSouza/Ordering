@@ -33,6 +33,7 @@ import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -321,6 +322,28 @@ public class ApplyDiscountServiceTest {
                 .isThrownBy(() -> sut.apply(request));
 
         verify(orderRepository, times(1)).findById(orderId);
+        verify(orderRepository, never()).save(any());
+    }
+
+    @Functional
+    @UnitTest
+    @Test
+    @DisplayName("#114 - Should throw DuplicatedDiscountException when order already has discount for application")
+    void shouldThrowDuplicatedDiscountExceptionWhenOrderAlreadyHasDiscountForApplication() {
+        OrderId orderId = new OrderId("order-with-discount");
+        DiscountId discountId = new DiscountId("discount-1");
+
+        Discount discountInOrder = createDiscount(discountId, DiscountType.COUPON, 10);
+        Order orderWithDiscount = createOrderWithDiscount(orderId, discountInOrder);
+
+        ApplyDiscountRequest request = new ApplyDiscountRequest(orderId, List.of(discountId));
+        when(orderRepository.findById(orderId)).thenReturn(Optional.of(orderWithDiscount));
+
+        assertThatExceptionOfType(DuplicatedDiscountException.class)
+                .isThrownBy(() -> sut.apply(request));
+
+        verify(orderRepository, times(1)).findById(orderId);
+        verify(discountRepository, never()).findById(any());
         verify(orderRepository, never()).save(any());
     }
 
