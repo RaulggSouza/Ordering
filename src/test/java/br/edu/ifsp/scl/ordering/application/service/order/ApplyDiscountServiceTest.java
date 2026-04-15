@@ -283,6 +283,26 @@ public class ApplyDiscountServiceTest {
         verify(orderRepository, never()).save(any());
     }
 
+    @Functional
+    @UnitTest
+    @Test
+    @DisplayName("#112 - Should throw InvalidDiscountException for application without any discounts in request")
+    void shouldThrowInvalidDiscountExceptionForApplicationWithoutAnyDiscountsInRequest() {
+        OrderId orderId = new OrderId("order-1");
+
+        Order order = createOrderWithTotalAs(orderId, 100.0);
+        ApplyDiscountRequest request = new ApplyDiscountRequest(orderId, List.of());
+
+        when(orderRepository.findById(orderId)).thenReturn(Optional.of(order));
+
+        assertThatExceptionOfType(InvalidDiscountException.class)
+                .isThrownBy(() -> sut.apply(request));
+
+        verify(orderRepository, never()).findById(orderId);
+        verify(discountRepository, never()).findById(any());
+        verify(orderRepository, never()).save(any());
+    }
+
     private Order createOrderWithTotalAs(OrderId orderId, double total) {
         OrderItem item = new OrderItem(new ProductId("sample"), 1, total);
         return new Order(
