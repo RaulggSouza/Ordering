@@ -22,6 +22,7 @@ public class Order {
     private final List<OrderItem> items;
     private List<Discount> discounts;
     private OrderStatus status;
+    private double evaluatedTotal;
 
     public Order(
             OrderId id,
@@ -84,6 +85,7 @@ public class Order {
         this.items.removeIf(item -> item.productId().equals(productId));
 
         removeIneligibleDiscounts();
+        recalculateTotal();
     }
 
     public void addItems(List<OrderItem> itemsToAdd) {
@@ -120,6 +122,7 @@ public class Order {
         }
 
         this.items.addAll(itemsToAdd);
+        recalculateTotal();
     }
 
     public void updateItemQuantity(ProductId productId, int quantity) {
@@ -154,6 +157,7 @@ public class Order {
         }
 
         removeIneligibleDiscounts();
+        recalculateTotal();
     }
 
     private void removeIneligibleDiscounts() {
@@ -179,17 +183,7 @@ public class Order {
     }
 
     public double getTotal() {
-        return getGrossTotal() - getNetTotalPecentage();
-    }
-
-    private double getNetTotalPecentage() {
-        return (getDiscountPercentageSum() / 100) * getGrossTotal();
-    }
-
-    private double getDiscountPercentageSum() {
-        return discounts.stream()
-                .mapToDouble(d -> d.getPercentage(this))
-                .sum();
+        return evaluatedTotal;
     }
 
     public CustomerId getCustomerId() {
@@ -206,5 +200,16 @@ public class Order {
 
     public void addDiscount(Discount discount) {
         this.discounts.add(discount);
+        recalculateTotal();
+    }
+
+    private void recalculateTotal() {
+        double evaluation = getGrossTotal();
+        for (Discount discount : discounts) {
+            double deduction = discount.getPercentage(this) / 100;
+            double discountValue = evaluation * deduction;
+            evaluation -= discountValue;
+        }
+        this.evaluatedTotal = evaluation;
     }
 }
