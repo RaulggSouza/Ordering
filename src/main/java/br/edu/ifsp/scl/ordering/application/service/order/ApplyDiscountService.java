@@ -10,6 +10,8 @@ import br.edu.ifsp.scl.ordering.domain.constant.DiscountType;
 import br.edu.ifsp.scl.ordering.domain.constant.OrderStatus;
 import br.edu.ifsp.scl.ordering.domain.entity.Discount;
 import br.edu.ifsp.scl.ordering.domain.exceptions.*;
+import br.edu.ifsp.scl.ordering.domain.valueobject.DiscountId;
+import org.jspecify.annotations.NonNull;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -41,8 +43,7 @@ public class ApplyDiscountService implements IApplyDiscountService {
             );
 
         List<Discount> discountsToApply = request.discountIds().stream()
-                .map(discountRepository::findById)
-                .flatMap(Optional::stream)
+                .map(this::getOrThrowFoundDiscount)
                 .toList();
 
         double percentageSum = discountsToApply.stream()
@@ -98,5 +99,10 @@ public class ApplyDiscountService implements IApplyDiscountService {
 
         int distinctQuantity = new HashSet<>(discountTypes).size();
         return distinctQuantity != discountTypes.size();
+    }
+
+    private Discount getOrThrowFoundDiscount(DiscountId id) {
+        Optional<Discount> optionalDiscount = discountRepository.findById(id);
+        return optionalDiscount.orElseThrow(() -> new DiscountNotFoundException(id));
     }
 }

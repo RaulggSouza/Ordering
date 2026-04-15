@@ -261,8 +261,10 @@ public class ApplyDiscountServiceTest {
         verify(orderRepository, never()).save(any());
     }
 
+    @Functional
+    @UnitTest
     @Test
-    @DisplayName("Should throw DiscountNotFoundException for a non-existing discount in request")
+    @DisplayName("#111 - Should throw DiscountNotFoundException for a non-existing discount in request")
     void shouldThrowDiscountNotFoundExceptionForANonExistingDiscountInRequest() {
         OrderId orderId = new OrderId("order-1");
         DiscountId discountId = new DiscountId("discount-1");
