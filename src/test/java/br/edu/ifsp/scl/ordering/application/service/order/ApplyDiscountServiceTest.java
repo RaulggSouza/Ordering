@@ -33,7 +33,6 @@ import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
-import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -289,11 +288,7 @@ public class ApplyDiscountServiceTest {
     @DisplayName("#112 - Should throw InvalidDiscountException for application without any discounts in request")
     void shouldThrowInvalidDiscountExceptionForApplicationWithoutAnyDiscountsInRequest() {
         OrderId orderId = new OrderId("order-1");
-
-        Order order = createOrderWithTotalAs(orderId, 100.0);
         ApplyDiscountRequest request = new ApplyDiscountRequest(orderId, List.of());
-
-        when(orderRepository.findById(orderId)).thenReturn(Optional.of(order));
 
         assertThatExceptionOfType(InvalidDiscountException.class)
                 .isThrownBy(() -> sut.apply(request));

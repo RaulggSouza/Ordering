@@ -31,6 +31,9 @@ public class ApplyDiscountService implements IApplyDiscountService {
 
     @Override
     public ApplyDiscountResponse apply(ApplyDiscountRequest request) {
+        if (request.discountIds().isEmpty())
+            throw new InvalidDiscountException("No discounts were given.");
+
         Optional<Order> orderObtained = orderRepository.findById(request.orderId());
         if (orderObtained.isEmpty())
             throw new OrderNotFoundException(request.orderId());
