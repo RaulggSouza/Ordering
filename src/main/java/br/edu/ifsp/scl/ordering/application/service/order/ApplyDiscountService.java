@@ -11,9 +11,11 @@ import br.edu.ifsp.scl.ordering.domain.constant.OrderStatus;
 import br.edu.ifsp.scl.ordering.domain.entity.Discount;
 import br.edu.ifsp.scl.ordering.domain.exceptions.ExpiredDiscountException;
 import br.edu.ifsp.scl.ordering.domain.exceptions.IllegalOrderOperationException;
+import br.edu.ifsp.scl.ordering.domain.exceptions.InvalidDiscountException;
 import br.edu.ifsp.scl.ordering.domain.exceptions.MutipleDiscountTypeException;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
@@ -56,6 +58,7 @@ public class ApplyDiscountService implements IApplyDiscountService {
             );
 
         checkIfHasExpiredDiscounts(discountsToApply);
+        checkIfHasInvalidCreatedDiscount(discountsToApply);
 
         discountsToApply.forEach(order::addDiscount);
         orderRepository.save(order);
@@ -71,6 +74,17 @@ public class ApplyDiscountService implements IApplyDiscountService {
                     throw new ExpiredDiscountException("Discount \"%s\" has expired at \"%s\"!".formatted(
                             expiredDiscount.getDiscountId(),
                             expiredDiscount.getExpiration()
+                    ));
+                });
+    }
+
+    private void checkIfHasInvalidCreatedDiscount(List<Discount> discountsToApply) {
+        discountsToApply.stream()
+                .filter(discount -> discount.getCreatedAt().isAfter(LocalDateTime.now()))
+                .findAny()
+                .ifPresent(invalidDiscount -> {
+                    throw new InvalidDiscountException("Discount \"%s\" has invalid creation date!".formatted(
+                            invalidDiscount.getDiscountId()
                     ));
                 });
     }
