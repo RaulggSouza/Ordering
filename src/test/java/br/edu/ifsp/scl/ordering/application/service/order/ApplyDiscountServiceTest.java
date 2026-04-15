@@ -9,6 +9,7 @@ import br.edu.ifsp.scl.ordering.domain.constant.DiscountType;
 import br.edu.ifsp.scl.ordering.domain.constant.OrderStatus;
 import br.edu.ifsp.scl.ordering.domain.entity.Discount;
 import br.edu.ifsp.scl.ordering.domain.entity.OrderItem;
+import br.edu.ifsp.scl.ordering.domain.exceptions.ExpiredDiscountException;
 import br.edu.ifsp.scl.ordering.domain.exceptions.IllegalOrderOperationException;
 import br.edu.ifsp.scl.ordering.domain.exceptions.MutipleDiscountTypeException;
 import br.edu.ifsp.scl.ordering.domain.valueobject.DiscountId;
@@ -33,6 +34,7 @@ import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -152,7 +154,7 @@ public class ApplyDiscountServiceTest {
     @TDD
     @UnitTest
     @Test
-    @DisplayName("Should accumulate multiple eligible discount applications")
+    @DisplayName("#89 - Should accumulate multiple eligible discount applications")
     void shouldAccumulateMultipleEligibleDiscountApplications() {
         OrderId orderId = new OrderId("order-1");
         DiscountId firstDiscountId = new DiscountId("discount-10");
@@ -194,6 +196,29 @@ public class ApplyDiscountServiceTest {
         verify(orderRepository, times(2)).save(order);
     }
 
+    @UnitTest
+    @TDD
+    @Test
+    @DisplayName("#90 - Should throw ExpiredDiscountException when discount expires before application confirmation")
+    void shouldThrowExpiredDiscountExceptionWhenDiscountExpiresBeforeApplicationConfirmation() {
+        OrderId orderId = new OrderId("order-1");
+        DiscountId discountId = new DiscountId("expired-discount");
+
+        Order order = createOrderWithTotalAs(orderId, 100.0);
+        Discount expiredDiscount = createExpiredDiscount(discountId);
+
+        ApplyDiscountRequest request = new ApplyDiscountRequest(orderId, List.of(discountId));
+        when(orderRepository.findById(orderId)).thenReturn(Optional.of(order));
+        when(discountRepository.findById(discountId)).thenReturn(Optional.of(expiredDiscount));
+
+        assertThatExceptionOfType(ExpiredDiscountException.class)
+                .isThrownBy(() -> sut.apply(request));
+
+        verify(orderRepository, times(1)).findById(orderId);
+        verify(discountRepository, times(1)).findById(discountId);
+        verify(orderRepository, never()).save(any());
+    }
+
     private Order createOrderWithTotalAs(OrderId orderId, double total) {
         OrderItem item = new OrderItem(new ProductId("sample"), 1, total);
         return new Order(
@@ -224,6 +249,16 @@ public class ApplyDiscountServiceTest {
                 type,
                 true,
                 LocalDateTime.now().plusHours(1)
+        );
+    }
+
+    private Discount createExpiredDiscount(DiscountId discountId) {
+        return new Discount(
+                discountId,
+                new MinimumValueDiscountRule(0, 10),
+                DiscountType.COUPON,
+                true,
+                LocalDateTime.now().minusMinutes(1)
         );
     }
 }
