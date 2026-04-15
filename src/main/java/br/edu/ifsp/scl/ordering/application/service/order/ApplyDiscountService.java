@@ -9,6 +9,7 @@ import br.edu.ifsp.scl.ordering.domain.aggregate.Order;
 import br.edu.ifsp.scl.ordering.domain.constant.DiscountType;
 import br.edu.ifsp.scl.ordering.domain.constant.OrderStatus;
 import br.edu.ifsp.scl.ordering.domain.entity.Discount;
+import br.edu.ifsp.scl.ordering.domain.exceptions.ExpiredDiscountException;
 import br.edu.ifsp.scl.ordering.domain.exceptions.IllegalOrderOperationException;
 import br.edu.ifsp.scl.ordering.domain.exceptions.MutipleDiscountTypeException;
 import org.springframework.stereotype.Service;
@@ -54,10 +55,24 @@ public class ApplyDiscountService implements IApplyDiscountService {
                     .formatted(order.getOrderId())
             );
 
+        checkIfHasExpiredDiscounts(discountsToApply);
+
         discountsToApply.forEach(order::addDiscount);
         orderRepository.save(order);
 
         return new ApplyDiscountResponse(order.getOrderId(), discountsToApply);
+    }
+
+    private void checkIfHasExpiredDiscounts(List<Discount> discountsToApply) {
+        discountsToApply.stream()
+                .filter(Discount::isExpired)
+                .findAny()
+                .ifPresent(expiredDiscount -> {
+                    throw new ExpiredDiscountException("Discount \"%s\" has expired at \"%s\"!".formatted(
+                            expiredDiscount.getDiscountId(),
+                            expiredDiscount.getExpiration()
+                    ));
+                });
     }
 
     private static boolean hasMultipleDiscountsOfSameKind(List<Discount> discountsToApply) {

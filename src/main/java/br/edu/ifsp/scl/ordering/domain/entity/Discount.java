@@ -6,6 +6,7 @@ import br.edu.ifsp.scl.ordering.domain.interfaces.DiscountRule;
 import br.edu.ifsp.scl.ordering.domain.valueobject.DiscountId;
 
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 
 public class Discount {
     private final DiscountId discountId;
@@ -28,6 +29,11 @@ public class Discount {
 
     public DiscountType getDiscountType() {
         return discountType;
+    }
+
+    public String getExpiration() {
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy hh:mm:ss");
+        return expiresAt.format(formatter);
     }
 
     public boolean isActive() {
