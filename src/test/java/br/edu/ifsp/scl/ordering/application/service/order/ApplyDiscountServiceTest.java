@@ -9,14 +9,12 @@ import br.edu.ifsp.scl.ordering.domain.constant.DiscountType;
 import br.edu.ifsp.scl.ordering.domain.constant.OrderStatus;
 import br.edu.ifsp.scl.ordering.domain.entity.Discount;
 import br.edu.ifsp.scl.ordering.domain.entity.OrderItem;
-import br.edu.ifsp.scl.ordering.domain.exceptions.ExpiredDiscountException;
-import br.edu.ifsp.scl.ordering.domain.exceptions.IllegalOrderOperationException;
-import br.edu.ifsp.scl.ordering.domain.exceptions.InvalidDiscountException;
-import br.edu.ifsp.scl.ordering.domain.exceptions.MutipleDiscountTypeException;
+import br.edu.ifsp.scl.ordering.domain.exceptions.*;
 import br.edu.ifsp.scl.ordering.domain.valueobject.DiscountId;
 import br.edu.ifsp.scl.ordering.domain.valueobject.MinimumValueDiscountRule;
 import br.edu.ifsp.scl.ordering.domain.valueobject.OrderId;
 import br.edu.ifsp.scl.ordering.domain.valueobject.ProductId;
+import br.edu.ifsp.scl.ordering.testing.tags.Functional;
 import br.edu.ifsp.scl.ordering.testing.tags.TDD;
 import br.edu.ifsp.scl.ordering.testing.tags.UnitTest;
 import org.junit.jupiter.api.DisplayName;
@@ -241,6 +239,25 @@ public class ApplyDiscountServiceTest {
 
         verify(orderRepository, times(1)).findById(orderId);
         verify(discountRepository, times(1)).findById(discountId);
+        verify(orderRepository, never()).save(any());
+    }
+
+    @Functional
+    @UnitTest
+    @Test
+    @DisplayName("#110 - Should throw OrderNotFoundException when order does not exist")
+    void shouldThrowOrderNotFoundExceptionWhenOrderDoesNotExist() {
+        OrderId orderId = new OrderId("order-1");
+        DiscountId discountId = new DiscountId("discount-1");
+
+        ApplyDiscountRequest request = new ApplyDiscountRequest(orderId, List.of(discountId));
+        when(orderRepository.findById(orderId)).thenReturn(Optional.empty());
+
+        assertThatExceptionOfType(OrderNotFoundException.class)
+                .isThrownBy(() -> sut.apply(request));
+
+        verify(orderRepository, times(1)).findById(orderId);
+        verify(discountRepository, never()).findById(discountId);
         verify(orderRepository, never()).save(any());
     }
 
