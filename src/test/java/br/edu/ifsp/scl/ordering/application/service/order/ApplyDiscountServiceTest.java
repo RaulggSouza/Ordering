@@ -11,6 +11,7 @@ import br.edu.ifsp.scl.ordering.domain.entity.Discount;
 import br.edu.ifsp.scl.ordering.domain.entity.OrderItem;
 import br.edu.ifsp.scl.ordering.domain.exceptions.ExpiredDiscountException;
 import br.edu.ifsp.scl.ordering.domain.exceptions.IllegalOrderOperationException;
+import br.edu.ifsp.scl.ordering.domain.exceptions.InvalidDiscountException;
 import br.edu.ifsp.scl.ordering.domain.exceptions.MutipleDiscountTypeException;
 import br.edu.ifsp.scl.ordering.domain.valueobject.DiscountId;
 import br.edu.ifsp.scl.ordering.domain.valueobject.MinimumValueDiscountRule;
@@ -34,6 +35,7 @@ import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -218,6 +220,30 @@ public class ApplyDiscountServiceTest {
         verify(orderRepository, never()).save(any());
     }
 
+    @TDD
+    @UnitTest
+    @Test
+    @DisplayName("#91 - Should throw InvalidDiscountException when discount start date is after current system date")
+    void shouldThrowInvalidDiscountExceptionWhenDiscountStartDateIsAfterCurrentSystemDate() {
+        OrderId orderId = new OrderId("order-1");
+        DiscountId discountId = new DiscountId("future-discount");
+
+        Order order = createOrderWithTotalAs(orderId, 100.0);
+        Discount futureDiscount = createDiscountStartingInFuture(discountId);
+
+        ApplyDiscountRequest request = new ApplyDiscountRequest(orderId, List.of(discountId));
+
+        when(orderRepository.findById(orderId)).thenReturn(Optional.of(order));
+        when(discountRepository.findById(discountId)).thenReturn(Optional.of(futureDiscount));
+
+        assertThatExceptionOfType(InvalidDiscountException.class)
+                .isThrownBy(() -> sut.apply(request));
+
+        verify(orderRepository, times(1)).findById(orderId);
+        verify(discountRepository, times(1)).findById(discountId);
+        verify(orderRepository, never()).save(any());
+    }
+
     private Order createOrderWithTotalAs(OrderId orderId, double total) {
         OrderItem item = new OrderItem(new ProductId("sample"), 1, total);
         return new Order(
@@ -258,6 +284,17 @@ public class ApplyDiscountServiceTest {
                 DiscountType.COUPON,
                 true,
                 LocalDateTime.now().minusMinutes(1)
+        );
+    }
+
+    private Discount createDiscountStartingInFuture(DiscountId discountId) {
+        return new Discount(
+                discountId,
+                new MinimumValueDiscountRule(0, 10),
+                DiscountType.COUPON,
+                true,
+                LocalDateTime.now().plusMinutes(1),
+                LocalDateTime.now().plusHours(1)
         );
     }
 }
