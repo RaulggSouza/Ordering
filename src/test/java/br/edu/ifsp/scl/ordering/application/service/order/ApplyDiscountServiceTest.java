@@ -261,6 +261,26 @@ public class ApplyDiscountServiceTest {
         verify(orderRepository, never()).save(any());
     }
 
+    @Test
+    @DisplayName("Should throw DiscountNotFoundException for a non-existing discount in request")
+    void shouldThrowDiscountNotFoundExceptionForANonExistingDiscountInRequest() {
+        OrderId orderId = new OrderId("order-1");
+        DiscountId discountId = new DiscountId("discount-1");
+
+        Order order = createOrderWithTotalAs(orderId, 100.0);
+        ApplyDiscountRequest request = new ApplyDiscountRequest(orderId, List.of(discountId));
+
+        when(orderRepository.findById(orderId)).thenReturn(Optional.of(order));
+        when(discountRepository.findById(discountId)).thenReturn(Optional.empty());
+
+        assertThatExceptionOfType(DiscountNotFoundException.class)
+                .isThrownBy(() -> sut.apply(request));
+
+        verify(orderRepository, times(1)).findById(orderId);
+        verify(discountRepository, times(1)).findById(discountId);
+        verify(orderRepository, never()).save(any());
+    }
+
     private Order createOrderWithTotalAs(OrderId orderId, double total) {
         OrderItem item = new OrderItem(new ProductId("sample"), 1, total);
         return new Order(
