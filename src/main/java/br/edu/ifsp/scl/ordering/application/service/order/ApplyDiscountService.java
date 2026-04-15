@@ -41,6 +41,9 @@ public class ApplyDiscountService implements IApplyDiscountService {
 
         Order order = orderObtained.get();
 
+        if (isAnyDiscountAlreadyAppliedToOrder(request, order))
+            throw new DuplicatedDiscountException("Discounts for application must not be already applied to the order!");
+
         if (order.getOrderStatus() != OrderStatus.CREATED)
             throw new IllegalOrderOperationException("Cannot apply discount for cancelled order \"%s\"!"
                     .formatted(request.orderId())
@@ -71,6 +74,12 @@ public class ApplyDiscountService implements IApplyDiscountService {
         orderRepository.save(order);
 
         return new ApplyDiscountResponse(order.getOrderId(), discountsToApply);
+    }
+
+    private static boolean isAnyDiscountAlreadyAppliedToOrder(ApplyDiscountRequest request, Order order) {
+        return order.getDiscounts().stream()
+                .map(Discount::getDiscountId)
+                .anyMatch(request.discountIds()::contains);
     }
 
     private void checkIfHasExpiredDiscounts(List<Discount> discountsToApply) {
