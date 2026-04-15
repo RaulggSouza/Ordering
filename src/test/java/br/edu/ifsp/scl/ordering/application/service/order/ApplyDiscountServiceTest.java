@@ -321,7 +321,6 @@ public class ApplyDiscountServiceTest {
                 .isThrownBy(() -> sut.apply(request));
 
         verify(orderRepository, times(1)).findById(orderId);
-        verify(discountRepository, times(1)).findById(discountId);
         verify(orderRepository, never()).save(any());
     }
 

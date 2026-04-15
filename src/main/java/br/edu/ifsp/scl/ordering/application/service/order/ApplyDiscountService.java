@@ -11,13 +11,14 @@ import br.edu.ifsp.scl.ordering.domain.constant.OrderStatus;
 import br.edu.ifsp.scl.ordering.domain.entity.Discount;
 import br.edu.ifsp.scl.ordering.domain.exceptions.*;
 import br.edu.ifsp.scl.ordering.domain.valueobject.DiscountId;
-import org.jspecify.annotations.NonNull;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 public class ApplyDiscountService implements IApplyDiscountService {
@@ -58,7 +59,7 @@ public class ApplyDiscountService implements IApplyDiscountService {
                     "Total discount %.0f%% must be below 100%%!".formatted(percentageSum)
             );
 
-        if (hasMultipleDiscountsOfSameKind(discountsToApply))
+        if (hasMultipleDiscountsOfSameKind(discountsToApply, order))
             throw new MutipleDiscountTypeException("The order \"%s\" has multiple discounts of the same kind."
                     .formatted(order.getOrderId())
             );
@@ -95,13 +96,20 @@ public class ApplyDiscountService implements IApplyDiscountService {
                 });
     }
 
-    private static boolean hasMultipleDiscountsOfSameKind(List<Discount> discountsToApply) {
+    private static boolean hasMultipleDiscountsOfSameKind(List<Discount> discountsToApply, Order order) {
         List<DiscountType> discountTypes = discountsToApply.stream()
                 .map(Discount::getDiscountType)
                 .toList();
 
-        int distinctQuantity = new HashSet<>(discountTypes).size();
-        return distinctQuantity != discountTypes.size();
+        if (new HashSet<>(discountTypes).size() != discountTypes.size()) {
+            return true;
+        }
+
+        Set<DiscountType> orderTypes = order.getDiscounts().stream()
+                .map(Discount::getDiscountType)
+                .collect(Collectors.toSet());
+
+        return discountTypes.stream().anyMatch(orderTypes::contains);
     }
 
     private Discount getOrThrowFoundDiscount(DiscountId id) {
