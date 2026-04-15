@@ -127,7 +127,7 @@ public class ApplyDiscountServiceTest {
     @TDD
     @UnitTest
     @ParameterizedTest
-    @ValueSource(doubles = { 100.1, 101.0, 150.0, 200.0 })
+    @ValueSource(doubles = {100.1, 101.0, 150.0, 200.0})
     @DisplayName("#88 - Should not allow the order net total to be less than zero when applying an eligible discount")
     void shouldNotAllowTheOrderNetTotalToBeLessThanZeroWhenApplyingAnEligibleDiscount(double percentage) {
         OrderId orderId = new OrderId("order-1");
@@ -298,6 +298,33 @@ public class ApplyDiscountServiceTest {
         verify(orderRepository, never()).save(any());
     }
 
+    @Functional
+    @UnitTest
+    @ParameterizedTest(name = "For {0} discount already in product")
+    @EnumSource(value = DiscountType.class)
+    @DisplayName("#113 - Should throw MultipleDiscountTypeException when order already has discount of same kind")
+    void shouldThrowMultipleDiscountTypeExceptionWhenOrderAlreadyHasDiscountOfSameKind(DiscountType type) {
+        OrderId orderId = new OrderId("order-with-discount");
+        DiscountId discountId = new DiscountId("discount-1");
+        DiscountId secondDiscountId = new DiscountId("discount-2");
+
+        Discount discountInOrder = createDiscount(discountId, type, 10);
+        Discount discountToApply = createDiscount(secondDiscountId, type, 5);
+        Order orderWithDiscount = createOrderWithDiscount(orderId, discountInOrder);
+
+        ApplyDiscountRequest request = new ApplyDiscountRequest(orderId, List.of(secondDiscountId));
+
+        when(orderRepository.findById(orderId)).thenReturn(Optional.of(orderWithDiscount));
+        when(discountRepository.findById(secondDiscountId)).thenReturn(Optional.of(discountToApply));
+
+        assertThatExceptionOfType(MutipleDiscountTypeException.class)
+                .isThrownBy(() -> sut.apply(request));
+
+        verify(orderRepository, times(1)).findById(orderId);
+        verify(discountRepository, times(1)).findById(discountId);
+        verify(orderRepository, never()).save(any());
+    }
+
     private Order createOrderWithTotalAs(OrderId orderId, double total) {
         OrderItem item = new OrderItem(new ProductId("sample"), 1, total);
         return new Order(
@@ -350,5 +377,11 @@ public class ApplyDiscountServiceTest {
                 LocalDateTime.now().plusMinutes(1),
                 LocalDateTime.now().plusHours(1)
         );
+    }
+
+    private Order createOrderWithDiscount(OrderId orderId, Discount discount) {
+        Order order = createOrderWithTotalAs(orderId, 100.0);
+        order.addDiscount(discount);
+        return order;
     }
 }
