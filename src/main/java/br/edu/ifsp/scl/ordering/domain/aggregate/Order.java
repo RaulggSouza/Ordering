@@ -219,6 +219,15 @@ public class Order {
                     "Cannot change status from CANCELLED to \"%s\".".formatted(orderStatus)
             );
 
+        boolean isInvalidTransition = this.status == OrderStatus.CREATED
+                && orderStatus == OrderStatus.COMPLETED;
+
+        if (isInvalidTransition)
+            throw new IllegalOrderOperationException(
+                    "Illegal status transition from \"%s\" to \"%s\"."
+                            .formatted(this.status, orderStatus)
+            );
+
         this.status = orderStatus;
     }
 }
