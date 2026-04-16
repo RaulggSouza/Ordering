@@ -8,6 +8,7 @@ import br.edu.ifsp.scl.ordering.domain.aggregate.Order;
 import br.edu.ifsp.scl.ordering.domain.constant.OrderStatus;
 import br.edu.ifsp.scl.ordering.domain.exceptions.OrderNotFoundException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class ChangeOrderStatusService implements IChangeOrderStatusService {
@@ -18,6 +19,7 @@ public class ChangeOrderStatusService implements IChangeOrderStatusService {
     }
 
     @Override
+    @Transactional
     public ChangeOrderStatusResponse change(ChangeOrderStatusRequest request) {
         Order order = orderRepository.findById(request.orderId())
                 .orElseThrow(() -> new OrderNotFoundException(request.orderId()));

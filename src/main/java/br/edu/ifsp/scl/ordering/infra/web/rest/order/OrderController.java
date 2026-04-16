@@ -8,6 +8,9 @@ import br.edu.ifsp.scl.ordering.application.ports.inbound.service.order.apply_di
 import br.edu.ifsp.scl.ordering.application.ports.inbound.service.order.apply_discount.dtos.ApplyDiscountResponse;
 import br.edu.ifsp.scl.ordering.application.ports.inbound.service.order.cancel.ICancelOrderService;
 import br.edu.ifsp.scl.ordering.application.ports.inbound.service.order.cancel.dtos.CancelOrderRequest;
+import br.edu.ifsp.scl.ordering.application.ports.inbound.service.order.change_status.IChangeOrderStatusService;
+import br.edu.ifsp.scl.ordering.application.ports.inbound.service.order.change_status.dtos.ChangeOrderStatusRequest;
+import br.edu.ifsp.scl.ordering.application.ports.inbound.service.order.change_status.dtos.ChangeOrderStatusResponse;
 import br.edu.ifsp.scl.ordering.application.ports.inbound.service.order.create.ICreateOrderService;
 import br.edu.ifsp.scl.ordering.application.ports.inbound.service.order.list.IListOrderService;
 import br.edu.ifsp.scl.ordering.application.ports.inbound.service.order.remove_item.IRemoveItemFromOrderService;
@@ -22,6 +25,8 @@ import br.edu.ifsp.scl.ordering.infra.web.rest.order.dtos.add_items.AddItemsToOr
 import br.edu.ifsp.scl.ordering.infra.web.rest.order.dtos.add_items.AddItemsToOrderResponseDTO;
 import br.edu.ifsp.scl.ordering.infra.web.rest.order.dtos.apply_discount.ApplyDiscountRequestDTO;
 import br.edu.ifsp.scl.ordering.infra.web.rest.order.dtos.apply_discount.ApplyDiscountResponseDTO;
+import br.edu.ifsp.scl.ordering.infra.web.rest.order.dtos.change_status.ChangeOrderStatusRequestDTO;
+import br.edu.ifsp.scl.ordering.infra.web.rest.order.dtos.change_status.ChangeOrderStatusResponseDTO;
 import br.edu.ifsp.scl.ordering.infra.web.rest.order.dtos.create.CreateOrderBodyDTO;
 import br.edu.ifsp.scl.ordering.infra.web.rest.order.dtos.create.CreateOrderResponseDTO;
 import br.edu.ifsp.scl.ordering.infra.web.rest.order.dtos.list_orders.ListOrdersOrderResponseDTO;
@@ -44,6 +49,7 @@ public class OrderController {
     private final IUpdateOrderItemQuantityService updateOrderItemQuantityService;
     private final IRemoveItemFromOrderService removeItemFromOrderService;
     private final IApplyDiscountService applyDiscountService;
+    private final IChangeOrderStatusService changeOrderStatusService;
 
     public OrderController(
             ICreateOrderService createOrderService,
@@ -52,7 +58,8 @@ public class OrderController {
             IAddItemsToOrderService addItemsToOrderService,
             IUpdateOrderItemQuantityService updateOrderItemQuantityService,
             IRemoveItemFromOrderService removeItemFromOrderService,
-            IApplyDiscountService applyDiscountService
+            IApplyDiscountService applyDiscountService,
+            IChangeOrderStatusService changeOrderStatusService
     ) {
         this.createOrderService = createOrderService;
         this.listOrderService = listOrderService;
@@ -61,6 +68,7 @@ public class OrderController {
         this.updateOrderItemQuantityService = updateOrderItemQuantityService;
         this.removeItemFromOrderService = removeItemFromOrderService;
         this.applyDiscountService = applyDiscountService;
+        this.changeOrderStatusService = changeOrderStatusService;
     }
 
     @GetMapping
@@ -146,6 +154,20 @@ public class OrderController {
 
         return ResponseEntity.ok(
                 ApplyDiscountResponseDTO.fromApplicationResponse(response)
+        );
+    }
+
+    @PatchMapping("/{orderId}/status")
+    public ResponseEntity<ChangeOrderStatusResponseDTO> changeOrderStatus(
+            @PathVariable String orderId,
+            @RequestBody ChangeOrderStatusRequestDTO body
+    ) {
+        ChangeOrderStatusRequest request = body.toApplicationRequest(new OrderId(orderId));
+
+        ChangeOrderStatusResponse response = changeOrderStatusService.change(request);
+
+        return ResponseEntity.ok(
+                ChangeOrderStatusResponseDTO.fromApplicationResponse(response)
         );
     }
 }
