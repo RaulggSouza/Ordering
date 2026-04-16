@@ -21,6 +21,7 @@ import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -94,6 +95,27 @@ public class ChangeOrderStatusServiceTest {
 
         verify(orderRepository, times(1)).findById(orderId);
         verify(orderRepository, times(1)).save(order);
+    }
+
+    @TDD
+    @UnitTest
+    @Test
+    @DisplayName("#73 - Should reject transition from CREATED to COMPLETED and require intermediate status")
+    void shouldRejectTransitionFromCreatedToCompletedAndRequireIntermediateStatus() {
+        OrderId orderId = new OrderId("order-1");
+        Order order = createOrderWithStatus(orderId, OrderStatus.CREATED);
+
+        ChangeOrderStatusRequest request = new ChangeOrderStatusRequest(orderId, OrderStatus.COMPLETED);
+
+        when(orderRepository.findById(orderId)).thenReturn(Optional.of(order));
+
+        assertThatExceptionOfType(IllegalOrderOperationException.class)
+                .isThrownBy(() -> sut.change(request));
+
+        assertThat(order.getOrderStatus()).isEqualTo(OrderStatus.CREATED);
+
+        verify(orderRepository, times(1)).findById(orderId);
+        verify(orderRepository, never()).save(any());
     }
 
     private Order createOrderWithStatus(OrderId orderId, OrderStatus status) {
