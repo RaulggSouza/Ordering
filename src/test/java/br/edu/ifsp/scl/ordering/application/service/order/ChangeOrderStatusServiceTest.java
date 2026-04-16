@@ -251,6 +251,28 @@ public class ChangeOrderStatusServiceTest {
         verify(orderRepository, never()).save(any());
     }
 
+    @TDD
+    @UnitTest
+    @ParameterizedTest(name = "Invalid target status from SHIPPED: {0}")
+    @EnumSource(value = OrderStatus.class, names = {"INVOICED", "CREATED"})
+    @DisplayName("#82 - Should keep status as SHIPPED and reject transition to INVOICED or CREATED")
+    void shouldKeepStatusAsShippedAndRejectTransitionToInvoicedOrCreated(OrderStatus targetStatus) {
+        OrderId orderId = new OrderId("order-1");
+        Order order = createOrderWithStatus(orderId, OrderStatus.SHIPPED);
+
+        ChangeOrderStatusRequest request = new ChangeOrderStatusRequest(orderId, targetStatus);
+
+        when(orderRepository.findById(orderId)).thenReturn(Optional.of(order));
+
+        assertThatExceptionOfType(IllegalOrderOperationException.class)
+                .isThrownBy(() -> sut.change(request));
+
+        assertThat(order.getOrderStatus()).isEqualTo(OrderStatus.SHIPPED);
+
+        verify(orderRepository, times(1)).findById(orderId);
+        verify(orderRepository, never()).save(any());
+    }
+
     private Order createOrderWithStatus(OrderId orderId, OrderStatus status) {
         return new Order(
                 orderId,
