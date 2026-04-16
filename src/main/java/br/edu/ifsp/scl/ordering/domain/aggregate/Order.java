@@ -62,7 +62,8 @@ public class Order {
 
     public void cancelOrder() {
         if (!canBeCancelled())
-            throw new IllegalStateException("Illegal status for cancellation. Status: " + this.status);
+            throw new IllegalOrderOperationException("Illegal status for cancellation. Status: " + this.status);
+
         this.status = OrderStatus.CANCELLED;
     }
 
@@ -225,10 +226,12 @@ public class Order {
             );
         }
 
-        boolean isInvalidTransition = this.status == OrderStatus.CREATED
-                && orderStatus == OrderStatus.COMPLETED;
+        boolean isValidTransition =
+                (this.status == OrderStatus.CREATED && orderStatus == OrderStatus.INVOICED) ||
+                        (this.status == OrderStatus.INVOICED && orderStatus == OrderStatus.SHIPPED) ||
+                        (this.status == OrderStatus.SHIPPED && orderStatus == OrderStatus.COMPLETED);
 
-        if (isInvalidTransition)
+        if (!isValidTransition)
             throw new IllegalOrderOperationException(
                     "Illegal status transition from \"%s\" to \"%s\"."
                             .formatted(this.status, orderStatus)

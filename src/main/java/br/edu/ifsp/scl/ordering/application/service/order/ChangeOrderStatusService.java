@@ -20,7 +20,11 @@ public class ChangeOrderStatusService implements IChangeOrderStatusService {
     public ChangeOrderStatusResponse change(ChangeOrderStatusRequest request) {
         Order order = orderRepository.findById(request.orderId()).orElseThrow();
         OrderStatus previousStatus = order.getOrderStatus();
-        order.changeStatusTo(request.newStatus());
+        if (request.newStatus() == OrderStatus.CANCELLED) {
+            order.cancelOrder();
+        } else {
+            order.changeStatusTo(request.newStatus());
+        }
         orderRepository.save(order);
         return new ChangeOrderStatusResponse(request.orderId(), previousStatus, request.newStatus());
     }

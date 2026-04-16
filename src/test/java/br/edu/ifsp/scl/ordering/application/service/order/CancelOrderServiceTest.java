@@ -4,6 +4,7 @@ import br.edu.ifsp.scl.ordering.application.ports.inbound.service.order.cancel.d
 import br.edu.ifsp.scl.ordering.application.ports.outbound.persistence.order.IOrderRepository;
 import br.edu.ifsp.scl.ordering.domain.aggregate.Order;
 import br.edu.ifsp.scl.ordering.domain.constant.OrderStatus;
+import br.edu.ifsp.scl.ordering.domain.exceptions.IllegalOrderOperationException;
 import br.edu.ifsp.scl.ordering.domain.exceptions.OrderNotFoundException;
 import br.edu.ifsp.scl.ordering.domain.valueobject.Address;
 import br.edu.ifsp.scl.ordering.domain.valueobject.CustomerId;
@@ -63,7 +64,8 @@ public class CancelOrderServiceTest {
 
         when(orderRepository.findById(orderId)).thenReturn(Optional.of(order));
 
-        assertThatIllegalStateException().isThrownBy(() -> sut.cancel(request));
+        assertThatExceptionOfType(IllegalOrderOperationException.class)
+                .isThrownBy(() -> sut.cancel(request));
 
         verify(orderRepository, times(1)).findById(orderId);
         verify(orderRepository, never()).save(order);
@@ -80,7 +82,8 @@ public class CancelOrderServiceTest {
 
         when(orderRepository.findById(orderId)).thenReturn(Optional.of(order));
 
-        assertThatIllegalStateException().isThrownBy(() -> sut.cancel(request));
+        assertThatExceptionOfType(IllegalOrderOperationException.class)
+                .isThrownBy(() -> sut.cancel(request));
 
         verify(orderRepository, times(1)).findById(orderId);
         verify(orderRepository, never()).save(order);
@@ -97,7 +100,8 @@ public class CancelOrderServiceTest {
 
         when(orderRepository.findById(orderId)).thenReturn(Optional.of(order));
 
-        assertThatIllegalStateException().isThrownBy(() -> sut.cancel(request));
+        assertThatExceptionOfType(IllegalOrderOperationException.class)
+                .isThrownBy(() -> sut.cancel(request));
 
         verify(orderRepository, times(1)).findById(orderId);
         verify(orderRepository, never()).save(order);
@@ -143,8 +147,8 @@ public class CancelOrderServiceTest {
         verify(orderRepository, never()).findById(any(OrderId.class));
         verify(orderRepository, never()).save(any(Order.class));
     }
-    
-    private Order createOrderWithStatus(OrderStatus status){
+
+    private Order createOrderWithStatus(OrderStatus status) {
 
         return Order.createWithStatus(
                 new OrderId("123"),

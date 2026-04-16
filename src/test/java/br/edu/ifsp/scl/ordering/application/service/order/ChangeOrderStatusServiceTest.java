@@ -23,7 +23,6 @@ import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
-import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -200,7 +199,7 @@ public class ChangeOrderStatusServiceTest {
 
         when(orderRepository.findById(orderId)).thenReturn(Optional.of(order));
 
-        assertThatExceptionOfType(IllegalStateException.class)
+        assertThatExceptionOfType(IllegalOrderOperationException.class)
                 .isThrownBy(() -> sut.change(request));
 
         assertThat(order.getOrderStatus()).isEqualTo(status);
