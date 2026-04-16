@@ -21,7 +21,6 @@ import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
-import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -73,6 +72,28 @@ public class ChangeOrderStatusServiceTest {
 
         verify(orderRepository, times(1)).findById(orderId);
         verify(orderRepository, never()).save(any());
+    }
+
+    @TDD
+    @UnitTest
+    @Test
+    @DisplayName("#71 - Should update order status to SHIPPED after invoiced order is delivered to carrier")
+    void shouldUpdateOrderStatusToShippedAfterInvoicedOrderIsDeliveredToCarrier() {
+        OrderId orderId = new OrderId("order-1");
+        Order order = createOrderWithStatus(orderId, OrderStatus.INVOICED);
+
+        ChangeOrderStatusRequest request = new ChangeOrderStatusRequest(orderId, OrderStatus.SHIPPED);
+
+        when(orderRepository.findById(orderId)).thenReturn(Optional.of(order));
+
+        ChangeOrderStatusResponse response = sut.change(request);
+
+        assertThat(order.getOrderStatus()).isEqualTo(OrderStatus.SHIPPED);
+        assertThat(response.previousStatus()).isEqualTo(OrderStatus.INVOICED);
+        assertThat(response.currentStatus()).isEqualTo(OrderStatus.SHIPPED);
+
+        verify(orderRepository, times(1)).findById(orderId);
+        verify(orderRepository, times(1)).save(order);
     }
 
     private Order createOrderWithStatus(OrderId orderId, OrderStatus status) {
