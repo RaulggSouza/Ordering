@@ -230,6 +230,27 @@ public class ChangeOrderStatusServiceTest {
         verify(orderRepository, never()).save(any());
     }
 
+    @TDD
+    @UnitTest
+    @Test
+    @DisplayName("#81 - Should keep status as INVOICED and reject transition back to CREATED")
+    void shouldKeepStatusAsInvoicedAndRejectTransitionBackToCreated() {
+        OrderId orderId = new OrderId("order-1");
+        Order order = createOrderWithStatus(orderId, OrderStatus.INVOICED);
+
+        ChangeOrderStatusRequest request = new ChangeOrderStatusRequest(orderId, OrderStatus.CREATED);
+
+        when(orderRepository.findById(orderId)).thenReturn(Optional.of(order));
+
+        assertThatExceptionOfType(IllegalOrderOperationException.class)
+                .isThrownBy(() -> sut.change(request));
+
+        assertThat(order.getOrderStatus()).isEqualTo(OrderStatus.INVOICED);
+
+        verify(orderRepository, times(1)).findById(orderId);
+        verify(orderRepository, never()).save(any());
+    }
+
     private Order createOrderWithStatus(OrderId orderId, OrderStatus status) {
         return new Order(
                 orderId,
