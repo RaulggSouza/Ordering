@@ -187,6 +187,28 @@ public class ChangeOrderStatusServiceTest {
         verify(orderRepository, times(1)).save(order);
     }
 
+    @TDD
+    @UnitTest
+    @ParameterizedTest(name = "Non cancellable status: {0}")
+    @EnumSource(value = OrderStatus.class, names = {"SHIPPED", "COMPLETED"})
+    @DisplayName("#78 - Should reject cancellation from order after dispatch")
+    void shouldRejectCancellationFromOrderAfterDispatch(OrderStatus status) {
+        OrderId orderId = new OrderId("order-1");
+        Order order = createOrderWithStatus(orderId, status);
+
+        ChangeOrderStatusRequest request = new ChangeOrderStatusRequest(orderId, OrderStatus.CANCELLED);
+
+        when(orderRepository.findById(orderId)).thenReturn(Optional.of(order));
+
+        assertThatExceptionOfType(IllegalStateException.class)
+                .isThrownBy(() -> sut.change(request));
+
+        assertThat(order.getOrderStatus()).isEqualTo(status);
+
+        verify(orderRepository, times(1)).findById(orderId);
+        verify(orderRepository, never()).save(any());
+    }
+
     private Order createOrderWithStatus(OrderId orderId, OrderStatus status) {
         return new Order(
                 orderId,
