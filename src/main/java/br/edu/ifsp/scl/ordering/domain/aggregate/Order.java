@@ -214,6 +214,11 @@ public class Order {
     }
 
     public void changeStatusTo(OrderStatus orderStatus) {
+        if (this.status == OrderStatus.CANCELLED)
+            throw new IllegalOrderOperationException(
+                    "Cannot change status from CANCELLED to \"%s\".".formatted(orderStatus)
+            );
+
         this.status = orderStatus;
     }
 }
