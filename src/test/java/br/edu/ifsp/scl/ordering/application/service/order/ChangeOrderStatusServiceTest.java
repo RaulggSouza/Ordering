@@ -6,7 +6,9 @@ import br.edu.ifsp.scl.ordering.application.ports.outbound.persistence.order.IOr
 import br.edu.ifsp.scl.ordering.domain.aggregate.Order;
 import br.edu.ifsp.scl.ordering.domain.constant.OrderStatus;
 import br.edu.ifsp.scl.ordering.domain.exceptions.IllegalOrderOperationException;
+import br.edu.ifsp.scl.ordering.domain.exceptions.OrderNotFoundException;
 import br.edu.ifsp.scl.ordering.domain.valueobject.OrderId;
+import br.edu.ifsp.scl.ordering.testing.tags.Functional;
 import br.edu.ifsp.scl.ordering.testing.tags.TDD;
 import br.edu.ifsp.scl.ordering.testing.tags.UnitTest;
 import org.junit.jupiter.api.DisplayName;
@@ -268,6 +270,24 @@ public class ChangeOrderStatusServiceTest {
                 .isThrownBy(() -> sut.change(request));
 
         assertThat(order.getOrderStatus()).isEqualTo(OrderStatus.SHIPPED);
+
+        verify(orderRepository, times(1)).findById(orderId);
+        verify(orderRepository, never()).save(any());
+    }
+
+    @Functional
+    @UnitTest
+    @Test
+    @DisplayName("#116 - Should throw OrderNotFoundException when order does not exists")
+    void shouldThrowOrderNotFoundExceptionWhenOrderDoesNotExists() {
+        OrderId orderId = new OrderId("order-1");
+
+        ChangeOrderStatusRequest request = new ChangeOrderStatusRequest(orderId, OrderStatus.INVOICED);
+
+        when(orderRepository.findById(orderId)).thenReturn(Optional.empty());
+
+        assertThatExceptionOfType(OrderNotFoundException.class)
+                .isThrownBy(() -> sut.change(request));
 
         verify(orderRepository, times(1)).findById(orderId);
         verify(orderRepository, never()).save(any());
