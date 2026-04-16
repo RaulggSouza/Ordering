@@ -219,6 +219,12 @@ public class Order {
                     "Cannot change status from CANCELLED to \"%s\".".formatted(orderStatus)
             );
 
+        if (this.status == OrderStatus.COMPLETED) {
+            throw new IllegalOrderOperationException(
+                    "Cannot change status from COMPLETED to \"%s\".".formatted(orderStatus)
+            );
+        }
+
         boolean isInvalidTransition = this.status == OrderStatus.CREATED
                 && orderStatus == OrderStatus.COMPLETED;
 
