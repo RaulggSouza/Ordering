@@ -212,4 +212,8 @@ public class Order {
         }
         this.evaluatedTotal = evaluation;
     }
+
+    public void changeStatusTo(OrderStatus orderStatus) {
+        this.status = orderStatus;
+    }
 }
