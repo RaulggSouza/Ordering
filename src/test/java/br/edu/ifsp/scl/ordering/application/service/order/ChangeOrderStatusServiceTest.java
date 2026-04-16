@@ -23,6 +23,7 @@ import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -203,6 +204,27 @@ public class ChangeOrderStatusServiceTest {
                 .isThrownBy(() -> sut.change(request));
 
         assertThat(order.getOrderStatus()).isEqualTo(status);
+
+        verify(orderRepository, times(1)).findById(orderId);
+        verify(orderRepository, never()).save(any());
+    }
+
+    @TDD
+    @UnitTest
+    @Test
+    @DisplayName("#79 - Should keep status as CANCELLED and reject repeated cancellation")
+    void shouldKeepStatusAsCancelledAndRejectRepeatedCancellation() {
+        OrderId orderId = new OrderId("order-1");
+        Order order = createOrderWithStatus(orderId, OrderStatus.CANCELLED);
+
+        ChangeOrderStatusRequest request = new ChangeOrderStatusRequest(orderId, OrderStatus.CANCELLED);
+
+        when(orderRepository.findById(orderId)).thenReturn(Optional.of(order));
+
+        assertThatExceptionOfType(IllegalOrderOperationException.class)
+                .isThrownBy(() -> sut.change(request));
+
+        assertThat(order.getOrderStatus()).isEqualTo(OrderStatus.CANCELLED);
 
         verify(orderRepository, times(1)).findById(orderId);
         verify(orderRepository, never()).save(any());
