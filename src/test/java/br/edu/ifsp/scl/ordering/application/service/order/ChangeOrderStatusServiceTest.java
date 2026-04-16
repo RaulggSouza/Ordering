@@ -23,6 +23,7 @@ import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -161,6 +162,29 @@ public class ChangeOrderStatusServiceTest {
 
         verify(orderRepository, times(1)).findById(orderId);
         verify(orderRepository, never()).save(any());
+    }
+
+    @TDD
+    @UnitTest
+    @ParameterizedTest(name = "Cancellable status: {0}")
+    @EnumSource(value = OrderStatus.class, names = {"CREATED", "INVOICED"})
+    @DisplayName("#77 - Should be able to cancel order in status CREATED or INVOICED")
+    void shouldBeAbleToCancelOrderInStatusCreatedOrInvoiced(OrderStatus status) {
+        OrderId orderId = new OrderId("order-1");
+        Order order = createOrderWithStatus(orderId, status);
+
+        ChangeOrderStatusRequest request = new ChangeOrderStatusRequest(orderId, OrderStatus.CANCELLED);
+
+        when(orderRepository.findById(orderId)).thenReturn(Optional.of(order));
+
+        ChangeOrderStatusResponse response = sut.change(request);
+
+        assertThat(order.getOrderStatus()).isEqualTo(OrderStatus.CANCELLED);
+        assertThat(response.previousStatus()).isEqualTo(status);
+        assertThat(response.currentStatus()).isEqualTo(OrderStatus.CANCELLED);
+
+        verify(orderRepository, times(1)).findById(orderId);
+        verify(orderRepository, times(1)).save(order);
     }
 
     private Order createOrderWithStatus(OrderId orderId, OrderStatus status) {
