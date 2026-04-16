@@ -12,6 +12,8 @@ import br.edu.ifsp.scl.ordering.testing.tags.UnitTest;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EnumSource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -137,6 +139,28 @@ public class ChangeOrderStatusServiceTest {
 
         verify(orderRepository, times(1)).findById(orderId);
         verify(orderRepository, times(1)).save(order);
+    }
+
+    @TDD
+    @UnitTest
+    @ParameterizedTest(name = "Target status: {0}")
+    @EnumSource(value = OrderStatus.class, names = {"COMPLETED"}, mode = EnumSource.Mode.EXCLUDE)
+    @DisplayName("#75 - Should block any further transition when order is already COMPLETED")
+    void shouldBlockAnyFurtherTransitionWhenOrderIsAlreadyCompleted(OrderStatus targetStatus) {
+        OrderId orderId = new OrderId("order-1");
+        Order order = createOrderWithStatus(orderId, OrderStatus.COMPLETED);
+
+        ChangeOrderStatusRequest request = new ChangeOrderStatusRequest(orderId, targetStatus);
+
+        when(orderRepository.findById(orderId)).thenReturn(Optional.of(order));
+
+        assertThatExceptionOfType(IllegalOrderOperationException.class)
+                .isThrownBy(() -> sut.change(request));
+
+        assertThat(order.getOrderStatus()).isEqualTo(OrderStatus.COMPLETED);
+
+        verify(orderRepository, times(1)).findById(orderId);
+        verify(orderRepository, never()).save(any());
     }
 
     private Order createOrderWithStatus(OrderId orderId, OrderStatus status) {
