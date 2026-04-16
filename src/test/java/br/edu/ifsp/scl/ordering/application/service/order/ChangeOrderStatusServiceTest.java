@@ -7,6 +7,8 @@ import br.edu.ifsp.scl.ordering.domain.aggregate.Order;
 import br.edu.ifsp.scl.ordering.domain.constant.OrderStatus;
 import br.edu.ifsp.scl.ordering.domain.exceptions.IllegalOrderOperationException;
 import br.edu.ifsp.scl.ordering.domain.exceptions.OrderNotFoundException;
+import br.edu.ifsp.scl.ordering.domain.valueobject.Address;
+import br.edu.ifsp.scl.ordering.domain.valueobject.CustomerId;
 import br.edu.ifsp.scl.ordering.domain.valueobject.OrderId;
 import br.edu.ifsp.scl.ordering.testing.tags.Functional;
 import br.edu.ifsp.scl.ordering.testing.tags.TDD;
@@ -15,17 +17,16 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.EnumSource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
-import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -37,22 +38,27 @@ public class ChangeOrderStatusServiceTest {
 
     @TDD
     @UnitTest
-    @Test
-    @DisplayName("#69 - Should update order status to INVOICED when payment is validated")
-    void shouldUpdateOrderStatusToInvoicedWhenPaymentIsValidated() {
+    @ParameterizedTest(name = "Should allow transition from {0} to {1}")
+    @CsvSource({
+            "CREATED, INVOICED",
+            "INVOICED, SHIPPED",
+            "SHIPPED, COMPLETED"
+    })
+    @DisplayName("Should update order status for valid transitions")
+    void shouldUpdateOrderStatusForValidTransitions(OrderStatus currentStatus, OrderStatus targetStatus) {
         OrderId orderId = new OrderId("order-1");
-        Order order = createOrderWithStatus(orderId, OrderStatus.CREATED);
+        Order order = createOrderWithStatus(orderId, currentStatus);
 
-        ChangeOrderStatusRequest request = new ChangeOrderStatusRequest(orderId, OrderStatus.INVOICED);
+        ChangeOrderStatusRequest request = new ChangeOrderStatusRequest(orderId, targetStatus);
 
         when(orderRepository.findById(orderId)).thenReturn(Optional.of(order));
 
         ChangeOrderStatusResponse response = sut.change(request);
 
-        assertThat(order.getOrderStatus()).isEqualTo(OrderStatus.INVOICED);
+        assertThat(order.getOrderStatus()).isEqualTo(targetStatus);
         assertThat(response.orderId()).isEqualTo(orderId);
-        assertThat(response.previousStatus()).isEqualTo(OrderStatus.CREATED);
-        assertThat(response.currentStatus()).isEqualTo(OrderStatus.INVOICED);
+        assertThat(response.previousStatus()).isEqualTo(currentStatus);
+        assertThat(response.currentStatus()).isEqualTo(targetStatus);
 
         verify(orderRepository, times(1)).findById(orderId);
         verify(orderRepository, times(1)).save(order);
@@ -60,98 +66,24 @@ public class ChangeOrderStatusServiceTest {
 
     @TDD
     @UnitTest
-    @Test
-    @DisplayName("#70 - Should throw IllegalOrderOperationException when trying to invoice cancelled order")
-    void shouldThrowIllegalOrderOperationExceptionWhenTryingToInvoiceCancelledOrder() {
+    @ParameterizedTest(name = "Should reject transition from {0} to {1}")
+    @CsvSource({
+            "CANCELLED, INVOICED",
+            "CREATED, SHIPPED",
+            "CREATED, COMPLETED",
+            "INVOICED, CREATED",
+            "INVOICED, COMPLETED",
+            "SHIPPED, CREATED",
+            "SHIPPED, INVOICED",
+            "COMPLETED, CREATED",
+            "COMPLETED, INVOICED",
+            "COMPLETED, SHIPPED",
+            "COMPLETED, CANCELLED"
+    })
+    @DisplayName("Should reject invalid non-cancellation transitions")
+    void shouldRejectInvalidNonCancellationTransitions(OrderStatus currentStatus, OrderStatus targetStatus) {
         OrderId orderId = new OrderId("order-1");
-        Order order = createOrderWithStatus(orderId, OrderStatus.CANCELLED);
-
-        ChangeOrderStatusRequest request = new ChangeOrderStatusRequest(orderId, OrderStatus.INVOICED);
-
-        when(orderRepository.findById(orderId)).thenReturn(Optional.of(order));
-
-        assertThatExceptionOfType(IllegalOrderOperationException.class)
-                .isThrownBy(() -> sut.change(request));
-
-        assertThat(order.getOrderStatus()).isEqualTo(OrderStatus.CANCELLED);
-
-        verify(orderRepository, times(1)).findById(orderId);
-        verify(orderRepository, never()).save(any());
-    }
-
-    @TDD
-    @UnitTest
-    @Test
-    @DisplayName("#71 - Should update order status to SHIPPED after invoiced order is delivered to carrier")
-    void shouldUpdateOrderStatusToShippedAfterInvoicedOrderIsDeliveredToCarrier() {
-        OrderId orderId = new OrderId("order-1");
-        Order order = createOrderWithStatus(orderId, OrderStatus.INVOICED);
-
-        ChangeOrderStatusRequest request = new ChangeOrderStatusRequest(orderId, OrderStatus.SHIPPED);
-
-        when(orderRepository.findById(orderId)).thenReturn(Optional.of(order));
-
-        ChangeOrderStatusResponse response = sut.change(request);
-
-        assertThat(order.getOrderStatus()).isEqualTo(OrderStatus.SHIPPED);
-        assertThat(response.previousStatus()).isEqualTo(OrderStatus.INVOICED);
-        assertThat(response.currentStatus()).isEqualTo(OrderStatus.SHIPPED);
-
-        verify(orderRepository, times(1)).findById(orderId);
-        verify(orderRepository, times(1)).save(order);
-    }
-
-    @TDD
-    @UnitTest
-    @Test
-    @DisplayName("#73 - Should reject transition from CREATED to COMPLETED and require intermediate status")
-    void shouldRejectTransitionFromCreatedToCompletedAndRequireIntermediateStatus() {
-        OrderId orderId = new OrderId("order-1");
-        Order order = createOrderWithStatus(orderId, OrderStatus.CREATED);
-
-        ChangeOrderStatusRequest request = new ChangeOrderStatusRequest(orderId, OrderStatus.COMPLETED);
-
-        when(orderRepository.findById(orderId)).thenReturn(Optional.of(order));
-
-        assertThatExceptionOfType(IllegalOrderOperationException.class)
-                .isThrownBy(() -> sut.change(request));
-
-        assertThat(order.getOrderStatus()).isEqualTo(OrderStatus.CREATED);
-
-        verify(orderRepository, times(1)).findById(orderId);
-        verify(orderRepository, never()).save(any());
-    }
-
-    @TDD
-    @UnitTest
-    @Test
-    @DisplayName("#74 - Should update order status to COMPLETED when shipped order recieves delivery confirmation")
-    void shouldUpdateOrderStatusToCompletedWhenShippedOrderRecievesDeliveryConfirmation() {
-        OrderId orderId = new OrderId("order-1");
-        Order order = createOrderWithStatus(orderId, OrderStatus.SHIPPED);
-
-        ChangeOrderStatusRequest request = new ChangeOrderStatusRequest(orderId, OrderStatus.COMPLETED);
-
-        when(orderRepository.findById(orderId)).thenReturn(Optional.of(order));
-
-        ChangeOrderStatusResponse response = sut.change(request);
-
-        assertThat(order.getOrderStatus()).isEqualTo(OrderStatus.COMPLETED);
-        assertThat(response.previousStatus()).isEqualTo(OrderStatus.SHIPPED);
-        assertThat(response.currentStatus()).isEqualTo(OrderStatus.COMPLETED);
-
-        verify(orderRepository, times(1)).findById(orderId);
-        verify(orderRepository, times(1)).save(order);
-    }
-
-    @TDD
-    @UnitTest
-    @ParameterizedTest(name = "Target status: {0}")
-    @EnumSource(value = OrderStatus.class, names = {"COMPLETED"}, mode = EnumSource.Mode.EXCLUDE)
-    @DisplayName("#75 - Should block any further transition when order is already COMPLETED")
-    void shouldBlockAnyFurtherTransitionWhenOrderIsAlreadyCompleted(OrderStatus targetStatus) {
-        OrderId orderId = new OrderId("order-1");
-        Order order = createOrderWithStatus(orderId, OrderStatus.COMPLETED);
+        Order order = createOrderWithStatus(orderId, currentStatus);
 
         ChangeOrderStatusRequest request = new ChangeOrderStatusRequest(orderId, targetStatus);
 
@@ -160,7 +92,7 @@ public class ChangeOrderStatusServiceTest {
         assertThatExceptionOfType(IllegalOrderOperationException.class)
                 .isThrownBy(() -> sut.change(request));
 
-        assertThat(order.getOrderStatus()).isEqualTo(OrderStatus.COMPLETED);
+        assertThat(order.getOrderStatus()).isEqualTo(currentStatus);
 
         verify(orderRepository, times(1)).findById(orderId);
         verify(orderRepository, never()).save(any());
@@ -168,12 +100,12 @@ public class ChangeOrderStatusServiceTest {
 
     @TDD
     @UnitTest
-    @ParameterizedTest(name = "Cancellable status: {0}")
+    @ParameterizedTest(name = "Should cancel order from {0}")
     @EnumSource(value = OrderStatus.class, names = {"CREATED", "INVOICED"})
-    @DisplayName("#77 - Should be able to cancel order in status CREATED or INVOICED")
-    void shouldBeAbleToCancelOrderInStatusCreatedOrInvoiced(OrderStatus status) {
+    @DisplayName("Should cancel order when current status is CREATED or INVOICED")
+    void shouldCancelOrderWhenCurrentStatusIsCreatedOrInvoiced(OrderStatus currentStatus) {
         OrderId orderId = new OrderId("order-1");
-        Order order = createOrderWithStatus(orderId, status);
+        Order order = createOrderWithStatus(orderId, currentStatus);
 
         ChangeOrderStatusRequest request = new ChangeOrderStatusRequest(orderId, OrderStatus.CANCELLED);
 
@@ -182,7 +114,8 @@ public class ChangeOrderStatusServiceTest {
         ChangeOrderStatusResponse response = sut.change(request);
 
         assertThat(order.getOrderStatus()).isEqualTo(OrderStatus.CANCELLED);
-        assertThat(response.previousStatus()).isEqualTo(status);
+        assertThat(response.orderId()).isEqualTo(orderId);
+        assertThat(response.previousStatus()).isEqualTo(currentStatus);
         assertThat(response.currentStatus()).isEqualTo(OrderStatus.CANCELLED);
 
         verify(orderRepository, times(1)).findById(orderId);
@@ -191,12 +124,12 @@ public class ChangeOrderStatusServiceTest {
 
     @TDD
     @UnitTest
-    @ParameterizedTest(name = "Non cancellable status: {0}")
-    @EnumSource(value = OrderStatus.class, names = {"SHIPPED", "COMPLETED"})
-    @DisplayName("#78 - Should reject cancellation from order after dispatch")
-    void shouldRejectCancellationFromOrderAfterDispatch(OrderStatus status) {
+    @ParameterizedTest(name = "Should reject cancellation from {0}")
+    @EnumSource(value = OrderStatus.class, names = {"SHIPPED", "COMPLETED", "CANCELLED"})
+    @DisplayName("Should reject invalid cancellation transitions")
+    void shouldRejectInvalidCancellationTransitions(OrderStatus currentStatus) {
         OrderId orderId = new OrderId("order-1");
-        Order order = createOrderWithStatus(orderId, status);
+        Order order = createOrderWithStatus(orderId, currentStatus);
 
         ChangeOrderStatusRequest request = new ChangeOrderStatusRequest(orderId, OrderStatus.CANCELLED);
 
@@ -205,71 +138,7 @@ public class ChangeOrderStatusServiceTest {
         assertThatExceptionOfType(IllegalOrderOperationException.class)
                 .isThrownBy(() -> sut.change(request));
 
-        assertThat(order.getOrderStatus()).isEqualTo(status);
-
-        verify(orderRepository, times(1)).findById(orderId);
-        verify(orderRepository, never()).save(any());
-    }
-
-    @TDD
-    @UnitTest
-    @Test
-    @DisplayName("#79 - Should keep status as CANCELLED and reject repeated cancellation")
-    void shouldKeepStatusAsCancelledAndRejectRepeatedCancellation() {
-        OrderId orderId = new OrderId("order-1");
-        Order order = createOrderWithStatus(orderId, OrderStatus.CANCELLED);
-
-        ChangeOrderStatusRequest request = new ChangeOrderStatusRequest(orderId, OrderStatus.CANCELLED);
-
-        when(orderRepository.findById(orderId)).thenReturn(Optional.of(order));
-
-        assertThatExceptionOfType(IllegalOrderOperationException.class)
-                .isThrownBy(() -> sut.change(request));
-
-        assertThat(order.getOrderStatus()).isEqualTo(OrderStatus.CANCELLED);
-
-        verify(orderRepository, times(1)).findById(orderId);
-        verify(orderRepository, never()).save(any());
-    }
-
-    @TDD
-    @UnitTest
-    @Test
-    @DisplayName("#81 - Should keep status as INVOICED and reject transition back to CREATED")
-    void shouldKeepStatusAsInvoicedAndRejectTransitionBackToCreated() {
-        OrderId orderId = new OrderId("order-1");
-        Order order = createOrderWithStatus(orderId, OrderStatus.INVOICED);
-
-        ChangeOrderStatusRequest request = new ChangeOrderStatusRequest(orderId, OrderStatus.CREATED);
-
-        when(orderRepository.findById(orderId)).thenReturn(Optional.of(order));
-
-        assertThatExceptionOfType(IllegalOrderOperationException.class)
-                .isThrownBy(() -> sut.change(request));
-
-        assertThat(order.getOrderStatus()).isEqualTo(OrderStatus.INVOICED);
-
-        verify(orderRepository, times(1)).findById(orderId);
-        verify(orderRepository, never()).save(any());
-    }
-
-    @TDD
-    @UnitTest
-    @ParameterizedTest(name = "Invalid target status from SHIPPED: {0}")
-    @EnumSource(value = OrderStatus.class, names = {"INVOICED", "CREATED"})
-    @DisplayName("#82 - Should keep status as SHIPPED and reject transition to INVOICED or CREATED")
-    void shouldKeepStatusAsShippedAndRejectTransitionToInvoicedOrCreated(OrderStatus targetStatus) {
-        OrderId orderId = new OrderId("order-1");
-        Order order = createOrderWithStatus(orderId, OrderStatus.SHIPPED);
-
-        ChangeOrderStatusRequest request = new ChangeOrderStatusRequest(orderId, targetStatus);
-
-        when(orderRepository.findById(orderId)).thenReturn(Optional.of(order));
-
-        assertThatExceptionOfType(IllegalOrderOperationException.class)
-                .isThrownBy(() -> sut.change(request));
-
-        assertThat(order.getOrderStatus()).isEqualTo(OrderStatus.SHIPPED);
+        assertThat(order.getOrderStatus()).isEqualTo(currentStatus);
 
         verify(orderRepository, times(1)).findById(orderId);
         verify(orderRepository, never()).save(any());
@@ -278,8 +147,8 @@ public class ChangeOrderStatusServiceTest {
     @Functional
     @UnitTest
     @Test
-    @DisplayName("#116 - Should throw OrderNotFoundException when order does not exists")
-    void shouldThrowOrderNotFoundExceptionWhenOrderDoesNotExists() {
+    @DisplayName("#110 - Should throw OrderNotFoundException when order does not exist")
+    void shouldThrowOrderNotFoundExceptionWhenOrderDoesNotExist() {
         OrderId orderId = new OrderId("order-1");
 
         ChangeOrderStatusRequest request = new ChangeOrderStatusRequest(orderId, OrderStatus.INVOICED);
@@ -294,13 +163,11 @@ public class ChangeOrderStatusServiceTest {
     }
 
     private Order createOrderWithStatus(OrderId orderId, OrderStatus status) {
-        return new Order(
+        return Order.createWithStatus(
                 orderId,
-                List.of(),
-                List.of(),
                 status,
-                null,
-                null
+                new CustomerId("customer-1"),
+                mock(Address.class)
         );
     }
 }
