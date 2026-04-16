@@ -6,6 +6,7 @@ import br.edu.ifsp.scl.ordering.application.ports.inbound.service.order.change_s
 import br.edu.ifsp.scl.ordering.application.ports.outbound.persistence.order.IOrderRepository;
 import br.edu.ifsp.scl.ordering.domain.aggregate.Order;
 import br.edu.ifsp.scl.ordering.domain.constant.OrderStatus;
+import br.edu.ifsp.scl.ordering.domain.exceptions.OrderNotFoundException;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -18,13 +19,17 @@ public class ChangeOrderStatusService implements IChangeOrderStatusService {
 
     @Override
     public ChangeOrderStatusResponse change(ChangeOrderStatusRequest request) {
-        Order order = orderRepository.findById(request.orderId()).orElseThrow();
+        Order order = orderRepository.findById(request.orderId())
+                .orElseThrow(() -> new OrderNotFoundException(request.orderId()));
+
         OrderStatus previousStatus = order.getOrderStatus();
+
         if (request.newStatus() == OrderStatus.CANCELLED) {
             order.cancelOrder();
         } else {
             order.changeStatusTo(request.newStatus());
         }
+
         orderRepository.save(order);
         return new ChangeOrderStatusResponse(request.orderId(), previousStatus, request.newStatus());
     }
