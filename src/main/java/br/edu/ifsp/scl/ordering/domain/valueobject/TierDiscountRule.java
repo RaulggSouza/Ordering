@@ -16,14 +16,14 @@ public record TierDiscountRule(List<DiscountTier> tiers) implements DiscountRule
 
     @Override
     public boolean isEligible(Order order) {
-        double total = order.getTotal();
+        double total = order.getGrossTotal();
 
         return tiers.stream().anyMatch(tier -> tier.contains(total));
     }
 
     @Override
     public double getPercentage(Order order) {
-        double total = order.getTotal();
+        double total = order.getGrossTotal();
 
         return tiers.stream()
                 .filter(tier -> tier.contains(total))

@@ -6,6 +6,7 @@ import br.edu.ifsp.scl.ordering.domain.interfaces.DiscountRule;
 import br.edu.ifsp.scl.ordering.domain.valueobject.DiscountId;
 
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 
 public class Discount {
     private final DiscountId discountId;
@@ -13,12 +14,31 @@ public class Discount {
     private final DiscountRule rule;
     private final boolean active;
     private final LocalDateTime expiresAt;
+    private final LocalDateTime createdAt;
 
-    public Discount(DiscountId discountId, DiscountRule rule,  DiscountType discountTier,  boolean active, LocalDateTime expiresAt) {
+    public Discount(
+            DiscountId discountId,
+            DiscountRule rule,
+            DiscountType discountTier,
+            boolean active,
+            LocalDateTime expiresAt
+    ) {
+        this(discountId, rule, discountTier, active, LocalDateTime.now(), expiresAt);
+    }
+
+    public Discount(
+            DiscountId discountId,
+            DiscountRule rule,
+            DiscountType discountTier,
+            boolean active,
+            LocalDateTime createdAt,
+            LocalDateTime expiresAt
+    ) {
         this.discountId = discountId;
         this.rule = rule;
         this.discountType = discountTier;
         this.active = active;
+        this.createdAt = createdAt;
         this.expiresAt = expiresAt;
     }
 
@@ -28,6 +48,11 @@ public class Discount {
 
     public DiscountType getDiscountType() {
         return discountType;
+    }
+
+    public String getExpiration() {
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy hh:mm:ss");
+        return expiresAt.format(formatter);
     }
 
     public boolean isActive() {
@@ -58,5 +83,9 @@ public class Discount {
 
     public double getPercentage(Order order) {
         return rule.getPercentage(order);
+    }
+
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
     }
 }
