@@ -397,28 +397,28 @@ public class GetEligibleDiscountsServiceTest {
                         new MinimumValueDiscountRule(100, 1),
                         DiscountType.CATEGORY,
                         true,
-                        LocalDateTime.of(2026, 4, 20, 23, 59)
+                        LocalDateTime.now().plusDays(5)
                 ),
                 new Discount(
                         new DiscountId("2"),
                         new MinimumValueDiscountRule(2000, 1),
                         DiscountType.COUPON,
                         true,
-                        LocalDateTime.of(2026, 4, 1, 23, 59)
+                        LocalDateTime.now().minusDays(5)
                 ),
                 new Discount(
                         new DiscountId("3"),
                         new TierDiscountRule(List.of(new DiscountTier(9000, 11000, 1))),
                         DiscountType.FIRST_PURCHASE,
                         true,
-                        LocalDateTime.of(2026, 4, 30, 23, 59)
+                        LocalDateTime.now().plusDays(5)
                 ),
                 new Discount(
                         new DiscountId("4"),
                         new TierDiscountRule(List.of(new DiscountTier(20, 30, 1), new DiscountTier(40, 50, 1))),
                         DiscountType.SEASONAL,
                         true,
-                        LocalDateTime.of(2026, 4, 5, 23, 59)
+                        LocalDateTime.now().minusDays(5)
                 )
         );
     }
