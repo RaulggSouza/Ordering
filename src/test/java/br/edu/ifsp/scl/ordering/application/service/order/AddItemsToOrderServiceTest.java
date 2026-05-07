@@ -92,7 +92,7 @@ public class AddItemsToOrderServiceTest {
     void shouldThrowAnErrorWhenProductDoesNotExist() {
         Order order = createOrder("1", "");
 
-        List<AddItemsToOrderItemRequest> orderItemsToAdd = createOrderItemsToAdd("");
+        List<AddItemsToOrderItemRequest> orderItemsToAdd = createOrderItemsToAdd("1:1:100");
 
         AddItemsToOrderRequest request = new AddItemsToOrderRequest(
                 order.getOrderId(),

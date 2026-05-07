@@ -8,9 +8,13 @@ import br.edu.ifsp.scl.ordering.application.ports.inbound.service.order.add_item
 import br.edu.ifsp.scl.ordering.application.ports.outbound.persistence.order.IOrderRepository;
 import br.edu.ifsp.scl.ordering.application.ports.outbound.persistence.product.IProductRepository;
 import br.edu.ifsp.scl.ordering.domain.aggregate.Order;
+import br.edu.ifsp.scl.ordering.domain.entity.OrderItem;
 import br.edu.ifsp.scl.ordering.domain.exceptions.OrderNotFoundException;
 import br.edu.ifsp.scl.ordering.domain.exceptions.ProductNotFoundException;
+import br.edu.ifsp.scl.ordering.domain.valueobject.ProductId;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
 
 
 @Service
@@ -28,19 +32,28 @@ public class AddItemsToOrderService implements IAddItemsToOrderService {
         Order order = orderRepository.findById(request.orderId())
                 .orElseThrow(() -> new OrderNotFoundException(request.orderId()));
 
-        if(!productRepository.allExistsByIds(request.addItemsToOrderItemRequest().stream().map((AddItemsToOrderItemRequest::productId)).toList())){
+        List<AddItemsToOrderItemRequest> itemsToAddRequest = request.addItemsToOrderItemRequest();
+
+        if (itemsToAddRequest == null || itemsToAddRequest.isEmpty()) {
+            throw new IllegalArgumentException("Order items cannot be null or empty");
+        }
+
+        List<ProductId> productIds = itemsToAddRequest.stream()
+                .map(AddItemsToOrderItemRequest::productId)
+                .toList();
+
+        if (!productRepository.allExistsByIds(productIds)) {
             throw new ProductNotFoundException("Product not found");
         }
 
-        order.addItems(request.addItemsToOrderItemRequest().stream().map(AddItemsToOrderItemRequest::toOrderItem).toList());
+        List<OrderItem> itemsToAdd = itemsToAddRequest.stream()
+                .map(item -> new OrderItem(item.productId(), item.quantity(), item.price()))
+                .toList();
+
+        order.addItems(itemsToAdd);
 
         orderRepository.save(order);
 
-        return new AddItemsToOrderResponse(
-                order.getOrderId(),
-                order.getItems().stream()
-                        .map(AddItemsToOrderItemResponse::fromOrderItem)
-                        .toList()
-        );
+        return AddItemsToOrderResponse.from(order);
     }
 }
