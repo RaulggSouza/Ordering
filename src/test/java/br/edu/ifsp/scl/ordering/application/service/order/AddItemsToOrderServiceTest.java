@@ -294,6 +294,30 @@ public class AddItemsToOrderServiceTest {
         verify(orderRepository, never()).save(any());
     }
 
+    @Structural
+    @UnitTest
+    @ParameterizedTest
+    @DisplayName("Should do nothing when items to add in order is null or empty")
+    @MethodSource("invalidItemsToAdd")
+    void shouldDoNothingWhenItemsToAddIsNullOrEmpty(List<OrderItem> itemsToAdd) {
+        Order order = createOrder("1", "1:1:100");
+
+        assertThatCode(() -> order.addItems(itemsToAdd))
+                .doesNotThrowAnyException();
+
+        assertThat(order.getItems())
+                .containsExactly(
+                        new OrderItem(new ProductId("1"), 1, 100)
+                );
+    }
+
+    private static Stream<List<OrderItem>> invalidItemsToAdd() {
+        return Stream.of(
+                null,
+                List.of()
+        );
+    }
+
     private static Stream<List<AddItemsToOrderItemRequest>> invalidItemsToAddRequests() {
         return Stream.of(
                 null,
