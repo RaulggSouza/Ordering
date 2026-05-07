@@ -13,6 +13,7 @@ import br.edu.ifsp.scl.ordering.domain.exceptions.*;
 import br.edu.ifsp.scl.ordering.domain.valueobject.OrderId;
 import br.edu.ifsp.scl.ordering.domain.valueobject.ProductId;
 import br.edu.ifsp.scl.ordering.testing.tags.Functional;
+import br.edu.ifsp.scl.ordering.testing.tags.Structural;
 import br.edu.ifsp.scl.ordering.testing.tags.TDD;
 import br.edu.ifsp.scl.ordering.testing.tags.UnitTest;
 import org.junit.jupiter.api.DisplayName;
@@ -20,6 +21,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -27,6 +29,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -263,6 +266,39 @@ public class AddItemsToOrderServiceTest {
         verify(orderRepository, times(1)).findById(orderId);
         verify(productRepository, never()).allExistsByIds(anyList());
         verify(orderRepository, never()).save(any());
+    }
+
+    @Structural
+    @UnitTest
+    @ParameterizedTest
+    @DisplayName("Should throw an error when order items are null or empty")
+    @MethodSource("invalidItemsToAddRequests")
+    void shouldThrowAnErrorWhenOrderItemsAreNullOrEmpty(
+            List<AddItemsToOrderItemRequest> itemsToAddRequest
+    ) {
+        Order order = createOrder("1", "");
+
+        AddItemsToOrderRequest request = new AddItemsToOrderRequest(
+                order.getOrderId(),
+                itemsToAddRequest
+        );
+
+        when(orderRepository.findById(order.getOrderId())).thenReturn(Optional.of(order));
+
+        assertThatThrownBy(() -> sut.addItemsToOrder(request))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("Order items cannot be null or empty");
+
+        verify(orderRepository, times(1)).findById(order.getOrderId());
+        verify(productRepository, never()).allExistsByIds(anyList());
+        verify(orderRepository, never()).save(any());
+    }
+
+    private static Stream<List<AddItemsToOrderItemRequest>> invalidItemsToAddRequests() {
+        return Stream.of(
+                null,
+                List.of()
+        );
     }
 
 
