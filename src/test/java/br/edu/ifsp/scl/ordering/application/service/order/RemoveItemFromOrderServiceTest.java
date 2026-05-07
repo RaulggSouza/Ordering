@@ -20,6 +20,7 @@ import br.edu.ifsp.scl.ordering.testing.tags.Structural;
 import br.edu.ifsp.scl.ordering.testing.tags.TDD;
 import br.edu.ifsp.scl.ordering.testing.tags.UnitTest;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
@@ -27,11 +28,13 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
-import static org.assertj.core.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -314,6 +317,51 @@ public class RemoveItemFromOrderServiceTest {
         verify(orderRepository, never()).save(any());
     }
 
+    @Structural
+    @UnitTest
+    @DisplayName("Should remove item and remove only ineligible expired and inactive discounts")
+    @Test
+    void shouldRemoveItemAndRemoveOnlyIneligibleExpiredAndInactiveDiscounts() {
+        String inactiveDiscountId = "1";
+        String expiredDiscountId = "2";
+
+        List<Discount> appliedDiscounts = createMinimumValueWithExpiredAndInactive(
+                inactiveDiscountId, expiredDiscountId
+        );
+
+        Order order = createOrderWithDiscounts(
+                "1",
+                "1:1:100;2:2:100",
+                appliedDiscounts
+        );
+
+        ProductId productIdToRemove = new ProductId("1");
+
+        RemoveItemFromOrderRequest request = new RemoveItemFromOrderRequest(
+                order.getOrderId(),
+                productIdToRemove
+        );
+
+        List<RemoveItemFromOrderItemResponse> expectedOrderItems =
+                createResponseRemoveItemFromOrder("2:2:100");
+
+        when(orderRepository.findById(order.getOrderId())).thenReturn(Optional.of(order));
+        when(productRepository.existsById(productIdToRemove)).thenReturn(true);
+
+        RemoveItemFromOrderResponse response = sut.removeItemFromOrder(request);
+
+        verify(orderRepository, times(1)).findById(order.getOrderId());
+        verify(productRepository, times(1)).existsById(productIdToRemove);
+        verify(orderRepository, times(1)).save(order);
+
+        assertThat(response.orderId()).isEqualTo(order.getOrderId());
+        assertThat(response.items()).isEqualTo(expectedOrderItems);
+
+        assertThat(order.getDiscounts())
+                .extracting(Discount::getDiscountId)
+                .isEmpty();
+    }
+
     private static Order createOrder(String orderId, String orderProductsInput) {
         return new Order(
                 new OrderId(orderId),
@@ -389,7 +437,26 @@ public class RemoveItemFromOrderServiceTest {
                 .toList();
     }
 
-
+    private static List<Discount> createMinimumValueWithExpiredAndInactive(
+            String expiredDiscountId,
+            String inactiveDiscountId
+    ) {
+        Discount inactiveDiscount = new Discount(
+                new DiscountId(inactiveDiscountId),
+                new MinimumValueDiscountRule(0, 10),
+                DiscountType.COUPON,
+                false,
+                null
+        );
+        Discount expiredDiscount = new Discount(
+                new DiscountId(expiredDiscountId),
+                new MinimumValueDiscountRule(0, 10),
+                DiscountType.COUPON,
+                true,
+                LocalDateTime.now().minusHours(1)
+        );
+        return List.of(inactiveDiscount, expiredDiscount);
+    }
 
     private static List<Discount> createMinimumValueDiscounts(String discountsInput) {
         if (discountsInput == null || discountsInput.isBlank()) {
