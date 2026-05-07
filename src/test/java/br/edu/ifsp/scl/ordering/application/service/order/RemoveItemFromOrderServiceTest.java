@@ -10,15 +10,13 @@ import br.edu.ifsp.scl.ordering.domain.constant.DiscountType;
 import br.edu.ifsp.scl.ordering.domain.constant.OrderStatus;
 import br.edu.ifsp.scl.ordering.domain.entity.Discount;
 import br.edu.ifsp.scl.ordering.domain.entity.OrderItem;
-import br.edu.ifsp.scl.ordering.domain.exceptions.OrderItemNotFoundException;
-import br.edu.ifsp.scl.ordering.domain.exceptions.OrderMustHaveAtLeastOneItemException;
-import br.edu.ifsp.scl.ordering.domain.exceptions.OrderNotFoundException;
-import br.edu.ifsp.scl.ordering.domain.exceptions.OrderStatusNotAllowedException;
+import br.edu.ifsp.scl.ordering.domain.exceptions.*;
 import br.edu.ifsp.scl.ordering.domain.valueobject.DiscountId;
 import br.edu.ifsp.scl.ordering.domain.valueobject.MinimumValueDiscountRule;
 import br.edu.ifsp.scl.ordering.domain.valueobject.OrderId;
 import br.edu.ifsp.scl.ordering.domain.valueobject.ProductId;
 import br.edu.ifsp.scl.ordering.testing.tags.Functional;
+import br.edu.ifsp.scl.ordering.testing.tags.Structural;
 import br.edu.ifsp.scl.ordering.testing.tags.TDD;
 import br.edu.ifsp.scl.ordering.testing.tags.UnitTest;
 import org.junit.jupiter.api.DisplayName;
@@ -278,6 +276,41 @@ public class RemoveItemFromOrderServiceTest {
 
         verify(orderRepository, times(1)).findById(orderId);
         verify(productRepository, never()).existsById(any());
+        verify(orderRepository, never()).save(any());
+    }
+
+    @Structural
+    @UnitTest
+    @ParameterizedTest
+    @DisplayName("Should throw an error when product does not exist")
+    @CsvSource(
+            value = {
+                    "1:1:100;2:2:50,999",
+                    "1:1:100,888",
+                    "2:2:50;3:1:30,777"
+            }
+    )
+    void shouldThrowAnErrorWhenProductDoesNotExist(
+            String itemsThatAlreadyExistsInOrderInput,
+            String productIdToRemoveInput
+    ) {
+        Order order = createOrder("1", itemsThatAlreadyExistsInOrderInput);
+        ProductId productIdToRemove = new ProductId(productIdToRemoveInput);
+
+        RemoveItemFromOrderRequest request = new RemoveItemFromOrderRequest(
+                order.getOrderId(),
+                productIdToRemove
+        );
+
+        when(orderRepository.findById(order.getOrderId())).thenReturn(Optional.of(order));
+        when(productRepository.existsById(productIdToRemove)).thenReturn(false);
+
+        assertThatThrownBy(() -> sut.removeItemFromOrder(request))
+                .isInstanceOf(ProductNotFoundException.class)
+                .hasMessage("Product not found");
+
+        verify(orderRepository, times(1)).findById(order.getOrderId());
+        verify(productRepository, times(1)).existsById(productIdToRemove);
         verify(orderRepository, never()).save(any());
     }
 
