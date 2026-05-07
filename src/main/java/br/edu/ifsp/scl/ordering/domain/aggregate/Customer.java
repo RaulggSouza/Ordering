@@ -2,28 +2,24 @@ package br.edu.ifsp.scl.ordering.domain.aggregate;
 
 import br.edu.ifsp.scl.ordering.domain.valueobject.CustomerId;
 
+import java.util.Objects;
+
 public class Customer {
-    private CustomerId customerId;
-    private String name;
+    private final CustomerId customerId;
 
     public Customer(CustomerId customerId, String name) {
         this.customerId = customerId;
-        this.name = name;
     }
 
-    public CustomerId getCustomerId() {
-        return customerId;
+    @Override
+    public boolean equals(Object o) {
+        if (o == null || getClass() != o.getClass()) return false;
+        Customer customer = (Customer) o;
+        return Objects.equals(customerId, customer.customerId);
     }
 
-    public void setCustomerId(CustomerId customerId) {
-        this.customerId = customerId;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(customerId);
     }
 }
