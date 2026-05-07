@@ -10,15 +10,13 @@ import br.edu.ifsp.scl.ordering.domain.constant.DiscountType;
 import br.edu.ifsp.scl.ordering.domain.constant.OrderStatus;
 import br.edu.ifsp.scl.ordering.domain.entity.Discount;
 import br.edu.ifsp.scl.ordering.domain.entity.OrderItem;
-import br.edu.ifsp.scl.ordering.domain.exceptions.InvalidOrderItemQuantityException;
-import br.edu.ifsp.scl.ordering.domain.exceptions.OrderItemNotFoundException;
-import br.edu.ifsp.scl.ordering.domain.exceptions.OrderNotFoundException;
-import br.edu.ifsp.scl.ordering.domain.exceptions.OrderStatusNotAllowedException;
+import br.edu.ifsp.scl.ordering.domain.exceptions.*;
 import br.edu.ifsp.scl.ordering.domain.valueobject.DiscountId;
 import br.edu.ifsp.scl.ordering.domain.valueobject.MinimumValueDiscountRule;
 import br.edu.ifsp.scl.ordering.domain.valueobject.OrderId;
 import br.edu.ifsp.scl.ordering.domain.valueobject.ProductId;
 import br.edu.ifsp.scl.ordering.testing.tags.Functional;
+import br.edu.ifsp.scl.ordering.testing.tags.Structural;
 import br.edu.ifsp.scl.ordering.testing.tags.TDD;
 import br.edu.ifsp.scl.ordering.testing.tags.UnitTest;
 import org.junit.jupiter.api.DisplayName;
@@ -289,6 +287,43 @@ public class UpdateOrderItemQuantityServiceTest {
 
         verify(orderRepository, times(1)).findById(orderId);
         verify(productRepository, never()).existsById(any());
+        verify(orderRepository, never()).save(any());
+    }
+
+    @Structural
+    @UnitTest
+    @ParameterizedTest
+    @DisplayName("Should throw an error when product does not exist")
+    @CsvSource(
+            value = {
+                    "1:1:100,999,2",
+                    "1:2:100;2:1:50,888,5",
+                    "3:1:30,777,1"
+            }
+    )
+    void shouldThrowAnErrorWhenProductDoesNotExist(
+            String itemsThatAlreadyExistsInOrderInput,
+            String productIdInput,
+            Integer newQuantityInput
+    ) {
+        Order order = createOrder("1", itemsThatAlreadyExistsInOrderInput);
+        ProductId productId = new ProductId(productIdInput);
+
+        UpdateOrderItemQuantityRequest request = new UpdateOrderItemQuantityRequest(
+                order.getOrderId(),
+                productId,
+                newQuantityInput
+        );
+
+        when(orderRepository.findById(order.getOrderId())).thenReturn(Optional.of(order));
+        when(productRepository.existsById(productId)).thenReturn(false);
+
+        assertThatThrownBy(() -> sut.updateOrderItemQuantity(request))
+                .isInstanceOf(ProductNotFoundException.class)
+                .hasMessage("Product not found");
+
+        verify(orderRepository, times(1)).findById(order.getOrderId());
+        verify(productRepository, times(1)).existsById(productId);
         verify(orderRepository, never()).save(any());
     }
 
