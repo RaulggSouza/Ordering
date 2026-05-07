@@ -74,7 +74,7 @@
         <dependency>
             <groupId>org.pitest</groupId>
             <artifactId>pitest-maven</artifactId>
-            <version>1.18.1</version>
+            <version>1.23.0</version>
         </dependency>
     </dependencies>
 
@@ -83,15 +83,18 @@
             <plugin>
                 <groupId>org.pitest</groupId>
                 <artifactId>pitest-maven</artifactId>
-                <version>1.18.1</version>
+                <version>1.23.0</version>
                 <dependencies>
                     <dependency>
                         <groupId>org.pitest</groupId>
                         <artifactId>pitest-junit5-plugin</artifactId>
-                        <version>1.2.1</version>
+                        <version>1.2.3</version>
                     </dependency>
                 </dependencies>
                 <configuration>
+                    <mutators>
+                        <value>ALL</value>
+                    </mutators>
                     <targetClasses>br.edu.ifsp.scl.ordering.application.service*</targetClasses>
                     <targetTests>br.edu.ifsp.scl.ordering.application.service*</targetTests>
                 </configuration>
