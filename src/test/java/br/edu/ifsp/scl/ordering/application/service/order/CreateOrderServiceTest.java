@@ -18,6 +18,7 @@ import br.edu.ifsp.scl.ordering.domain.valueobject.CustomerId;
 import br.edu.ifsp.scl.ordering.domain.valueobject.OrderId;
 import br.edu.ifsp.scl.ordering.domain.valueobject.ProductId;
 import br.edu.ifsp.scl.ordering.testing.tags.Functional;
+import br.edu.ifsp.scl.ordering.testing.tags.Structural;
 import br.edu.ifsp.scl.ordering.testing.tags.TDD;
 import br.edu.ifsp.scl.ordering.testing.tags.UnitTest;
 import org.junit.jupiter.api.DisplayName;
@@ -359,11 +360,16 @@ public class CreateOrderServiceTest {
     @Functional
     @ParameterizedTest
     @CsvSource(value = {
-            " ,123,São Carlos,São Paulo,456",
-            "Rua A,,São Carlos,São Paulo,456",
-            "Rua A,123,NULL,São Paulo,456",
-            "Rua A,123,São Carlos,,456",
-            "Rua A,123,São Carlos,São Paulo, "
+            "NULL, 123, Cidade, SP, 13500", // Falha no Street (null)
+            "' ', 123, Cidade, SP, 13500",  // Falha no Street (blank)
+            "Rua A, NULL, Cidade, SP, 13500", // Falha no Number (null)
+            "Rua A, ' ', Cidade, SP, 13500",  // Falha no Number (blank)
+            "Rua A, 123, NULL, SP, 13500",    // Falha no City...
+            "Rua A, 123, ' ', SP, 13500",
+            "Rua A, 123, Cidade, NULL, 13500", // Falha no State...
+            "Rua A, 123, Cidade, ' ', 13500",
+            "Rua A, 123, Cidade, SP, NULL",    // Falha no PostalCode...
+            "Rua A, 123, Cidade, SP, ' '"
     }, nullValues = "NULL")
     @DisplayName("Should throw IllegalArgumentException when Address is invalid")
     void shouldThrowIllegalArgumentExceptionWhenCreatedAddressIsInvalid(String street, String number, String city, String state, String postalCode) {
@@ -393,5 +399,17 @@ public class CreateOrderServiceTest {
         );
 
         assertThatNullPointerException().isThrownBy(() -> sut.create(request));
+    }
+
+    @UnitTest
+    @Structural
+    @ParameterizedTest
+    @CsvSource(value = {
+            "' ',123,São Carlos,São Paulo,456",
+            "Rua A,123,São Carlos,'',456",
+    })
+    @DisplayName("Should throw IllegalArgumentException when Address is blank")
+    void shouldThrowIllegalArgumentExceptionWhenCreatedAddressIsBlank(String street, String number, String city, String state, String postalCode) {
+        assertThatIllegalArgumentException().isThrownBy(() -> new Address(street, number, city, state, postalCode));
     }
 }
