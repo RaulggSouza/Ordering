@@ -6,7 +6,8 @@ import br.edu.ifsp.scl.ordering.domain.interfaces.DiscountRule;
 import java.util.Comparator;
 import java.util.List;
 
-public record TierDiscountRule(List<DiscountTier> tiers) implements DiscountRule {
+public class TierDiscountRule implements DiscountRule {
+    private final List<DiscountTier> tiers;
 
     public TierDiscountRule(List<DiscountTier> tiers) {
         this.tiers = tiers.stream()
