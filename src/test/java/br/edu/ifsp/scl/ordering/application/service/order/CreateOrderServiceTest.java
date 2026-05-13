@@ -18,13 +18,16 @@ import br.edu.ifsp.scl.ordering.domain.valueobject.CustomerId;
 import br.edu.ifsp.scl.ordering.domain.valueobject.OrderId;
 import br.edu.ifsp.scl.ordering.domain.valueobject.ProductId;
 import br.edu.ifsp.scl.ordering.testing.tags.Functional;
+import br.edu.ifsp.scl.ordering.testing.tags.Structural;
 import br.edu.ifsp.scl.ordering.testing.tags.TDD;
 import br.edu.ifsp.scl.ordering.testing.tags.UnitTest;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.CsvSource;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -32,6 +35,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -393,5 +397,17 @@ public class CreateOrderServiceTest {
         );
 
         assertThatNullPointerException().isThrownBy(() -> sut.create(request));
+    }
+
+    @UnitTest
+    @Structural
+    @ParameterizedTest
+    @CsvSource(value = {
+            "' ',123,São Carlos,São Paulo,456",
+            "Rua A,123,São Carlos,'',456",
+    })
+    @DisplayName("Should throw IllegalArgumentException when Address is blank")
+    void shouldThrowIllegalArgumentExceptionWhenCreatedAddressIsBlank(String street, String number, String city, String state, String postalCode) {
+        assertThatIllegalArgumentException().isThrownBy(() -> new Address(street, number, city, state, postalCode));
     }
 }

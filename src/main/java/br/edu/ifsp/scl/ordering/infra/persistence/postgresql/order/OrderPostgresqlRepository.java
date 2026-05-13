@@ -74,11 +74,11 @@ public class OrderPostgresqlRepository implements IOrderRepository {
         OrderEntity orderEntity = new OrderEntity(
                 order.getOrderId().value(),
                 order.getCustomerId().value(),
-                order.getShippingAddress().street(),
-                order.getShippingAddress().number(),
-                order.getShippingAddress().city(),
-                order.getShippingAddress().state(),
-                order.getShippingAddress().postalCode(),
+                order.getShippingAddress().getStreet(),
+                order.getShippingAddress().getNumber(),
+                order.getShippingAddress().getCity(),
+                order.getShippingAddress().getState(),
+                order.getShippingAddress().getPostalCode(),
                 order.getOrderStatus()
         );
 
