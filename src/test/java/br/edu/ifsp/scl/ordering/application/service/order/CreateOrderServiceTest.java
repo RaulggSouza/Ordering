@@ -408,4 +408,31 @@ public class CreateOrderServiceTest {
     void shouldThrowIllegalArgumentExceptionWhenCreatedAddressIsBlank(String street, String number, String city, String state, String postalCode) {
         assertThatIllegalArgumentException().isThrownBy(() -> new Address(street, number, city, state, postalCode));
     }
+
+    @UnitTest
+    @Mutation
+    @Test
+    @DisplayName("Should create order if quantity of an item is one")
+    void shouldCreateOrderIfQuantityOfAnItemIsOne() {
+        CreateOrderRequest request = createOrderRequest();
+        request.items().set(0, new CreateOrderItemRequest(new ProductId("12"), 1, 0));
+
+        List<ProductId> products = request.items().stream().map(CreateOrderItemRequest::productId).toList();
+        List<OrderItem> orderItems = request.items().stream().map(CreateOrderItemRequest::toDomain).toList();
+        Customer customer = new Customer(request.customerId(), "Peri");
+        OrderId mockId = new OrderId("1");
+
+        when(customerRepository.findById(request.customerId())).thenReturn(Optional.of(customer));
+        when(productRepository.allExistsByIds(products)).thenReturn(true);
+        when(orderRepository.save(any(Order.class))).thenReturn(mockId);
+        when(productInventoryRepository.findOutOfStockItems(orderItems)).thenReturn(List.of());
+
+        OrderId result = sut.create(request);
+
+        assertThat(result).isEqualTo(mockId);
+        verify(customerRepository, times(1)).findById(request.customerId());
+        verify(productRepository, times(1)).allExistsByIds(products);
+        verify(orderRepository, times(1)).save(any(Order.class));
+        verify(productInventoryRepository, times(1)).findOutOfStockItems(orderItems);
+    }
 }
