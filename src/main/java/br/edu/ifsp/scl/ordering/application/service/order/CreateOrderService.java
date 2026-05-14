@@ -64,7 +64,7 @@ public class CreateOrderService implements ICreateOrderService {
     private static List<OrderItem> getOrderItems(CreateOrderRequest request) {
         request.items().forEach(item -> {
             Objects.requireNonNull(item, "OrderItems list item must not be null");
-            if(item.quantity() < 1) throw new IllegalArgumentException("Quantity of an Item mus not be less than one");
+            if(item.quantity() < 1) throw new IllegalArgumentException("Quantity of an Item must not be less than one");
         });
 
         return request.items().stream()

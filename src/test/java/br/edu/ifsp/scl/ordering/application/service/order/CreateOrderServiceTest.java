@@ -17,10 +17,8 @@ import br.edu.ifsp.scl.ordering.domain.valueobject.Address;
 import br.edu.ifsp.scl.ordering.domain.valueobject.CustomerId;
 import br.edu.ifsp.scl.ordering.domain.valueobject.OrderId;
 import br.edu.ifsp.scl.ordering.domain.valueobject.ProductId;
-import br.edu.ifsp.scl.ordering.testing.tags.Functional;
-import br.edu.ifsp.scl.ordering.testing.tags.Structural;
-import br.edu.ifsp.scl.ordering.testing.tags.TDD;
-import br.edu.ifsp.scl.ordering.testing.tags.UnitTest;
+import br.edu.ifsp.scl.ordering.testing.tags.*;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -84,7 +82,7 @@ public class CreateOrderServiceTest {
     }
 
     private static CreateOrderRequest createOrderRequest() {
-        List<CreateOrderItemRequest> orderItems = List.of(
+        List<CreateOrderItemRequest> orderItems = new ArrayList<>(List.of(
                 new CreateOrderItemRequest(
                         new ProductId("12"),
                         3,
@@ -95,7 +93,7 @@ public class CreateOrderServiceTest {
                         4,
                         0
                 )
-        );
+        ));
         Address address = new Address(
                 "Rua A",
                 "123",
@@ -295,7 +293,7 @@ public class CreateOrderServiceTest {
         verify(orderRepository, never()).save(any(Order.class));
         verify(productInventoryRepository, times(1)).findOutOfStockItems(orderItems);
     }
-    
+
     @UnitTest
     @TDD
     @Test
@@ -318,7 +316,7 @@ public class CreateOrderServiceTest {
         verify(orderRepository, never()).save(any(Order.class));
         verify(productInventoryRepository, never()).findOutOfStockItems(anyList());
     }
-    
+
     @UnitTest
     @Functional
     @ParameterizedTest
