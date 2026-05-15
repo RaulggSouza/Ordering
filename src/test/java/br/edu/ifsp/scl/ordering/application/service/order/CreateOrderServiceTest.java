@@ -116,13 +116,16 @@ public class CreateOrderServiceTest {
 
     @UnitTest
     @Functional
+    @Mutation
     @Test
     @DisplayName("Should throw CustomerNotFoundException when customer does not exist")
     void shouldThrowCustomerNotFoundExceptionWhenCustomerDoesNotExist() {
         CreateOrderRequest request = createOrderRequest();
         when(customerRepository.findById(request.customerId())).thenReturn(Optional.empty());
 
-        assertThatExceptionOfType(CustomerNotFoundException.class).isThrownBy(() -> sut.create(request));
+        assertThatExceptionOfType(CustomerNotFoundException.class)
+                .isThrownBy(() -> sut.create(request))
+                .withMessage("Customer not found. Id: "+request.customerId());
 
         verify(customerRepository, times(1)).findById(request.customerId());
         verify(productRepository, never()).allExistsByIds(anyList());
