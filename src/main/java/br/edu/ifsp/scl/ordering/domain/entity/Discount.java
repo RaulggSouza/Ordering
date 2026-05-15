@@ -51,6 +51,7 @@ public class Discount {
     }
 
     public String getExpiration() {
+        if (expiresAt == null) return null;
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy hh:mm:ss");
         return expiresAt.format(formatter);
     }
