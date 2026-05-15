@@ -13,6 +13,7 @@ import br.edu.ifsp.scl.ordering.domain.exceptions.OrderNotFoundException;
 import br.edu.ifsp.scl.ordering.domain.exceptions.OrderStatusNotAllowedException;
 import br.edu.ifsp.scl.ordering.domain.valueobject.*;
 import br.edu.ifsp.scl.ordering.testing.tags.Functional;
+import br.edu.ifsp.scl.ordering.testing.tags.Mutation;
 import br.edu.ifsp.scl.ordering.testing.tags.TDD;
 import br.edu.ifsp.scl.ordering.testing.tags.UnitTest;
 import org.junit.jupiter.api.DisplayName;
@@ -346,6 +347,31 @@ public class GetEligibleDiscountsServiceTest {
         verify(discountRepository, never()).getAll();
     }
 
+    @Mutation
+    @UnitTest
+    @DisplayName("Should throw status not allowed error containing the invalid order status")
+    @ParameterizedTest
+    @CsvSource({
+            "INVOICED",
+            "SHIPPED",
+            "COMPLETED",
+            "CANCELLED"
+    })
+    void shouldThrowStatusNotAllowedErrorContainingTheInvalidOrderStatus(String orderStatusInput) {
+        OrderStatus orderStatus = OrderStatus.valueOf(orderStatusInput);
+        Order order = createOrderWithStatus("1", null, orderStatus);
+        GetEligibleDiscountsRequest request = new GetEligibleDiscountsRequest(order.getOrderId());
+
+        when(orderRepository.findById(order.getOrderId())).thenReturn(Optional.of(order));
+
+        assertThatThrownBy(() -> sut.getEligibleDiscounts(request))
+                .isInstanceOf(OrderStatusNotAllowedException.class)
+                .hasMessageContaining(orderStatus.name());
+
+        verify(orderRepository, times(1)).findById(order.getOrderId());
+        verify(discountRepository, never()).getAll();
+    }
+
 
 
     private static List<Discount> createDiscounts(){
@@ -491,4 +517,6 @@ public class GetEligibleDiscountsServiceTest {
                 })
                 .toList();
     }
+
+
 }
