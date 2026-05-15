@@ -18,14 +18,12 @@ import br.edu.ifsp.scl.ordering.domain.valueobject.CustomerId;
 import br.edu.ifsp.scl.ordering.domain.valueobject.OrderId;
 import br.edu.ifsp.scl.ordering.domain.valueobject.ProductId;
 import br.edu.ifsp.scl.ordering.testing.tags.*;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.CsvSource;
-import org.junit.jupiter.params.provider.MethodSource;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -33,7 +31,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -58,6 +55,7 @@ public class CreateOrderServiceTest {
 
     @TDD
     @UnitTest
+    @Mutation
     @Test
     @DisplayName("Should create Order when all parameters are valid")
     void shouldCreateOrderWhenAllParametersAreValid() {
@@ -72,12 +70,20 @@ public class CreateOrderServiceTest {
         when(orderRepository.save(any(Order.class))).thenReturn(mockId);
         when(productInventoryRepository.findOutOfStockItems(orderItems)).thenReturn(List.of());
 
+        ArgumentCaptor<Order> orderCaptor = ArgumentCaptor.forClass(Order.class);
+
         OrderId result = sut.create(request);
 
+        verify(orderRepository).save(orderCaptor.capture());
+
+        Order savedOrder = orderCaptor.getValue();
+
+        assertThat(savedOrder.getCustomerId()).isEqualTo(request.customerId());
+        assertThat(savedOrder.getShippingAddress()).isEqualTo(request.address());
         assertThat(result).isEqualTo(mockId);
+
         verify(customerRepository, times(1)).findById(request.customerId());
         verify(productRepository, times(1)).allExistsByIds(products);
-        verify(orderRepository, times(1)).save(any(Order.class));
         verify(productInventoryRepository, times(1)).findOutOfStockItems(orderItems);
     }
 
