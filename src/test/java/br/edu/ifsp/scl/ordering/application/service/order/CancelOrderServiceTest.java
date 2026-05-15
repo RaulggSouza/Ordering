@@ -131,7 +131,9 @@ public class CancelOrderServiceTest {
     void shouldThrowNullPointerExceptionWhenIdIsNull() {
         CancelOrderRequest request = new CancelOrderRequest(null);
 
-        assertThatNullPointerException().isThrownBy(() -> sut.cancel(request));
+        assertThatNullPointerException()
+                .isThrownBy(() -> sut.cancel(request))
+                .withMessage("Order ID must not be null");
 
         verify(orderRepository, never()).findById(any(OrderId.class));
         verify(orderRepository, never()).save(any(Order.class));
