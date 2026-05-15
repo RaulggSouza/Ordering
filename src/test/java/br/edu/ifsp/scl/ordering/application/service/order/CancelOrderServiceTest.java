@@ -142,7 +142,9 @@ public class CancelOrderServiceTest {
     @Test
     @DisplayName("Should throw NullPointerException when request is null")
     void shouldThrowNullPointerExceptionWhenRequestIsNull() {
-        assertThatNullPointerException().isThrownBy(() -> sut.cancel(null));
+        assertThatNullPointerException()
+                .isThrownBy(() -> sut.cancel(null))
+                .withMessage("Request must not be null");
 
         verify(orderRepository, never()).findById(any(OrderId.class));
         verify(orderRepository, never()).save(any(Order.class));
