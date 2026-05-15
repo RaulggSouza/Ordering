@@ -289,13 +289,16 @@ public class CreateOrderServiceTest {
                 .map(CreateOrderItemRequest::productId)
                 .toList();
         List<OrderItem> orderItems = request.items().stream().map(CreateOrderItemRequest::toDomain).toList();
+        List<ProductId> outOfStockItems = List.of(new ProductId("12"));
 
 
         when(customerRepository.findById(request.customerId())).thenReturn(Optional.of(customer));
         when(productRepository.allExistsByIds(productIds)).thenReturn(true);
-        when(productInventoryRepository.findOutOfStockItems(orderItems)).thenReturn(List.of(new ProductId("12")));
+        when(productInventoryRepository.findOutOfStockItems(orderItems)).thenReturn(outOfStockItems);
 
-        assertThatExceptionOfType(ProductOutOfStockException.class).isThrownBy(() -> sut.create(request));
+        assertThatExceptionOfType(ProductOutOfStockException.class)
+                .isThrownBy(() -> sut.create(request))
+                .withMessage("Products out of stock. Products: "+outOfStockItems);
 
         verify(customerRepository, times(1)).findById(any(CustomerId.class));
         verify(productRepository, times(1)).allExistsByIds(anyList());
