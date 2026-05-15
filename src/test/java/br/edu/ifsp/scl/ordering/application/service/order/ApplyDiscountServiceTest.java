@@ -86,7 +86,8 @@ public class ApplyDiscountServiceTest {
         when(orderRepository.findById(orderId)).thenReturn(Optional.of(order));
 
         assertThatExceptionOfType(IllegalOrderOperationException.class)
-                .isThrownBy(() -> sut.apply(request));
+                .isThrownBy(() -> sut.apply(request))
+                .withMessageContaining(orderId.value());
 
         verify(orderRepository, times(1)).findById(orderId);
         verify(discountRepository, never()).findById(discountId);
@@ -142,7 +143,8 @@ public class ApplyDiscountServiceTest {
         when(discountRepository.findById(discountId)).thenReturn(Optional.of(discount));
 
         assertThatExceptionOfType(IllegalOrderOperationException.class)
-                .isThrownBy(() -> sut.apply(request));
+                .isThrownBy(() -> sut.apply(request))
+                .withMessage("Total discount %.0f%% must be below 100%%!".formatted(percentage));
 
         verify(orderRepository, times(1)).findById(orderId);
         verify(discountRepository, times(1)).findById(discountId);
@@ -210,7 +212,11 @@ public class ApplyDiscountServiceTest {
         when(discountRepository.findById(discountId)).thenReturn(Optional.of(expiredDiscount));
 
         assertThatExceptionOfType(ExpiredDiscountException.class)
-                .isThrownBy(() -> sut.apply(request));
+                .isThrownBy(() -> sut.apply(request))
+                .withMessage("Discount \"%s\" has expired at \"%s\"!".formatted(
+                        expiredDiscount.getDiscountId(),
+                        expiredDiscount.getExpiration()
+                ));
 
         verify(orderRepository, times(1)).findById(orderId);
         verify(discountRepository, times(1)).findById(discountId);
@@ -234,7 +240,8 @@ public class ApplyDiscountServiceTest {
         when(discountRepository.findById(discountId)).thenReturn(Optional.of(futureDiscount));
 
         assertThatExceptionOfType(InvalidDiscountException.class)
-                .isThrownBy(() -> sut.apply(request));
+                .isThrownBy(() -> sut.apply(request))
+                .withMessageContaining(discountId.value());
 
         verify(orderRepository, times(1)).findById(orderId);
         verify(discountRepository, times(1)).findById(discountId);
@@ -318,7 +325,8 @@ public class ApplyDiscountServiceTest {
         when(discountRepository.findById(secondDiscountId)).thenReturn(Optional.of(discountToApply));
 
         assertThatExceptionOfType(MutipleDiscountTypeException.class)
-                .isThrownBy(() -> sut.apply(request));
+                .isThrownBy(() -> sut.apply(request))
+                .withMessageContaining(orderId.value());
 
         verify(orderRepository, times(1)).findById(orderId);
         verify(orderRepository, never()).save(any());
