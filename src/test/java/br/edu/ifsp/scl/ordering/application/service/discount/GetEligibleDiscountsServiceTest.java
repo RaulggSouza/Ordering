@@ -171,7 +171,8 @@ public class GetEligibleDiscountsServiceTest {
         when(orderRepository.findById(order.getOrderId())).thenReturn(Optional.of(order));
 
         assertThatThrownBy(() -> sut.getEligibleDiscounts(request))
-                .isInstanceOf(OrderStatusNotAllowedException.class);
+                .isInstanceOf(OrderStatusNotAllowedException.class)
+                .hasMessage("Order status '" + orderStatus + "' does not allow the action");
 
         verify(orderRepository).findById(order.getOrderId());
         verify(discountRepository, never()).getAll();
