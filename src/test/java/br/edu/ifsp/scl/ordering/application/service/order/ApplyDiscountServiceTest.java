@@ -15,6 +15,7 @@ import br.edu.ifsp.scl.ordering.domain.valueobject.MinimumValueDiscountRule;
 import br.edu.ifsp.scl.ordering.domain.valueobject.OrderId;
 import br.edu.ifsp.scl.ordering.domain.valueobject.ProductId;
 import br.edu.ifsp.scl.ordering.testing.tags.Functional;
+import br.edu.ifsp.scl.ordering.testing.tags.Mutation;
 import br.edu.ifsp.scl.ordering.testing.tags.TDD;
 import br.edu.ifsp.scl.ordering.testing.tags.UnitTest;
 import org.junit.jupiter.api.DisplayName;
@@ -86,7 +87,8 @@ public class ApplyDiscountServiceTest {
         when(orderRepository.findById(orderId)).thenReturn(Optional.of(order));
 
         assertThatExceptionOfType(IllegalOrderOperationException.class)
-                .isThrownBy(() -> sut.apply(request));
+                .isThrownBy(() -> sut.apply(request))
+                .withMessageContaining(orderId.value());
 
         verify(orderRepository, times(1)).findById(orderId);
         verify(discountRepository, never()).findById(discountId);
@@ -142,7 +144,8 @@ public class ApplyDiscountServiceTest {
         when(discountRepository.findById(discountId)).thenReturn(Optional.of(discount));
 
         assertThatExceptionOfType(IllegalOrderOperationException.class)
-                .isThrownBy(() -> sut.apply(request));
+                .isThrownBy(() -> sut.apply(request))
+                .withMessage("Total discount %.0f%% must be below 100%%!".formatted(percentage));
 
         verify(orderRepository, times(1)).findById(orderId);
         verify(discountRepository, times(1)).findById(discountId);
@@ -210,7 +213,11 @@ public class ApplyDiscountServiceTest {
         when(discountRepository.findById(discountId)).thenReturn(Optional.of(expiredDiscount));
 
         assertThatExceptionOfType(ExpiredDiscountException.class)
-                .isThrownBy(() -> sut.apply(request));
+                .isThrownBy(() -> sut.apply(request))
+                .withMessage("Discount \"%s\" has expired at \"%s\"!".formatted(
+                        expiredDiscount.getDiscountId(),
+                        expiredDiscount.getExpiration()
+                ));
 
         verify(orderRepository, times(1)).findById(orderId);
         verify(discountRepository, times(1)).findById(discountId);
@@ -234,7 +241,8 @@ public class ApplyDiscountServiceTest {
         when(discountRepository.findById(discountId)).thenReturn(Optional.of(futureDiscount));
 
         assertThatExceptionOfType(InvalidDiscountException.class)
-                .isThrownBy(() -> sut.apply(request));
+                .isThrownBy(() -> sut.apply(request))
+                .withMessageContaining(discountId.value());
 
         verify(orderRepository, times(1)).findById(orderId);
         verify(discountRepository, times(1)).findById(discountId);
@@ -318,7 +326,8 @@ public class ApplyDiscountServiceTest {
         when(discountRepository.findById(secondDiscountId)).thenReturn(Optional.of(discountToApply));
 
         assertThatExceptionOfType(MutipleDiscountTypeException.class)
-                .isThrownBy(() -> sut.apply(request));
+                .isThrownBy(() -> sut.apply(request))
+                .withMessageContaining(orderId.value());
 
         verify(orderRepository, times(1)).findById(orderId);
         verify(orderRepository, never()).save(any());
@@ -344,6 +353,34 @@ public class ApplyDiscountServiceTest {
         verify(orderRepository, times(1)).findById(orderId);
         verify(discountRepository, never()).findById(any());
         verify(orderRepository, never()).save(any());
+    }
+
+    @UnitTest
+    @Mutation
+    @Test
+    @DisplayName("Should allow full discount application")
+    void shouldThrowIllegalOrderOperationExceptionForFullDiscountApplication() {
+        OrderId orderId = new OrderId("order-1");
+        DiscountId discountId = new DiscountId("full-discount");
+
+        Order order = createOrderWithTotalAs(orderId, 100.0);
+        Discount discount = createDiscount(discountId, DiscountType.COUPON, 100);
+
+        ApplyDiscountRequest request = new ApplyDiscountRequest(orderId, List.of(discountId));
+
+        when(orderRepository.findById(orderId)).thenReturn(Optional.of(order));
+        when(discountRepository.findById(discountId)).thenReturn(Optional.of(discount));
+
+        ApplyDiscountResponse response = sut.apply(request);
+
+        assertThat(order.getDiscounts()).contains(discount);
+        assertThat(response.appliedDiscounts()).contains(discount);
+        assertThat(order.getTotal()).isEqualTo(0.0);
+        assertThat(response.orderId()).isEqualTo(orderId);
+
+        verify(orderRepository, times(1)).findById(orderId);
+        verify(discountRepository, times(1)).findById(discountId);
+        verify(orderRepository, times(1)).save(order);
     }
 
     private Order createOrderWithTotalAs(OrderId orderId, double total) {

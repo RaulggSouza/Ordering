@@ -10,6 +10,7 @@ import br.edu.ifsp.scl.ordering.domain.valueobject.Address;
 import br.edu.ifsp.scl.ordering.domain.valueobject.CustomerId;
 import br.edu.ifsp.scl.ordering.domain.valueobject.OrderId;
 import br.edu.ifsp.scl.ordering.testing.tags.Functional;
+import br.edu.ifsp.scl.ordering.testing.tags.Mutation;
 import br.edu.ifsp.scl.ordering.testing.tags.TDD;
 import br.edu.ifsp.scl.ordering.testing.tags.UnitTest;
 import org.junit.jupiter.api.DisplayName;
@@ -126,6 +127,7 @@ public class CancelOrderServiceTest {
 
     @UnitTest
     @Functional
+    @Mutation
     @Test
     @DisplayName("Should throw NullPointerException when id is null")
     void shouldThrowNullPointerExceptionWhenIdIsNull() {
@@ -141,6 +143,7 @@ public class CancelOrderServiceTest {
 
     @UnitTest
     @TDD
+    @Mutation
     @Test
     @DisplayName("Should throw NullPointerException when request is null")
     void shouldThrowNullPointerExceptionWhenRequestIsNull() {
