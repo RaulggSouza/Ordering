@@ -15,6 +15,7 @@ import br.edu.ifsp.scl.ordering.domain.valueobject.MinimumValueDiscountRule;
 import br.edu.ifsp.scl.ordering.domain.valueobject.OrderId;
 import br.edu.ifsp.scl.ordering.domain.valueobject.ProductId;
 import br.edu.ifsp.scl.ordering.testing.tags.Functional;
+import br.edu.ifsp.scl.ordering.testing.tags.Mutation;
 import br.edu.ifsp.scl.ordering.testing.tags.TDD;
 import br.edu.ifsp.scl.ordering.testing.tags.UnitTest;
 import org.junit.jupiter.api.DisplayName;
@@ -352,6 +353,34 @@ public class ApplyDiscountServiceTest {
         verify(orderRepository, times(1)).findById(orderId);
         verify(discountRepository, never()).findById(any());
         verify(orderRepository, never()).save(any());
+    }
+
+    @UnitTest
+    @Mutation
+    @Test
+    @DisplayName("Should allow full discount application")
+    void shouldThrowIllegalOrderOperationExceptionForFullDiscountApplication() {
+        OrderId orderId = new OrderId("order-1");
+        DiscountId discountId = new DiscountId("full-discount");
+
+        Order order = createOrderWithTotalAs(orderId, 100.0);
+        Discount discount = createDiscount(discountId, DiscountType.COUPON, 100);
+
+        ApplyDiscountRequest request = new ApplyDiscountRequest(orderId, List.of(discountId));
+
+        when(orderRepository.findById(orderId)).thenReturn(Optional.of(order));
+        when(discountRepository.findById(discountId)).thenReturn(Optional.of(discount));
+
+        ApplyDiscountResponse response = sut.apply(request);
+
+        assertThat(order.getDiscounts()).contains(discount);
+        assertThat(response.appliedDiscounts()).contains(discount);
+        assertThat(order.getTotal()).isEqualTo(0.0);
+        assertThat(response.orderId()).isEqualTo(orderId);
+
+        verify(orderRepository, times(1)).findById(orderId);
+        verify(discountRepository, times(1)).findById(discountId);
+        verify(orderRepository, times(1)).save(order);
     }
 
     private Order createOrderWithTotalAs(OrderId orderId, double total) {
