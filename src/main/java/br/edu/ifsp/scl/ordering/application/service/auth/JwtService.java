@@ -7,6 +7,7 @@ import br.edu.ifsp.scl.ordering.domain.valueobject.UserId;
 import br.edu.ifsp.scl.ordering.application.service.auth.config.JwtProperties;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import javax.crypto.Mac;
@@ -28,6 +29,7 @@ public class JwtService {
     private final ObjectMapper objectMapper;
     private final Clock clock;
 
+    @Autowired
     public JwtService(JwtProperties properties, ObjectMapper objectMapper) {
         this(properties, objectMapper, Clock.systemUTC());
     }
