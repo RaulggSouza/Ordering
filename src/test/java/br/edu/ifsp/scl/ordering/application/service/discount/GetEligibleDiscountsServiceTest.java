@@ -13,6 +13,7 @@ import br.edu.ifsp.scl.ordering.domain.exceptions.OrderNotFoundException;
 import br.edu.ifsp.scl.ordering.domain.exceptions.OrderStatusNotAllowedException;
 import br.edu.ifsp.scl.ordering.domain.valueobject.*;
 import br.edu.ifsp.scl.ordering.testing.tags.Functional;
+import br.edu.ifsp.scl.ordering.testing.tags.Mutation;
 import br.edu.ifsp.scl.ordering.testing.tags.TDD;
 import br.edu.ifsp.scl.ordering.testing.tags.UnitTest;
 import org.junit.jupiter.api.DisplayName;
@@ -152,6 +153,7 @@ public class GetEligibleDiscountsServiceTest {
 
     @Functional
     @UnitTest
+    @Mutation
     @DisplayName("#63 - should throw an error and not load discounts when order status is invalid")
     @ParameterizedTest
     @CsvSource(
