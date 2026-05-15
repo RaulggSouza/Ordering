@@ -19,8 +19,9 @@ public class CancelOrderService implements ICancelOrderService {
 
     @Override
     public void cancel(CancelOrderRequest request){
-        Objects.requireNonNull(request);
-        Objects.requireNonNull(request.orderId());
+        Objects.requireNonNull(request, "Request must not be null");
+        Objects.requireNonNull(request.orderId(), "Order ID must not be null");
+
         Order order = orderRepository.findById(request.orderId())
                 .orElseThrow(() -> new OrderNotFoundException(request.orderId()));
 
