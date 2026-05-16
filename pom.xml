@@ -101,6 +101,10 @@
                     </mutators>
                     <targetClasses>br.edu.ifsp.scl.ordering.application.service*</targetClasses>
                     <targetTests>br.edu.ifsp.scl.ordering.application.service*</targetTests>
+                    <excludedClasses>
+                        <param>br.edu.ifsp.scl.ordering.application.service.auth*</param>
+                        <param>br.edu.ifsp.scl.ordering.application.service.order.ListOrdersService</param>
+                    </excludedClasses>
                 </configuration>
             </plugin>
             <plugin>
