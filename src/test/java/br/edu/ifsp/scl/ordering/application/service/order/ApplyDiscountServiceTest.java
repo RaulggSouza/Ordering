@@ -14,10 +14,7 @@ import br.edu.ifsp.scl.ordering.domain.valueobject.DiscountId;
 import br.edu.ifsp.scl.ordering.domain.valueobject.MinimumValueDiscountRule;
 import br.edu.ifsp.scl.ordering.domain.valueobject.OrderId;
 import br.edu.ifsp.scl.ordering.domain.valueobject.ProductId;
-import br.edu.ifsp.scl.ordering.testing.tags.Functional;
-import br.edu.ifsp.scl.ordering.testing.tags.Mutation;
-import br.edu.ifsp.scl.ordering.testing.tags.TDD;
-import br.edu.ifsp.scl.ordering.testing.tags.UnitTest;
+import br.edu.ifsp.scl.ordering.testing.tags.*;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -34,6 +31,7 @@ import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -383,6 +381,33 @@ public class ApplyDiscountServiceTest {
         verify(orderRepository, times(1)).save(order);
     }
 
+    @UnitTest
+    @Structural
+    @Test
+    @DisplayName("Should apply discount if expired at is null")
+    void shouldApplyDiscountIfExpiredAtIsNull() {
+        OrderId orderId = new OrderId("order-1");
+        DiscountId discountId = new DiscountId("expired-discount");
+
+        Order order = createOrderWithTotalAs(orderId, 100.0);
+        Discount discount = createDiscountWithExpiredAtNull(discountId);
+
+        ApplyDiscountRequest request = new ApplyDiscountRequest(orderId, List.of(discountId));
+        when(orderRepository.findById(orderId)).thenReturn(Optional.of(order));
+        when(discountRepository.findById(discountId)).thenReturn(Optional.of(discount));
+
+        ApplyDiscountResponse response = sut.apply(request);
+
+        assertThat(order.getDiscounts()).contains(discount);
+        assertThat(response.appliedDiscounts()).contains(discount);
+        assertThat(discount.getExpiration()).isEqualTo(null);
+        assertThat(order.getTotal()).isEqualTo(90.0);
+
+        verify(orderRepository, times(1)).findById(orderId);
+        verify(discountRepository, times(1)).findById(discountId);
+        verify(orderRepository, times(1)).save(order);
+    }
+
     private Order createOrderWithTotalAs(OrderId orderId, double total) {
         OrderItem item = new OrderItem(new ProductId("sample"), 1, total);
         return new Order(
@@ -441,5 +466,15 @@ public class ApplyDiscountServiceTest {
         Order order = createOrderWithTotalAs(orderId, 100.0);
         order.addDiscount(discount);
         return order;
+    }
+
+    private Discount createDiscountWithExpiredAtNull(DiscountId discountId) {
+        return new Discount(
+                discountId,
+                new MinimumValueDiscountRule(0, 10),
+                DiscountType.COUPON,
+                true,
+                null
+        );
     }
 }
